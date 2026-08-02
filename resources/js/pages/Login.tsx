@@ -30,24 +30,30 @@ export default function Login({ authForm, busy, error, onChange, onSubmit }: Log
                     <p className="balance-label">Compte teen-reward</p>
                     <div className="balance-amount">🔐</div>
                     <form className="login-form" onSubmit={onSubmit}>
-                        <input
-                            type="email"
-                            value={authForm.email}
-                            onChange={(event) => onChange('email', event.target.value)}
-                            placeholder="Email"
-                            className="login-input"
-                            autoComplete="email"
-                            required
-                        />
-                        <input
-                            type="password"
-                            value={authForm.password}
-                            onChange={(event) => onChange('password', event.target.value)}
-                            placeholder="Mot de passe"
-                            className="login-input"
-                            autoComplete="current-password"
-                            required
-                        />
+                        <div className="form-field">
+                            <label htmlFor="login-email">Email</label>
+                            <input
+                                id="login-email"
+                                type="email"
+                                value={authForm.email}
+                                onChange={(event) => onChange('email', event.target.value)}
+                                className="login-input"
+                                autoComplete="email"
+                                required
+                            />
+                        </div>
+                        <div className="form-field">
+                            <label htmlFor="login-password">Mot de passe</label>
+                            <input
+                                id="login-password"
+                                type="password"
+                                value={authForm.password}
+                                onChange={(event) => onChange('password', event.target.value)}
+                                className="login-input"
+                                autoComplete="current-password"
+                                required
+                            />
+                        </div>
                         <button type="submit" className="primary-btn login-btn" disabled={busy}>
                             {busy ? 'Connexion…' : 'Se connecter'}
                         </button>

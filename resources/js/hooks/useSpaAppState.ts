@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiRequest } from '../legacy/spa/api';
-import type { ApiSuccessPayload, AppPage, BootstrapPayload, ChoreDraft, RewardDraft } from '../type';
+import type { ApiSuccessPayload, AppPage, BootstrapPayload, ChoreDraft, RewardDraft, TeenDraft } from '../type';
 import { EMPTY_PAYLOAD, INITIAL_AUTH_FORM, levelFromCoins, resolveErrorMessage } from '../spa/utils';
 
 const request = apiRequest as (url: string, options?: { method?: string; body?: unknown }) => Promise<unknown>;
@@ -261,6 +261,64 @@ export function useSpaAppState() {
         }
     }
 
+    async function createTeen(input: TeenDraft) {
+        setBusyKey('teen:create');
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request('/api/teens', {
+                method: 'POST',
+                body: {
+                    name: input.name,
+                    email: input.email,
+                    points_balance: input.pointsBalance,
+                    password: input.password,
+                    password_confirmation: input.passwordConfirmation,
+                },
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+
+            return true;
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+
+            return false;
+        } finally {
+            setBusyKey('');
+        }
+    }
+
+    async function updateTeen(teenId: number, input: TeenDraft) {
+        setBusyKey(`teen:update:${teenId}`);
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request(`/api/teens/${teenId}`, {
+                method: 'PUT',
+                body: {
+                    name: input.name,
+                    email: input.email,
+                    points_balance: input.pointsBalance,
+                    password: input.password || undefined,
+                    password_confirmation: input.password ? input.passwordConfirmation : undefined,
+                },
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+
+            return true;
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+
+            return false;
+        } finally {
+            setBusyKey('');
+        }
+    }
+
     async function redeemReward(rewardId: number) {
         setBusyKey(`redeem:${rewardId}`);
         setPanelError('');
@@ -314,6 +372,8 @@ export function useSpaAppState() {
         createReward,
         updateReward,
         deleteReward,
+        createTeen,
+        updateTeen,
         redeemReward,
         updateAuthForm,
     };

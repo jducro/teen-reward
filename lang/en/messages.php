@@ -31,6 +31,11 @@ return [
         'not_enough_points' => 'You do not have enough points.',
         'redeemed_with_voucher' => 'Reward redeemed. Voucher: :voucher',
     ],
+    'teen' => [
+        'created' => 'Teen account created.',
+        'updated' => 'Teen account updated.',
+        'points_updated' => 'Teen points updated.',
+    ],
     'completion' => [
         'approved_points_added' => 'Chore approved and points added.',
     ],

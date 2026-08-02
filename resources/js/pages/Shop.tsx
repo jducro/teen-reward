@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import AppIcon from '../components/AppIcon';
+import IconPicker from '../components/IconPicker';
+import { rewardIconOptions } from '../spa/iconOptions';
 import type { PurchasedReward, Reward, RewardDraft, ShopProps } from '../type';
 
 export default function Shop({
@@ -19,7 +22,7 @@ export default function Shop({
     name: '',
     pointsCost: 50,
     durationMinutes: 60,
-    emoji: '🎁',
+    emoji: 'mi:card_giftcard',
   });
 
   async function buy(reward: Reward) {
@@ -57,7 +60,7 @@ export default function Shop({
       name: '',
       pointsCost: 50,
       durationMinutes: 60,
-      emoji: '🎁',
+      emoji: 'mi:card_giftcard',
     });
   }
 
@@ -99,46 +102,56 @@ export default function Shop({
 
       {canManage ? (
         <form className="crud-panel" onSubmit={submitParentForm}>
-          <div className="crud-row">
-            <input
-              className="crud-input crud-emoji-input"
-              placeholder="🎁"
-              maxLength={16}
+          <div className="form-field">
+            <label>Icône</label>
+            <IconPicker
               value={form.emoji}
-              onChange={(event) => setForm((current) => ({ ...current, emoji: event.target.value }))}
-              required
-            />
-            <input
-              className="crud-input"
-              placeholder="Nom de la récompense"
-              value={form.name}
-              onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
-              required
-            />
-            <input
-              className="crud-input"
-              type="number"
-              min={0}
-              placeholder="Coût points"
-              value={form.pointsCost}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, pointsCost: Number(event.target.value) || 0 }))
-              }
-              required
+              options={rewardIconOptions}
+              onChange={(nextIcon) => setForm((current) => ({ ...current, emoji: nextIcon }))}
             />
           </div>
+
           <div className="crud-row">
-            <input
-              className="crud-input"
-              type="number"
-              min={1}
-              placeholder="Durée (minutes)"
-              value={form.durationMinutes}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, durationMinutes: Number(event.target.value) || 1 }))
-              }
-              required
-            />
+            <div className="form-field">
+              <label htmlFor="reward-name">Nom de la récompense</label>
+              <input
+                id="reward-name"
+                className="crud-input"
+                value={form.name}
+                onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="reward-cost">Coût points</label>
+              <input
+                id="reward-cost"
+                className="crud-input"
+                type="number"
+                min={0}
+                value={form.pointsCost}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, pointsCost: Number(event.target.value) || 0 }))
+                }
+                required
+              />
+            </div>
+          </div>
+          <div className="crud-row">
+            <div className="form-field">
+              <label htmlFor="reward-duration">Durée (minutes)</label>
+              <input
+                id="reward-duration"
+                className="crud-input"
+                type="number"
+                min={1}
+                value={form.durationMinutes}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, durationMinutes: Number(event.target.value) || 1 }))
+                }
+                required
+              />
+            </div>
           </div>
           <div className="crud-actions">
             <button
@@ -173,7 +186,13 @@ export default function Shop({
               whileHover={canTeenRedeem || canManage ? { scale: 1.05 } : {}}
               whileTap={canTeenRedeem ? { scale: 0.95 } : {}}
             >
-              <div className="reward-emoji">{reward.emoji || emojiForReward(reward.name)}</div>
+              <div className="reward-emoji">
+                <AppIcon
+                  value={reward.emoji}
+                  fallback={emojiForReward(reward.name)}
+                  className="reward-icon-glyph"
+                />
+              </div>
               <div className="reward-name">{reward.name}</div>
               <div className="reward-cost">💰 {reward.pointsCost}</div>
               <p className="reward-duration">{reward.durationMinutes} min</p>
@@ -242,7 +261,9 @@ export default function Shop({
               </motion.div>
               <h3>Échange réussi !</h3>
               <p style={{ color: '#666', marginTop: 4 }}>Tu as obtenu :</p>
-              <div style={{ fontSize: 36, margin: '12px 0' }}>{purchased.emoji}</div>
+              <div style={{ margin: '12px 0' }}>
+                <AppIcon value={purchased.emoji} className="modal-reward-icon" />
+              </div>
               <div style={{ fontWeight: 800, fontSize: 20 }}>{purchased.name}</div>
               <p className="voucher-code">Code: {purchased.voucherCode}</p>
             </motion.div>

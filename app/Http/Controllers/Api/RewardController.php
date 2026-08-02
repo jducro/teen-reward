@@ -84,7 +84,7 @@ class RewardController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'points_cost' => ['required', 'integer', 'min:0'],
             'duration_minutes' => ['required', 'integer', 'min:1'],
-            'emoji' => ['nullable', 'string', 'max:16'],
+            'emoji' => ['nullable', 'string', 'max:64'],
         ]);
 
         $data['emoji'] = filled($data['emoji'] ?? null) ? $data['emoji'] : '🎁';

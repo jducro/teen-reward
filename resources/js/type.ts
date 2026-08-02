@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react';
 
 export type Role = 'parent' | 'teen';
-export type AppPage = 'home' | 'tasks' | 'shop';
+export type AppPage = 'home' | 'tasks' | 'shop' | 'teens';
 
 export type User = {
     id: number;
@@ -41,8 +41,24 @@ export type Reward = {
     emoji: string;
 };
 
+export type Teen = {
+    id: number;
+    name: string;
+    email: string;
+    pointsBalance: number;
+};
+
+export type TeenDraft = {
+    name: string;
+    email: string;
+    pointsBalance: number;
+    password: string;
+    passwordConfirmation: string;
+};
+
 export type BootstrapPayload = {
     user: User | null;
+    teens: Teen[];
     chores: Chore[];
     claims: Claim[];
     rewards: Reward[];

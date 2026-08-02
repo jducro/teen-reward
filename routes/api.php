@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ChoreController;
 use App\Http\Controllers\Api\ClaimController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RewardController;
+use App\Http\Controllers\Api\TeenController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/bootstrap', AppBootstrapController::class)->name('api.bootstrap');
@@ -28,6 +29,10 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/claims/{claim}/approve', [ClaimController::class, 'approve'])->name('api.claims.approve');
     Route::post('/claims/{claim}/reject', [ClaimController::class, 'reject'])->name('api.claims.reject');
+
+    Route::post('/teens', [TeenController::class, 'store'])->name('api.teens.store');
+    Route::put('/teens/{teen}', [TeenController::class, 'update'])->name('api.teens.update');
+    Route::patch('/teens/{teen}/points', [TeenController::class, 'updatePoints'])->name('api.teens.points.update');
 
     Route::post('/rewards', [RewardController::class, 'store'])->name('api.rewards.store');
     Route::put('/rewards/{reward}', [RewardController::class, 'update'])->name('api.rewards.update');

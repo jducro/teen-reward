@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
-import type { AppPage, BootstrapPayload, ChoreDraft, RedeemResult, RewardDraft, User } from '../type';
+import type { AppPage, BootstrapPayload, ChoreDraft, RedeemResult, RewardDraft, TeenDraft, User } from '../type';
 import Dashboard from './Dashboard';
 import Shop from './Shop';
+import Teens from './Teens';
 import Tasks from './Tasks';
 
 type AuthenticatedAppProps = {
@@ -26,6 +27,8 @@ type AuthenticatedAppProps = {
     onCreateReward: (input: RewardDraft) => Promise<boolean>;
     onUpdateReward: (rewardId: number, input: RewardDraft) => Promise<boolean>;
     onDeleteReward: (rewardId: number) => Promise<boolean>;
+    onCreateTeen: (input: TeenDraft) => Promise<boolean>;
+    onUpdateTeen: (teenId: number, input: TeenDraft) => Promise<boolean>;
 };
 
 export default function AuthenticatedApp({
@@ -49,6 +52,8 @@ export default function AuthenticatedApp({
     onCreateReward,
     onUpdateReward,
     onDeleteReward,
+    onCreateTeen,
+    onUpdateTeen,
 }: AuthenticatedAppProps) {
     return (
         <>
@@ -117,9 +122,19 @@ export default function AuthenticatedApp({
                             onDelete={onDeleteReward}
                         />
                     )}
+
+                    {page === 'teens' && (
+                        <Teens
+                            teens={payload.teens}
+                            busyKey={busyKey}
+                            canManage={isParent}
+                            onCreateTeen={onCreateTeen}
+                            onUpdateTeen={onUpdateTeen}
+                        />
+                    )}
                 </motion.div>
             </AnimatePresence>
-            <Navbar setPage={setPage} activePage={page} />
+            <Navbar setPage={setPage} activePage={page} isParent={isParent} />
         </>
     );
 }

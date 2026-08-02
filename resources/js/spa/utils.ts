@@ -2,6 +2,7 @@ import type { ApiError, AuthForm, BootstrapPayload } from '../type';
 
 export const EMPTY_PAYLOAD: BootstrapPayload = {
     user: null,
+    teens: [],
     chores: [],
     claims: [],
     rewards: [],

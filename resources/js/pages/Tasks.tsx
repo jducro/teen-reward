@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import AppIcon from '../components/AppIcon';
+import IconPicker from '../components/IconPicker';
+import { choreIconOptions } from '../spa/iconOptions';
 import type { Claim, Chore, ChoreDraft, DoneTask, TasksProps } from '../type';
 
 const FILTERS = ['tous', 'rapide', 'fun', 'gros'] as const;
@@ -54,7 +57,7 @@ export default function Tasks({
     title: '',
     description: '',
     pointsValue: 20,
-    emoji: '🧹',
+    emoji: 'mi:cleaning_services',
   });
 
   const latestClaimByChore = useMemo(() => {
@@ -110,7 +113,7 @@ export default function Tasks({
       title: '',
       description: '',
       pointsValue: 20,
-      emoji: '🧹',
+      emoji: 'mi:cleaning_services',
     });
   }
 
@@ -152,40 +155,50 @@ export default function Tasks({
 
       {canManage ? (
         <form className="crud-panel" onSubmit={submitParentForm}>
-          <div className="crud-row">
-            <input
-              className="crud-input crud-emoji-input"
-              placeholder="🧹"
-              maxLength={16}
+          <div className="form-field">
+            <label>Icône</label>
+            <IconPicker
               value={form.emoji}
-              onChange={(event) => setForm((current) => ({ ...current, emoji: event.target.value }))}
-              required
-            />
-            <input
-              className="crud-input"
-              placeholder="Titre de la mission"
-              value={form.title}
-              onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-              required
-            />
-            <input
-              className="crud-input"
-              type="number"
-              min={0}
-              placeholder="Points"
-              value={form.pointsValue}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, pointsValue: Number(event.target.value) || 0 }))
-              }
-              required
+              options={choreIconOptions}
+              onChange={(nextIcon) => setForm((current) => ({ ...current, emoji: nextIcon }))}
             />
           </div>
-          <textarea
-            className="crud-textarea"
-            placeholder="Description (optionnelle)"
-            value={form.description}
-            onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
-          />
+
+          <div className="crud-row">
+            <div className="form-field">
+              <label htmlFor="task-title">Titre de la mission</label>
+              <input
+                id="task-title"
+                className="crud-input"
+                value={form.title}
+                onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="task-points">Points</label>
+              <input
+                id="task-points"
+                className="crud-input"
+                type="number"
+                min={0}
+                value={form.pointsValue}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, pointsValue: Number(event.target.value) || 0 }))
+                }
+                required
+              />
+            </div>
+          </div>
+          <div className="form-field">
+            <label htmlFor="task-description">Description (optionnelle)</label>
+            <textarea
+              id="task-description"
+              className="crud-textarea"
+              value={form.description}
+              onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
+            />
+          </div>
           <div className="crud-actions">
             <button type="submit" className="crud-submit-btn" disabled={busyKey === 'chore:create' || (editingId !== null && busyKey === `chore:update:${editingId}`)}>
               {editingId ? 'Mettre à jour' : 'Ajouter mission'}
@@ -233,7 +246,13 @@ export default function Tasks({
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className="task-icon">{task.emoji || iconForChore(task.title)}</div>
+                <div className="task-icon">
+                  <AppIcon
+                    value={task.emoji}
+                    fallback={iconForChore(task.title)}
+                    className="task-icon-glyph"
+                  />
+                </div>
                 <div className="task-info">
                   <div className="task-name">{task.title}</div>
                   <div className="task-meta">

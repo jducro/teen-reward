@@ -7,6 +7,7 @@ use App\Models\Chore;
 use App\Models\ChoreClaim;
 use App\Models\Reward;
 use App\Models\RewardRedemption;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,6 +21,7 @@ class AppBootstrapController extends Controller
             return response()->json([
                 'csrfToken' => csrf_token(),
                 'user' => null,
+                'teens' => [],
             ]);
         }
 
@@ -51,6 +53,14 @@ class AppBootstrapController extends Controller
             ->latest()
             ->get();
 
+        $teens = $user->role === 'parent'
+            ? User::query()
+                ->where('role', 'teen')
+                ->orderBy('name')
+                ->orderBy('id')
+                ->get()
+            : User::query()->whereKey([])->get();
+
         return response()->json([
             'csrfToken' => csrf_token(),
             'user' => [
@@ -65,6 +75,12 @@ class AppBootstrapController extends Controller
                 'pendingClaims' => $claims->where('status', 'pending')->count(),
                 'rewardsRedeemed' => $redemptions->count(),
             ],
+            'teens' => $teens->map(fn (User $teen) => [
+                'id' => $teen->id,
+                'name' => $teen->name,
+                'email' => $teen->email,
+                'pointsBalance' => $teen->points_balance,
+            ])->values(),
             'chores' => $chores->map(fn (Chore $chore) => [
                 'id' => $chore->id,
                 'title' => $chore->title,
