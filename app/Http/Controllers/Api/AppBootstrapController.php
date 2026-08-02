@@ -99,7 +99,7 @@ class AppBootstrapController extends Controller
                 'periodStart' => optional($claim->period_start)->toDateString(),
                 'pointsAwarded' => $claim->points_awarded,
                 'createdAt' => optional($claim->created_at)->toIso8601String(),
-                'chore' => $claim->relationLoaded('chore') && $claim->chore
+                'chore' => $claim->relationLoaded('chore')
                     ? [
                         'id' => $claim->chore->id,
                         'title' => $claim->chore->title,
@@ -107,7 +107,7 @@ class AppBootstrapController extends Controller
                         'emoji' => $claim->chore->emoji,
                     ]
                     : null,
-                'user' => $claim->relationLoaded('user') && $claim->user
+                'user' => $claim->relationLoaded('user')
                     ? [
                         'id' => $claim->user->id,
                         'name' => $claim->user->name,
