@@ -35,6 +35,7 @@ return [
         'created' => 'Teen account created.',
         'updated' => 'Teen account updated.',
         'points_updated' => 'Teen points updated.',
+        'deleted' => 'Teen account deleted.',
     ],
     'completion' => [
         'approved_points_added' => 'Chore approved and points added.',

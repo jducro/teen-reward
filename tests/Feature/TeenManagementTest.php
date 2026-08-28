@@ -7,7 +7,6 @@ use Tests\TestCase;
 
 class TeenManagementTest extends TestCase
 {
-
     public function test_parent_can_survey_teen_accounts_and_points_from_bootstrap_payload(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);
@@ -121,6 +120,49 @@ class TeenManagementTest extends TestCase
             'email' => 'new-teen@example.com',
             'role' => 'teen',
             'points_balance' => 20,
+        ]);
+    }
+
+    public function test_parent_can_delete_a_teen_account(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+        $teen = User::factory()->create(['role' => 'teen']);
+
+        $this->actingAs($parent)
+            ->deleteJson("/api/teens/{$teen->id}")
+            ->assertOk()
+            ->assertJsonPath('message', __('messages.teen.deleted'));
+
+        $this->assertDatabaseMissing('users', [
+            'id' => $teen->id,
+        ]);
+    }
+
+    public function test_non_parent_cannot_delete_teen(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $otherTeen = User::factory()->create(['role' => 'teen']);
+
+        $this->actingAs($teen)
+            ->deleteJson("/api/teens/{$otherTeen->id}")
+            ->assertStatus(403);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $otherTeen->id,
+        ]);
+    }
+
+    public function test_parent_cannot_delete_non_teen_user(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+        $otherParent = User::factory()->create(['role' => 'parent']);
+
+        $this->actingAs($parent)
+            ->deleteJson("/api/teens/{$otherParent->id}")
+            ->assertStatus(404);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $otherParent->id,
         ]);
     }
 }

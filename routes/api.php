@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/teens', [TeenController::class, 'store'])->name('api.teens.store');
     Route::put('/teens/{teen}', [TeenController::class, 'update'])->name('api.teens.update');
     Route::patch('/teens/{teen}/points', [TeenController::class, 'updatePoints'])->name('api.teens.points.update');
+    Route::delete('/teens/{teen}', [TeenController::class, 'destroy'])->name('api.teens.destroy');
 
     Route::post('/rewards', [RewardController::class, 'store'])->name('api.rewards.store');
     Route::put('/rewards/{reward}', [RewardController::class, 'update'])->name('api.rewards.update');

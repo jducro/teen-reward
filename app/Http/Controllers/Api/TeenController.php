@@ -82,4 +82,16 @@ class TeenController extends Controller
             'message' => __('messages.teen.points_updated'),
         ]);
     }
+
+    public function destroy(Request $request, User $teen): JsonResponse
+    {
+        abort_unless($request->user()?->role === 'parent', 403);
+        abort_unless($teen->role === 'teen', 404);
+
+        $teen->delete();
+
+        return response()->json([
+            'message' => __('messages.teen.deleted'),
+        ]);
+    }
 }

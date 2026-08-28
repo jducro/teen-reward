@@ -121,6 +121,7 @@ class AppBootstrapController extends Controller
                     'id' => $reward->id,
                     'name' => $reward->name,
                     'pointsCost' => $reward->points_cost,
+                    'type' => $reward->type,
                     'durationMinutes' => $reward->duration_minutes,
                     'emoji' => $reward->emoji,
                 ])

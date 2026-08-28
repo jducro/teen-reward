@@ -31,6 +31,12 @@ return [
         'not_enough_points' => 'Vous n\'avez pas assez de points.',
         'redeemed_with_voucher' => 'Récompense échangée. Bon : :voucher',
     ],
+    'teen' => [
+        'created' => 'Compte ado créé.',
+        'updated' => 'Compte ado mis à jour.',
+        'points_updated' => 'Points ado mis à jour.',
+        'deleted' => 'Compte ado supprimé.',
+    ],
     'completion' => [
         'approved_points_added' => 'Tâche approuvée et points ajoutés.',
     ],

@@ -5,6 +5,7 @@ import AccountSettingsPanel from './dashboard/AccountSettingsPanel';
 import ChoreBoard from './dashboard/ChoreBoard';
 import ParentChoreForm from './dashboard/ParentChoreForm';
 import ParentRewardForm from './dashboard/ParentRewardForm';
+import ParentTeenForm from './dashboard/ParentTeenForm';
 import TeenActivityPanel from './dashboard/TeenActivityPanel';
 
 function DashboardScreen({
@@ -56,26 +57,34 @@ function DashboardScreen({
             <SummaryCards summaryCards={summaryCards} />
 
             {user.role === 'parent' && (
-                <section className="grid gap-8 xl:grid-cols-[1fr,1fr]">
-                    <ChoreBoard
-                        busyKey={busyKey}
-                        chores={chores}
-                        editingChoreId={editingChoreId}
-                        beginEditChore={beginEditChore}
-                        resetChoreForm={resetChoreForm}
-                        runAction={runAction}
-                        user={user}
-                    />
+                <section className="space-y-8">
+                    <div className="grid gap-8 xl:grid-cols-[1fr,1fr]">
+                        <ChoreBoard
+                            busyKey={busyKey}
+                            chores={chores}
+                            editingChoreId={editingChoreId}
+                            beginEditChore={beginEditChore}
+                            resetChoreForm={resetChoreForm}
+                            runAction={runAction}
+                            user={user}
+                        />
 
-                    <ParentRewardForm
+                        <ParentRewardForm
+                            busyKey={busyKey}
+                            rewardErrors={rewardErrors}
+                            rewardForm={rewardForm}
+                            editingRewardId={editingRewardId}
+                            setRewardForm={setRewardForm}
+                            submitReward={submitReward}
+                            updateForm={updateForm}
+                            rewards={rewards}
+                            runAction={runAction}
+                        />
+                    </div>
+
+                    <ParentTeenForm
                         busyKey={busyKey}
-                        rewardErrors={rewardErrors}
-                        rewardForm={rewardForm}
-                        editingRewardId={editingRewardId}
-                        setRewardForm={setRewardForm}
-                        submitReward={submitReward}
-                        updateForm={updateForm}
-                        rewards={rewards}
+                        bootstrapped={bootstrapped}
                         runAction={runAction}
                     />
                 </section>
