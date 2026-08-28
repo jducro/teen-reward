@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UniFiSyncLog extends Model
 {
+    protected $table = 'unifi_sync_logs';
+
     protected $guarded = [];
 
     public $timestamps = false;

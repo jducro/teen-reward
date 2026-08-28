@@ -9,9 +9,21 @@ class UniFiService
 {
     private ?Client $client = null;
 
-    public function __construct()
+    private bool $initialized = false;
+
+    /**
+     * Initialize and authenticate with UniFi controller (lazy-loaded).
+     *
+     * @throws \Exception
+     */
+    private function ensureConnected(): void
     {
+        if ($this->initialized) {
+            return;
+        }
+
         $this->initializeClient();
+        $this->initialized = true;
     }
 
     /**
@@ -54,18 +66,11 @@ class UniFiService
         }
     }
 
-    /**
-     * Generate a guest voucher from UniFi.
-     *
-     * @param int $duration Duration in minutes
-     * @param ?int $bandwidth Bandwidth limit in Kbps (optional)
-     * @return array ['code' => string, 'expires_at' => \Carbon\Carbon]
-     *
-     * @throws \Exception
-     */
     public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
     {
         try {
+            $this->ensureConnected();
+
             $voucher_params = [
                 'n_vouchers' => 1,
                 'expire' => $duration,
@@ -123,6 +128,8 @@ class UniFiService
     public function revokeVoucher(string $voucherCode): bool
     {
         try {
+            $this->ensureConnected();
+
             $this->client->revoke_voucher($voucherCode);
 
             Log::info('UniFi voucher revoked successfully', [
@@ -151,6 +158,8 @@ class UniFiService
     public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
     {
         try {
+            $this->ensureConnected();
+
             // Normalize MAC address format
             $deviceMac = strtolower(str_replace('-', ':', $deviceMac));
 
@@ -193,6 +202,8 @@ class UniFiService
     public function unregisterDevice(string $deviceMac): bool
     {
         try {
+            $this->ensureConnected();
+
             // Normalize MAC address format
             $deviceMac = strtolower(str_replace('-', ':', $deviceMac));
 
@@ -220,6 +231,7 @@ class UniFiService
     public function isHealthy(): bool
     {
         try {
+            $this->ensureConnected();
             $this->client->stat_client();
             return true;
         } catch (\Exception $e) {
