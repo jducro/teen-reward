@@ -17,7 +17,7 @@ return new class extends Migration
             $table->enum('status', ['success', 'failure']);
             $table->json('api_response')->nullable();
             $table->text('error_message')->nullable();
-            $table->createdAt();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 
