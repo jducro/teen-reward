@@ -7,12 +7,10 @@ use App\Models\ChoreClaim;
 use App\Models\Reward;
 use App\Models\User;
 use App\Services\UniFiService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MvpFlowTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

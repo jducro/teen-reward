@@ -3,12 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TeenManagementTest extends TestCase
 {
-    use RefreshDatabase;
 
     public function test_parent_can_survey_teen_accounts_and_points_from_bootstrap_payload(): void
     {

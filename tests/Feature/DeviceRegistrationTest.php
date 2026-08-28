@@ -5,12 +5,10 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\UserDevice;
 use App\Services\UniFiService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class DeviceRegistrationTest extends TestCase
 {
-    use RefreshDatabase;
 
     protected function setUp(): void
     {

@@ -7,12 +7,10 @@ use App\Models\RewardRedemption;
 use App\Models\UniFiSyncLog;
 use App\Models\User;
 use App\Services\UniFiService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UniFiRewardRedemptionTest extends TestCase
 {
-    use RefreshDatabase;
 
     private UniFiService $unifiService;
 

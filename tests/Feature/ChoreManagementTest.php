@@ -3,13 +3,11 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Models\User;
 use App\Models\Chore;
 
 class ChoreManagementTest extends TestCase
 {
-    use RefreshDatabase;
 
     public function test_parent_can_create_edit_and_delete_chore(): void
     {

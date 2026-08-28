@@ -4,12 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Reward;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class RewardManagementTest extends TestCase
 {
-    use RefreshDatabase;
 
     public function test_parent_can_create_edit_and_delete_reward(): void
     {
