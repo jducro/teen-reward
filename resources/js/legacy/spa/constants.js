@@ -8,6 +8,14 @@ export const defaultChoreForm = {
     active: true,
 };
 
+export const defaultRewardForm = {
+    name: '',
+    pointsCost: 10,
+    durationMinutes: 60,
+    emoji: '🎁',
+    description: '',
+};
+
 export const defaultAuthForm = {
     name: '',
     email: '',

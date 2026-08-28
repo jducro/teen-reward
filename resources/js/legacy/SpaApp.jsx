@@ -6,7 +6,7 @@ import LoadingScreen from './components/LoadingScreen';
 import AuthScreen from './sections/AuthScreen';
 import DashboardScreen from './sections/DashboardScreen';
 import { apiRequest } from './spa/api';
-import { defaultAuthForm, defaultChoreForm, defaultPasswordForm } from './spa/constants';
+import { defaultAuthForm, defaultChoreForm, defaultPasswordForm, defaultRewardForm } from './spa/constants';
 
 function App() {
     const intl = useIntl();
@@ -21,6 +21,9 @@ function App() {
     const [choreForm, setChoreForm] = useState(defaultChoreForm);
     const [editingChoreId, setEditingChoreId] = useState(null);
     const [choreErrors, setChoreErrors] = useState({});
+    const [rewardForm, setRewardForm] = useState(defaultRewardForm);
+    const [editingRewardId, setEditingRewardId] = useState(null);
+    const [rewardErrors, setRewardErrors] = useState({});
     const [profileForm, setProfileForm] = useState({ name: '', email: '' });
     const [profileErrors, setProfileErrors] = useState({});
     const [passwordForm, setPasswordForm] = useState(defaultPasswordForm);
@@ -195,6 +198,37 @@ function App() {
         );
     }
 
+    async function submitReward(event) {
+        event.preventDefault();
+        setRewardErrors({});
+
+        const method = editingRewardId ? 'PUT' : 'POST';
+        const url = editingRewardId ? `/api/rewards/${editingRewardId}` : '/api/rewards';
+
+        // Convert camelCase to snake_case for API
+        const body = {
+            name: rewardForm.name,
+            points_cost: rewardForm.pointsCost,
+            duration_minutes: rewardForm.durationMinutes,
+            emoji: rewardForm.emoji || '🎁',
+        };
+
+        await runAction(
+            editingRewardId ? `reward:update:${editingRewardId}` : 'reward:create',
+            () => apiRequest(url, { method, body }),
+            {
+                onSuccess: () => {
+                    setEditingRewardId(null);
+                    setRewardForm(defaultRewardForm);
+                },
+                onError: (error) => {
+                    setRewardErrors(error.errors);
+                    setPanelError(error.message);
+                },
+            },
+        );
+    }
+
     async function updateProfile(event) {
         event.preventDefault();
         setProfileErrors({});
@@ -271,17 +305,22 @@ function App() {
                             deleteErrors={deleteErrors}
                             deletePassword={deletePassword}
                             editingChoreId={editingChoreId}
+                            editingRewardId={editingRewardId}
                             passwordErrors={passwordErrors}
                             passwordForm={passwordForm}
                             profileErrors={profileErrors}
                             profileForm={profileForm}
+                            rewardErrors={rewardErrors}
+                            rewardForm={rewardForm}
                             resetChoreForm={resetChoreForm}
                             runAction={runAction}
                             setChoreForm={setChoreForm}
+                            setRewardForm={setRewardForm}
                             setDeletePassword={setDeletePassword}
                             setPasswordForm={setPasswordForm}
                             setProfileForm={setProfileForm}
                             submitChore={submitChore}
+                            submitReward={submitReward}
                             summaryCards={summaryCards}
                             updateForm={updateForm}
                             updatePassword={updatePassword}

@@ -4,6 +4,7 @@ import ActionCenter from './dashboard/ActionCenter';
 import AccountSettingsPanel from './dashboard/AccountSettingsPanel';
 import ChoreBoard from './dashboard/ChoreBoard';
 import ParentChoreForm from './dashboard/ParentChoreForm';
+import ParentRewardForm from './dashboard/ParentRewardForm';
 import TeenActivityPanel from './dashboard/TeenActivityPanel';
 
 function DashboardScreen({
@@ -16,17 +17,22 @@ function DashboardScreen({
     deleteErrors,
     deletePassword,
     editingChoreId,
+    editingRewardId,
     passwordErrors,
     passwordForm,
     profileErrors,
     profileForm,
+    rewardErrors,
+    rewardForm,
     resetChoreForm,
     runAction,
     setChoreForm,
+    setRewardForm,
     setDeletePassword,
     setPasswordForm,
     setProfileForm,
     submitChore,
+    submitReward,
     summaryCards,
     updateForm,
     updatePassword,
@@ -49,31 +55,47 @@ function DashboardScreen({
         >
             <SummaryCards summaryCards={summaryCards} />
 
-            <section className="grid gap-8 xl:grid-cols-[1.1fr,0.9fr]">
-                <ChoreBoard
-                    busyKey={busyKey}
-                    chores={chores}
-                    editingChoreId={editingChoreId}
-                    beginEditChore={beginEditChore}
-                    resetChoreForm={resetChoreForm}
-                    runAction={runAction}
-                    user={user}
-                />
-
-                {user.role === 'parent' ? (
-                    <ParentChoreForm
+            {user.role === 'parent' && (
+                <section className="grid gap-8 xl:grid-cols-[1fr,1fr]">
+                    <ChoreBoard
                         busyKey={busyKey}
-                        choreErrors={choreErrors}
-                        choreForm={choreForm}
+                        chores={chores}
                         editingChoreId={editingChoreId}
-                        setChoreForm={setChoreForm}
-                        submitChore={submitChore}
-                        updateForm={updateForm}
+                        beginEditChore={beginEditChore}
+                        resetChoreForm={resetChoreForm}
+                        runAction={runAction}
+                        user={user}
                     />
-                ) : (
+
+                    <ParentRewardForm
+                        busyKey={busyKey}
+                        rewardErrors={rewardErrors}
+                        rewardForm={rewardForm}
+                        editingRewardId={editingRewardId}
+                        setRewardForm={setRewardForm}
+                        submitReward={submitReward}
+                        updateForm={updateForm}
+                        rewards={rewards}
+                        runAction={runAction}
+                    />
+                </section>
+            )}
+
+            {user.role === 'teen' && (
+                <section className="grid gap-8 xl:grid-cols-[1.1fr,0.9fr]">
+                    <ChoreBoard
+                        busyKey={busyKey}
+                        chores={chores}
+                        editingChoreId={editingChoreId}
+                        beginEditChore={beginEditChore}
+                        resetChoreForm={resetChoreForm}
+                        runAction={runAction}
+                        user={user}
+                    />
+
                     <TeenActivityPanel claims={claims} redemptions={redemptions} />
-                )}
-            </section>
+                </section>
+            )}
 
             <section className="grid gap-8 xl:grid-cols-[1fr,0.9fr]">
                 <ActionCenter
