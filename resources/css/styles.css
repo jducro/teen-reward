@@ -505,6 +505,30 @@ body {
   cursor: not-allowed;
 }
 
+.crud-type-btn {
+  flex: 1;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #f9f9f9;
+  color: #444;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.crud-type-btn:hover {
+  border-color: #999;
+  background: #f0f0f0;
+}
+
+.crud-type-btn.active {
+  border-color: #FF9F43;
+  background: #fff8f0;
+  color: #FF9F43;
+}
+
 .task-card {
   background: white;
   border-radius: 20px;

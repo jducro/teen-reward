@@ -23,6 +23,7 @@ export default function Shop({
     pointsCost: 50,
     durationMinutes: 60,
     emoji: 'mi:card_giftcard',
+    type: 'physical',
   });
 
   async function buy(reward: Reward) {
@@ -51,6 +52,7 @@ export default function Shop({
       pointsCost: reward.pointsCost,
       durationMinutes: reward.durationMinutes,
       emoji: reward.emoji,
+      type: reward.type,
     });
   }
 
@@ -61,6 +63,7 @@ export default function Shop({
       pointsCost: 50,
       durationMinutes: 60,
       emoji: 'mi:card_giftcard',
+      type: 'physical',
     });
   }
 
@@ -72,6 +75,7 @@ export default function Shop({
       pointsCost: form.pointsCost,
       durationMinutes: form.durationMinutes,
       emoji: form.emoji.trim(),
+      type: form.type,
     };
 
     const success = editingId
@@ -111,6 +115,25 @@ export default function Shop({
             />
           </div>
 
+          <div className="form-field">
+            <label>Type de récompense</label>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              {[
+                { value: 'physical', label: 'Physique' },
+                { value: 'wifi', label: 'WiFi' },
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setForm((current) => ({ ...current, type: type.value as 'physical' | 'wifi' }))}
+                  className={`crud-type-btn ${form.type === type.value ? 'active' : ''}`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="crud-row">
             <div className="form-field">
               <label htmlFor="reward-name">Nom de la récompense</label>
@@ -137,22 +160,24 @@ export default function Shop({
               />
             </div>
           </div>
-          <div className="crud-row">
-            <div className="form-field">
-              <label htmlFor="reward-duration">Durée (minutes)</label>
-              <input
-                id="reward-duration"
-                className="crud-input"
-                type="number"
-                min={1}
-                value={form.durationMinutes}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, durationMinutes: Number(event.target.value) || 1 }))
-                }
-                required
-              />
+          {form.type === 'wifi' && (
+            <div className="crud-row">
+              <div className="form-field">
+                <label htmlFor="reward-duration">Durée (minutes)</label>
+                <input
+                  id="reward-duration"
+                  className="crud-input"
+                  type="number"
+                  min={1}
+                  value={form.durationMinutes}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, durationMinutes: Number(event.target.value) || 1 }))
+                  }
+                  required
+                />
+              </div>
             </div>
-          </div>
+          )}
           <div className="crud-actions">
             <button
               type="submit"
@@ -194,8 +219,20 @@ export default function Shop({
                 />
               </div>
               <div className="reward-name">{reward.name}</div>
+              <div className="reward-type-badge" style={{
+                backgroundColor: reward.type === 'wifi' ? '#06b6d4' : '#f59e0b',
+                color: reward.type === 'wifi' ? '#06b6d4' : '#f59e0b',
+                opacity: 0.2,
+                padding: '2px 8px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                marginTop: '4px',
+              }}>
+                {reward.type === 'wifi' ? '📡 WiFi' : '🎁 Physique'}
+              </div>
               <div className="reward-cost">💰 {reward.pointsCost}</div>
-              <p className="reward-duration">{reward.durationMinutes} min</p>
+              {reward.type === 'wifi' && <p className="reward-duration">{reward.durationMinutes} min</p>}
 
               {canManage ? (
                 <div className="reward-admin-actions">

@@ -33,12 +33,15 @@ export type Claim = {
     } | null;
 };
 
+export type RewardType = 'physical' | 'wifi';
+
 export type Reward = {
     id: number;
     name: string;
     pointsCost: number;
     durationMinutes: number;
     emoji: string;
+    type: RewardType;
 };
 
 export type Teen = {
@@ -91,6 +94,7 @@ export type RewardDraft = {
     pointsCost: number;
     durationMinutes: number;
     emoji: string;
+    type: RewardType;
 };
 
 export type RedeemResult = {
