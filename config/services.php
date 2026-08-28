@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'unifi' => [
+        'host' => env('UNIFI_HOST'),
+        'username' => env('UNIFI_USERNAME'),
+        'password' => env('UNIFI_PASSWORD'),
+        'site' => env('UNIFI_SITE', 'default'),
+        'allow_self_signed' => env('UNIFI_ALLOW_SELF_SIGNED', false),
+    ],
+
 ];
