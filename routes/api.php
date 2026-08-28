@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AppBootstrapController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChoreController;
 use App\Http\Controllers\Api\ClaimController;
+use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RewardController;
 use App\Http\Controllers\Api\TeenController;
@@ -38,4 +39,6 @@ Route::middleware('auth')->group(function () {
     Route::put('/rewards/{reward}', [RewardController::class, 'update'])->name('api.rewards.update');
     Route::delete('/rewards/{reward}', [RewardController::class, 'destroy'])->name('api.rewards.destroy');
     Route::post('/rewards/{reward}/redeem', [RewardController::class, 'redeem'])->name('api.rewards.redeem');
+
+    Route::apiResource('devices', DeviceController::class)->names('api.devices');
 });

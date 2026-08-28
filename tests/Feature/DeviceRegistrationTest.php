@@ -1,0 +1,215 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Models\UserDevice;
+use App\Services\UniFiService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class DeviceRegistrationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Mock UniFiService
+        $unifiService = $this->mock(UniFiService::class);
+        $this->app->instance(UniFiService::class, $unifiService);
+    }
+
+    public function test_teen_can_register_a_device(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $unifiService = $this->app->make(UniFiService::class);
+        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', null);
+
+        $response = $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'aa:bb:cc:dd:ee:ff',
+                'name' => 'iPhone',
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $teen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'name' => 'iPhone',
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_teen_can_register_device_with_bandwidth_limit(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $unifiService = $this->app->make(UniFiService::class);
+        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', 1024);
+
+        $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'aa:bb:cc:dd:ee:ff',
+                'name' => 'iPad',
+                'bandwidth_limit' => 1024,
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $teen->id,
+            'bandwidth_limit' => 1024,
+        ]);
+    }
+
+    public function test_mac_address_is_normalized_to_lowercase(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $unifiService = $this->app->make(UniFiService::class);
+        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', null);
+
+        $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'AA-BB-CC-DD-EE-FF', // uppercase with dashes
+                'name' => 'Device',
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $teen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff', // normalized
+        ]);
+    }
+
+    public function test_duplicate_device_registration_fails(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        UserDevice::create([
+            'user_id' => $teen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'status' => 'active',
+            'authorized_at' => now(),
+        ]);
+
+        $unifiService = $this->app->make(UniFiService::class);
+        $unifiService->shouldNotReceive('registerDevice');
+
+        $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'aa:bb:cc:dd:ee:ff',
+                'name' => 'Duplicate',
+            ])
+            ->assertUnprocessable();
+    }
+
+    public function test_invalid_mac_address_fails(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+
+        $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'invalid-mac',
+                'name' => 'Device',
+            ])
+            ->assertUnprocessable();
+    }
+
+    public function test_teen_can_list_their_devices(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $other = User::factory()->create(['role' => 'teen']);
+
+        UserDevice::create(['user_id' => $teen->id, 'mac_address' => 'aa:bb:cc:dd:ee:ff', 'status' => 'active', 'authorized_at' => now()]);
+        UserDevice::create(['user_id' => $teen->id, 'mac_address' => 'aa:bb:cc:dd:ee:11', 'status' => 'active', 'authorized_at' => now()]);
+        UserDevice::create(['user_id' => $other->id, 'mac_address' => 'aa:bb:cc:dd:ee:22', 'status' => 'active', 'authorized_at' => now()]);
+
+        $response = $this->actingAs($teen)
+            ->getJson('/api/devices')
+            ->assertOk();
+
+        $this->assertCount(2, $response->json('devices'));
+    }
+
+    public function test_teen_can_view_single_device(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $device = UserDevice::create([
+            'user_id' => $teen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'status' => 'active',
+            'authorized_at' => now(),
+        ]);
+
+        $this->actingAs($teen)
+            ->getJson("/api/devices/{$device->id}")
+            ->assertOk()
+            ->assertJsonPath('device.id', $device->id);
+    }
+
+    public function test_teen_cannot_view_other_users_device(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $other = User::factory()->create(['role' => 'teen']);
+        $device = UserDevice::create([
+            'user_id' => $other->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'status' => 'active',
+            'authorized_at' => now(),
+        ]);
+
+        $this->actingAs($teen)
+            ->getJson("/api/devices/{$device->id}")
+            ->assertForbidden();
+    }
+
+    public function test_teen_can_unregister_a_device(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+        $device = UserDevice::create([
+            'user_id' => $teen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'status' => 'active',
+            'authorized_at' => now(),
+        ]);
+
+        $unifiService = $this->app->make(UniFiService::class);
+        $unifiService->shouldReceive('unregisterDevice')->with($device->mac_address);
+
+        $this->actingAs($teen)
+            ->deleteJson("/api/devices/{$device->id}")
+            ->assertOk();
+
+        $this->assertDatabaseMissing('user_devices', ['id' => $device->id]);
+    }
+
+    public function test_parent_cannot_access_device_endpoints(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+
+        $this->actingAs($parent)
+            ->postJson('/api/devices', ['mac_address' => 'aa:bb:cc:dd:ee:ff'])
+            ->assertForbidden();
+
+        $this->actingAs($parent)
+            ->getJson('/api/devices')
+            ->assertForbidden();
+    }
+
+    public function test_unifi_registration_failure_is_handled(): void
+    {
+        $teen = User::factory()->create(['role' => 'teen']);
+
+        $unifiService = $this->app->make(UniFiService::class);
+        $unifiService->shouldReceive('registerDevice')
+            ->andThrow(new \Exception('UniFi unreachable'));
+
+        $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'aa:bb:cc:dd:ee:ff',
+                'name' => 'Device',
+            ])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseMissing('user_devices', ['mac_address' => 'aa:bb:cc:dd:ee:ff']);
+    }
+}
