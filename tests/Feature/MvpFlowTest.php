@@ -5,12 +5,29 @@ namespace Tests\Feature;
 use App\Models\Chore;
 use App\Models\Reward;
 use App\Models\User;
+use App\Services\UniFiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MvpFlowTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Mock UniFiService for this test
+        $unifiService = $this->mock(UniFiService::class);
+        $unifiService
+            ->shouldReceive('generateVoucher')
+            ->andReturn([
+                'code' => 'TEST-VOUCHER-123',
+                'expires_at' => now()->addHours(1),
+            ]);
+
+        $this->app->instance(UniFiService::class, $unifiService);
+    }
 
     public function test_parent_can_approve_a_chore_and_teen_can_redeem_a_voucher_reward(): void
     {
@@ -68,7 +85,8 @@ class MvpFlowTest extends TestCase
         $this->assertDatabaseHas('reward_redemptions', [
             'user_id' => $teen->id,
             'reward_id' => $reward->id,
-            'voucher_code' => 'VOUCHER-1-1',
+            'voucher_code' => 'TEST-VOUCHER-123',
+            'unifi_sync_status' => 'synced',
         ]);
     }
 }
