@@ -4,8 +4,61 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f6cd13899baa1317119b345e92a9bcb",
+    "content-hash": "3b3531dcdf2ae1b3166c94a6cd7a0731",
     "packages": [
+        {
+            "name": "art-of-wifi/unifi-api-client",
+            "version": "v2.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Art-of-WiFi/UniFi-API-client.git",
+                "reference": "ce7e6c84a05813ca52a03d5c6e6bac5e039d5b8f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Art-of-WiFi/UniFi-API-client/zipball/ce7e6c84a05813ca52a03d5c6e6bac5e039d5b8f",
+                "reference": "ce7e6c84a05813ca52a03d5c6e6bac5e039d5b8f",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=7.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "UniFi_API\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Art of WiFi",
+                    "email": "info@artofwifi.net",
+                    "homepage": "https://artofwifi.net"
+                }
+            ],
+            "description": "API client class for use with Ubiquiti's UniFi controller",
+            "homepage": "https://github.com/Art-of-WiFi/UniFi-API-client",
+            "keywords": [
+                "UBNT",
+                "api",
+                "client",
+                "controller",
+                "ubiquiti",
+                "unifi",
+                "unifi os"
+            ],
+            "support": {
+                "issues": "https://github.com/Art-of-WiFi/UniFi-API-client/issues",
+                "source": "https://github.com/Art-of-WiFi/UniFi-API-client/tree/v2.2.1"
+            },
+            "time": "2026-07-27T09:29:20+00:00"
+        },
         {
             "name": "brick/math",
             "version": "0.18.0",
