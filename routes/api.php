@@ -40,5 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/rewards/{reward}', [RewardController::class, 'destroy'])->name('api.rewards.destroy');
     Route::post('/rewards/{reward}/redeem', [RewardController::class, 'redeem'])->name('api.rewards.redeem');
 
-    Route::apiResource('devices', DeviceController::class)->names('api.devices');
+    // Device routes - pending must come before apiResource to avoid route matching issues
+    Route::get('/devices/pending', [DeviceController::class, 'pending'])->name('api.devices.pending');
+    Route::apiResource('devices', DeviceController::class)
+        ->only(['index', 'store', 'show', 'destroy'])
+        ->names('api.devices');
+    Route::put('/devices/{device}/approve', [DeviceController::class, 'approve'])->name('api.devices.approve');
+    Route::put('/devices/{device}/reject', [DeviceController::class, 'reject'])->name('api.devices.reject');
 });

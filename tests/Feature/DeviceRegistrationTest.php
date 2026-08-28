@@ -25,7 +25,8 @@ class DeviceRegistrationTest extends TestCase
     {
         $teen = User::factory()->create(['role' => 'teen']);
         $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', null);
+        // registerDevice should NOT be called - registration is deferred until parent approval
+        $unifiService->shouldNotReceive('registerDevice');
 
         $response = $this->actingAs($teen)
             ->postJson('/api/devices', [
@@ -38,7 +39,8 @@ class DeviceRegistrationTest extends TestCase
             'user_id' => $teen->id,
             'mac_address' => 'aa:bb:cc:dd:ee:ff',
             'name' => 'iPhone',
-            'status' => 'active',
+            'status' => 'pending_approval',
+            'authorized_at' => null,
         ]);
     }
 
@@ -46,7 +48,8 @@ class DeviceRegistrationTest extends TestCase
     {
         $teen = User::factory()->create(['role' => 'teen']);
         $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', 1024);
+        // registerDevice should NOT be called - registration is deferred until parent approval
+        $unifiService->shouldNotReceive('registerDevice');
 
         $this->actingAs($teen)
             ->postJson('/api/devices', [
@@ -59,6 +62,7 @@ class DeviceRegistrationTest extends TestCase
         $this->assertDatabaseHas('user_devices', [
             'user_id' => $teen->id,
             'bandwidth_limit' => 1024,
+            'status' => 'pending_approval',
         ]);
     }
 
@@ -66,7 +70,8 @@ class DeviceRegistrationTest extends TestCase
     {
         $teen = User::factory()->create(['role' => 'teen']);
         $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', null);
+        // registerDevice should NOT be called - registration is deferred until parent approval
+        $unifiService->shouldNotReceive('registerDevice');
 
         $this->actingAs($teen)
             ->postJson('/api/devices', [
@@ -199,17 +204,18 @@ class DeviceRegistrationTest extends TestCase
     {
         $teen = User::factory()->create(['role' => 'teen']);
 
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')
-            ->andThrow(new \Exception('UniFi unreachable'));
-
+        // Since registration is deferred, the teen CAN register successfully even if UniFi is down
         $this->actingAs($teen)
             ->postJson('/api/devices', [
                 'mac_address' => 'aa:bb:cc:dd:ee:ff',
                 'name' => 'Device',
             ])
-            ->assertUnprocessable();
+            ->assertCreated();
 
-        $this->assertDatabaseMissing('user_devices', ['mac_address' => 'aa:bb:cc:dd:ee:ff']);
+        // The device should exist with pending_approval status
+        $this->assertDatabaseHas('user_devices', [
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'status' => 'pending_approval',
+        ]);
     }
 }
