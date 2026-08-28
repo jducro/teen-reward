@@ -4,8 +4,6 @@ import ActionCenter from './dashboard/ActionCenter';
 import AccountSettingsPanel from './dashboard/AccountSettingsPanel';
 import ChoreBoard from './dashboard/ChoreBoard';
 import ParentChoreForm from './dashboard/ParentChoreForm';
-import ParentRewardForm from './dashboard/ParentRewardForm';
-import ParentTeenForm from './dashboard/ParentTeenForm';
 import TeenActivityPanel from './dashboard/TeenActivityPanel';
 
 function DashboardScreen({
@@ -18,22 +16,17 @@ function DashboardScreen({
     deleteErrors,
     deletePassword,
     editingChoreId,
-    editingRewardId,
     passwordErrors,
     passwordForm,
     profileErrors,
     profileForm,
-    rewardErrors,
-    rewardForm,
     resetChoreForm,
     runAction,
     setChoreForm,
-    setRewardForm,
     setDeletePassword,
     setPasswordForm,
     setProfileForm,
     submitChore,
-    submitReward,
     summaryCards,
     updateForm,
     updatePassword,
@@ -68,25 +61,7 @@ function DashboardScreen({
                             runAction={runAction}
                             user={user}
                         />
-
-                        <ParentRewardForm
-                            busyKey={busyKey}
-                            rewardErrors={rewardErrors}
-                            rewardForm={rewardForm}
-                            editingRewardId={editingRewardId}
-                            setRewardForm={setRewardForm}
-                            submitReward={submitReward}
-                            updateForm={updateForm}
-                            rewards={rewards}
-                            runAction={runAction}
-                        />
                     </div>
-
-                    <ParentTeenForm
-                        busyKey={busyKey}
-                        bootstrapped={bootstrapped}
-                        runAction={runAction}
-                    />
                 </section>
             )}
 
