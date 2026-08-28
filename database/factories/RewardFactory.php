@@ -16,9 +16,20 @@ class RewardFactory extends Factory
     {
         return [
             'name' => fake()->word(),
+            'type' => 'wifi',
             'points_cost' => 15,
             'duration_minutes' => 60,
             'emoji' => '🎁',
         ];
+    }
+
+    public function physical(): self
+    {
+        return $this->state(function () {
+            return [
+                'type' => 'physical',
+                'duration_minutes' => null,
+            ];
+        });
     }
 }

@@ -10,10 +10,10 @@ export const defaultChoreForm = {
 
 export const defaultRewardForm = {
     name: '',
+    type: 'physical',
     pointsCost: 10,
     durationMinutes: 60,
     emoji: '🎁',
-    description: '',
 };
 
 export const defaultAuthForm = {

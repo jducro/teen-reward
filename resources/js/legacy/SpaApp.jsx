@@ -208,8 +208,9 @@ function App() {
         // Convert camelCase to snake_case for API
         const body = {
             name: rewardForm.name,
+            type: rewardForm.type,
             points_cost: rewardForm.pointsCost,
-            duration_minutes: rewardForm.durationMinutes,
+            duration_minutes: rewardForm.type === 'wifi' ? rewardForm.durationMinutes : null,
             emoji: rewardForm.emoji || '🎁',
         };
 

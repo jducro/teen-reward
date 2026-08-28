@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Reward;
 use App\Models\RewardRedemption;
-use App\Models\User;
 use App\Models\UniFiSyncLog;
+use App\Models\User;
 use App\Services\UniFiService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -28,7 +28,7 @@ class UniFiRewardRedemptionTest extends TestCase
     public function test_teen_can_redeem_reward_and_receive_unifi_voucher(): void
     {
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
-        $reward = Reward::factory()->create(['points_cost' => 50, 'duration_minutes' => 60]);
+        $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 60]);
 
         // Mock successful voucher generation
         $this->unifiService
@@ -70,7 +70,7 @@ class UniFiRewardRedemptionTest extends TestCase
     public function test_teen_points_refunded_if_unifi_voucher_generation_fails(): void
     {
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
-        $reward = Reward::factory()->create(['points_cost' => 50, 'duration_minutes' => 60]);
+        $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 60]);
 
         // Mock failed voucher generation
         $this->unifiService
@@ -101,7 +101,7 @@ class UniFiRewardRedemptionTest extends TestCase
     public function test_teen_cannot_redeem_without_sufficient_points(): void
     {
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 30]);
-        $reward = Reward::factory()->create(['points_cost' => 50]);
+        $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi']);
 
         $this->actingAs($teen)
             ->postJson("/api/rewards/{$reward->id}/redeem")
@@ -120,7 +120,7 @@ class UniFiRewardRedemptionTest extends TestCase
     public function test_parent_cannot_redeem_rewards(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);
-        $reward = Reward::factory()->create();
+        $reward = Reward::factory()->create(['type' => 'wifi']);
 
         $this->actingAs($parent)
             ->postJson("/api/rewards/{$reward->id}/redeem")
@@ -130,7 +130,7 @@ class UniFiRewardRedemptionTest extends TestCase
     public function test_unifi_voucher_includes_duration_from_reward(): void
     {
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
-        $reward = Reward::factory()->create(['points_cost' => 50, 'duration_minutes' => 120]);
+        $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 120]);
 
         // Verify the service is called with the reward's duration
         $this->unifiService

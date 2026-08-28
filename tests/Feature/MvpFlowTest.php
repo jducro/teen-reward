@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Chore;
+use App\Models\ChoreClaim;
 use App\Models\Reward;
 use App\Models\User;
 use App\Services\UniFiService;
@@ -49,6 +50,7 @@ class MvpFlowTest extends TestCase
 
         $reward = Reward::factory()->create([
             'name' => '1 hour internet',
+            'type' => 'wifi',
             'points_cost' => 15,
             'duration_minutes' => 60,
         ]);
@@ -63,7 +65,7 @@ class MvpFlowTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $claim = \App\Models\ChoreClaim::first();
+        $claim = ChoreClaim::first();
 
         $this->actingAs($parent)
             ->postJson("/api/claims/{$claim->id}/approve")

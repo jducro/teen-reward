@@ -66,24 +66,30 @@ class RewardController extends Controller
             'reward_id' => $reward->id,
             'status' => 'fulfilled',
             'redeemed_at' => now(),
-            'unifi_sync_status' => 'pending',
+            'unifi_sync_status' => $reward->type === 'wifi' ? 'pending' : null,
         ]);
 
+        // Physical rewards don't need WiFi voucher generation
+        if ($reward->type === 'physical') {
+            return response()->json([
+                'message' => __('messages.reward.redeemed', ['reward' => $reward->name]),
+                'rewardCode' => 'PHYSICAL_'.$redemption->id,
+            ], 201);
+        }
+
+        // WiFi vouchers require UniFi integration
         try {
-            // Generate voucher from UniFi controller
             $voucher = $this->unifiService->generateVoucher(
                 duration: $reward->duration_minutes,
                 bandwidth: null
             );
 
-            // Update redemption with voucher details
             $redemption->update([
                 'voucher_code' => $voucher['code'],
                 'voucher_expires_at' => $voucher['expires_at'],
                 'unifi_sync_status' => 'synced',
             ]);
 
-            // Log successful sync
             UniFiSyncLog::create([
                 'redemption_id' => $redemption->id,
                 'status' => 'success',
@@ -96,7 +102,6 @@ class RewardController extends Controller
                 'voucherExpiresAt' => $voucher['expires_at'],
             ], 201);
         } catch (\Exception $e) {
-            // Mark as failed and log error
             $redemption->update([
                 'unifi_sync_status' => 'failed',
             ]);
@@ -107,11 +112,10 @@ class RewardController extends Controller
                 'error_message' => $e->getMessage(),
             ]);
 
-            // Refund the points since voucher generation failed
             $user->increment('points_balance', $reward->points_cost);
 
             return response()->json([
-                'message' => 'Failed to generate access voucher: ' . $e->getMessage(),
+                'message' => 'Failed to generate access voucher: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -123,8 +127,9 @@ class RewardController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:physical,wifi'],
             'points_cost' => ['required', 'integer', 'min:0'],
-            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'duration_minutes' => ['required_if:type,wifi', 'nullable', 'integer', 'min:1'],
             'emoji' => ['nullable', 'string', 'max:64'],
         ]);
 

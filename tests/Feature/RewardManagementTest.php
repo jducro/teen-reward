@@ -18,26 +18,27 @@ class RewardManagementTest extends TestCase
         $this->actingAs($parent)
             ->postJson('/api/rewards', [
                 'name' => 'Screen time 30 min',
+                'type' => 'wifi',
                 'points_cost' => 60,
                 'duration_minutes' => 30,
                 'emoji' => '📺',
             ])
             ->assertCreated();
 
-        $this->assertDatabaseHas('rewards', ['name' => 'Screen time 30 min', 'points_cost' => 60, 'emoji' => '📺']);
+        $this->assertDatabaseHas('rewards', ['name' => 'Screen time 30 min', 'points_cost' => 60, 'emoji' => '📺', 'type' => 'wifi']);
 
         $reward = Reward::first();
 
         $this->actingAs($parent)
             ->putJson("/api/rewards/{$reward->id}", [
                 'name' => 'Movie night',
+                'type' => 'physical',
                 'points_cost' => 120,
-                'duration_minutes' => 90,
                 'emoji' => '🎬',
             ])
             ->assertOk();
 
-        $this->assertDatabaseHas('rewards', ['name' => 'Movie night', 'points_cost' => 120, 'duration_minutes' => 90, 'emoji' => '🎬']);
+        $this->assertDatabaseHas('rewards', ['name' => 'Movie night', 'points_cost' => 120, 'emoji' => '🎬', 'type' => 'physical']);
 
         $this->actingAs($parent)
             ->deleteJson("/api/rewards/{$reward->id}")
@@ -54,6 +55,7 @@ class RewardManagementTest extends TestCase
         $this->actingAs($teen)
             ->postJson('/api/rewards', [
                 'name' => 'Nope',
+                'type' => 'wifi',
                 'points_cost' => 20,
                 'duration_minutes' => 10,
             ])
@@ -62,6 +64,7 @@ class RewardManagementTest extends TestCase
         $this->actingAs($teen)
             ->putJson("/api/rewards/{$reward->id}", [
                 'name' => 'Nope update',
+                'type' => 'wifi',
                 'points_cost' => 25,
                 'duration_minutes' => 10,
             ])
