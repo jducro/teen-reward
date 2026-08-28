@@ -319,6 +319,25 @@ export function useSpaAppState() {
         }
     }
 
+    async function deleteTeen(teenId: number) {
+        setBusyKey(`teen:delete:${teenId}`);
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request(`/api/teens/${teenId}`, {
+                method: 'DELETE',
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+            throw error;
+        } finally {
+            setBusyKey('');
+        }
+    }
+
     async function redeemReward(rewardId: number) {
         setBusyKey(`redeem:${rewardId}`);
         setPanelError('');
@@ -374,6 +393,7 @@ export function useSpaAppState() {
         deleteReward,
         createTeen,
         updateTeen,
+        deleteTeen,
         redeemReward,
         updateAuthForm,
     };

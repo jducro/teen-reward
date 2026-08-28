@@ -8,6 +8,7 @@ type TeensProps = {
   canManage: boolean;
   onCreateTeen: (input: TeenDraft) => Promise<boolean>;
   onUpdateTeen: (teenId: number, input: TeenDraft) => Promise<boolean>;
+  onDeleteTeen?: (teenId: number) => Promise<void>;
 };
 
 const defaultForm: TeenDraft = {
@@ -24,8 +25,10 @@ export default function Teens({
   canManage,
   onCreateTeen,
   onUpdateTeen,
+  onDeleteTeen,
 }: TeensProps) {
   const [editingTeenId, setEditingTeenId] = useState<number | null>(null);
+  const [confirmDeleteTeenId, setConfirmDeleteTeenId] = useState<number | null>(null);
   const [form, setForm] = useState<TeenDraft>(defaultForm);
 
   const orderedTeens = useMemo(
@@ -71,6 +74,16 @@ export default function Teens({
 
     if (success) {
       resetForm();
+    }
+  }
+
+  async function handleDeleteTeen(teenId: number) {
+    if (!onDeleteTeen) return;
+    try {
+      await onDeleteTeen(teenId);
+      setConfirmDeleteTeenId(null);
+    } catch (error) {
+      console.error('Failed to delete teen:', error);
     }
   }
 
@@ -180,6 +193,7 @@ export default function Teens({
         <div className="teens-list">
           {orderedTeens.map((teen, index) => {
             const isBusy = busyKey === `teen:update:${teen.id}`;
+            const isDeleting = busyKey === `teen:delete:${teen.id}`;
 
             return (
               <motion.article
@@ -204,7 +218,47 @@ export default function Teens({
                   >
                     {isBusy ? '…' : 'Modifier'}
                   </button>
+                  <button
+                    type="button"
+                    className="teen-delete-btn"
+                    disabled={isDeleting}
+                    onClick={() => setConfirmDeleteTeenId(teen.id)}
+                  >
+                    {isDeleting ? '…' : 'Supprimer'}
+                  </button>
                 </div>
+
+                {/* Delete Confirmation Dialog */}
+                {confirmDeleteTeenId === teen.id && (
+                  <div className="confirmation-modal-overlay">
+                    <motion.div
+                      className="confirmation-modal"
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
+                    >
+                      <h3>Supprimer le compte de {teen.name} ?</h3>
+                      <p>Cette action est irréversible. Le compte et toutes les données associées seront supprimés.</p>
+                      <div className="confirmation-modal-actions">
+                        <button
+                          type="button"
+                          className="confirmation-modal-cancel"
+                          onClick={() => setConfirmDeleteTeenId(null)}
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          type="button"
+                          className="confirmation-modal-confirm"
+                          disabled={isDeleting}
+                          onClick={() => handleDeleteTeen(teen.id)}
+                        >
+                          {isDeleting ? 'Suppression…' : 'Supprimer le compte'}
+                        </button>
+                      </div>
+                    </motion.div>
+                  </div>
+                )}
               </motion.article>
             );
           })}

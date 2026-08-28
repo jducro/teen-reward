@@ -29,6 +29,7 @@ type AuthenticatedAppProps = {
     onDeleteReward: (rewardId: number) => Promise<boolean>;
     onCreateTeen: (input: TeenDraft) => Promise<boolean>;
     onUpdateTeen: (teenId: number, input: TeenDraft) => Promise<boolean>;
+    onDeleteTeen: (teenId: number) => Promise<void>;
 };
 
 export default function AuthenticatedApp({
@@ -54,6 +55,7 @@ export default function AuthenticatedApp({
     onDeleteReward,
     onCreateTeen,
     onUpdateTeen,
+    onDeleteTeen,
 }: AuthenticatedAppProps) {
     return (
         <>
@@ -130,6 +132,7 @@ export default function AuthenticatedApp({
                             canManage={isParent}
                             onCreateTeen={onCreateTeen}
                             onUpdateTeen={onUpdateTeen}
+                            onDeleteTeen={onDeleteTeen}
                         />
                     )}
                 </motion.div>

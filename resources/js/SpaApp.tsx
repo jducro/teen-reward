@@ -34,6 +34,7 @@ export default function App() {
                     onDeleteReward={app.deleteReward}
                     onCreateTeen={app.createTeen}
                     onUpdateTeen={app.updateTeen}
+                    onDeleteTeen={app.deleteTeen}
                 />
             ) : (
                 <Login
