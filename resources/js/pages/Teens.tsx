@@ -180,9 +180,19 @@ export default function Teens({
             {editingTeenId === null ? 'Ajouter un ado' : 'Mettre à jour l’ado'}
           </button>
           {editingTeenId !== null ? (
-            <button type="button" className="crud-cancel-btn" onClick={resetForm}>
-              Annuler
-            </button>
+            <>
+              <button type="button" className="crud-cancel-btn" onClick={resetForm}>
+                Annuler
+              </button>
+              <button
+                type="button"
+                className="crud-delete-btn"
+                disabled={busyKey === `teen:delete:${editingTeenId}`}
+                onClick={() => setConfirmDeleteTeenId(editingTeenId)}
+              >
+                {busyKey === `teen:delete:${editingTeenId}` ? '…' : 'Supprimer'}
+              </button>
+            </>
           ) : null}
         </div>
       </form>
@@ -218,50 +228,44 @@ export default function Teens({
                   >
                     {isBusy ? '…' : 'Modifier'}
                   </button>
-                  <button
-                    type="button"
-                    className="teen-delete-btn"
-                    disabled={isDeleting}
-                    onClick={() => setConfirmDeleteTeenId(teen.id)}
-                  >
-                    {isDeleting ? '…' : 'Supprimer'}
-                  </button>
                 </div>
-
-                {/* Delete Confirmation Dialog */}
-                {confirmDeleteTeenId === teen.id && (
-                  <div className="confirmation-modal-overlay">
-                    <motion.div
-                      className="confirmation-modal"
-                      initial={{ scale: 0.95, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0.95, opacity: 0 }}
-                    >
-                      <h3>Supprimer le compte de {teen.name} ?</h3>
-                      <p>Cette action est irréversible. Le compte et toutes les données associées seront supprimés.</p>
-                      <div className="confirmation-modal-actions">
-                        <button
-                          type="button"
-                          className="confirmation-modal-cancel"
-                          onClick={() => setConfirmDeleteTeenId(null)}
-                        >
-                          Annuler
-                        </button>
-                        <button
-                          type="button"
-                          className="confirmation-modal-confirm"
-                          disabled={isDeleting}
-                          onClick={() => handleDeleteTeen(teen.id)}
-                        >
-                          {isDeleting ? 'Suppression…' : 'Supprimer le compte'}
-                        </button>
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
               </motion.article>
             );
           })}
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog - shown when editing */}
+      {confirmDeleteTeenId !== null && editingTeenId === confirmDeleteTeenId && (
+        <div className="confirmation-modal-overlay">
+          <motion.div
+            className="confirmation-modal"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+          >
+            <h3>
+              Supprimer le compte de {orderedTeens.find((t) => t.id === editingTeenId)?.name} ?
+            </h3>
+            <p>Cette action est irréversible. Le compte et toutes les données associées seront supprimés.</p>
+            <div className="confirmation-modal-actions">
+              <button
+                type="button"
+                className="confirmation-modal-cancel"
+                onClick={() => setConfirmDeleteTeenId(null)}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                className="confirmation-modal-confirm"
+                disabled={busyKey === `teen:delete:${editingTeenId}`}
+                onClick={() => handleDeleteTeen(editingTeenId)}
+              >
+                {busyKey === `teen:delete:${editingTeenId}` ? 'Suppression…' : 'Supprimer le compte'}
+              </button>
+            </div>
+          </motion.div>
         </div>
       )}
     </div>

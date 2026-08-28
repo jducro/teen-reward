@@ -473,7 +473,8 @@ body {
 }
 
 .crud-submit-btn,
-.crud-cancel-btn {
+.crud-cancel-btn,
+.crud-delete-btn {
   border: none;
   border-radius: 999px;
   padding: 10px 14px;
@@ -492,8 +493,14 @@ body {
   color: #444;
 }
 
+.crud-delete-btn {
+  background: linear-gradient(135deg, #FF6B6B, #FF4757);
+  color: white;
+}
+
 .crud-submit-btn:disabled,
-.crud-cancel-btn:disabled {
+.crud-cancel-btn:disabled,
+.crud-delete-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
