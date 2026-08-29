@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\UserDevice;
 use App\Services\UniFiService;
-use Mockery;
 use Tests\TestCase;
 
 class DeviceApprovalWorkflowTest extends TestCase
@@ -13,7 +12,17 @@ class DeviceApprovalWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app->instance(UniFiService::class, Mockery::mock(UniFiService::class));
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                return true;
+            }
+
+            public function unregisterDevice(string $deviceMac): bool
+            {
+                return true;
+            }
+        });
     }
 
     public function test_teen_can_register_device_with_pending_approval_status(): void
@@ -239,6 +248,13 @@ class DeviceApprovalWorkflowTest extends TestCase
             'mac_address' => 'aa:bb:cc:dd:ee:ff',
             'status' => 'pending_approval',
         ]);
+
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                throw new \Exception('UniFi unavailable');
+            }
+        });
 
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")

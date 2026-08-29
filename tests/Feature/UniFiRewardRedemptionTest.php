@@ -15,7 +15,15 @@ class UniFiRewardRedemptionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app->instance(UniFiService::class, Mockery::mock(UniFiService::class));
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+            {
+                return [
+                    'code' => 'ABC123DEF456',
+                    'expires_at' => now()->addMinutes($duration),
+                ];
+            }
+        });
     }
 
     public function test_teen_can_redeem_reward_and_receive_unifi_voucher(): void
@@ -23,7 +31,6 @@ class UniFiRewardRedemptionTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 60]);
 
-        // Mock successful voucher generation
         $response = $this->actingAs($teen)
             ->postJson("/api/rewards/{$reward->id}/redeem")
             ->assertCreated();
@@ -57,7 +64,13 @@ class UniFiRewardRedemptionTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 60]);
 
-        // Mock failed voucher generation
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+            {
+                throw new \Exception('UniFi controller unreachable');
+            }
+        });
+
         $response = $this->actingAs($teen)
             ->postJson("/api/rewards/{$reward->id}/redeem")
             ->assertUnprocessable();
@@ -112,7 +125,16 @@ class UniFiRewardRedemptionTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 120]);
 
-        // Verify the service is called with the reward's duration
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+            {
+                return [
+                    'code' => 'XYZ789',
+                    'expires_at' => now()->addMinutes($duration),
+                ];
+            }
+        });
+
         $this->actingAs($teen)
             ->postJson("/api/rewards/{$reward->id}/redeem")
             ->assertCreated();
