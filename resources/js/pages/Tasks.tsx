@@ -170,6 +170,7 @@ export default function Tasks({
         {claims.map((claim) => {
         const approveBusy = busyKey === `claim:approve:${claim.id}`;
         const rejectBusy = busyKey === `claim:reject:${claim.id}`;
+        const actionBusy = approveBusy || rejectBusy;
 
         return (
           <div key={claim.id} className="approval-card">
@@ -183,7 +184,7 @@ export default function Tasks({
               <button
                 type="button"
                 className="approval-btn approve"
-                disabled={approveBusy}
+                disabled={actionBusy}
                 onClick={() => {
                   void onApproveClaim(claim.id);
                 }}
@@ -193,7 +194,7 @@ export default function Tasks({
               <button
                 type="button"
                 className="approval-btn reject"
-                disabled={rejectBusy}
+                disabled={actionBusy}
                 onClick={() => {
                   void onRejectClaim(claim.id);
                 }}

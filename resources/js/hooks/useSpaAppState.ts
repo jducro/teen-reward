@@ -459,8 +459,8 @@ export function useSpaAppState() {
         setNotice('');
 
         try {
-            const response = (await request('/api/password/change', {
-                method: 'POST',
+            const response = (await request('/api/profile/password', {
+                method: 'PUT',
                 body: {
                     current_password: passwordForm.currentPassword,
                     password: passwordForm.password,
@@ -488,7 +488,7 @@ export function useSpaAppState() {
         setNotice('');
 
         try {
-            const response = (await request('/api/account', {
+            const response = (await request('/api/profile', {
                 method: 'DELETE',
                 body: {
                     password: deletePassword,
