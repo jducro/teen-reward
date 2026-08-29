@@ -43,6 +43,44 @@ The first scope is to test a simple flow where:
 ## Intended Next Step
 Connect the reward redemption flow to the UniFi controller so that a reward can create a real voucher or temporary access grant for a teen device, especially for devices that cannot redeem a portal voucher directly.
 
+---
+
+## UniFi Guest Portal Integration (In Progress)
+
+### Feature Scope
+- **Phase 1**: Guest voucher generation (Tier 2)
+  - Teen redeems reward → UniFi generates time-limited guest voucher
+  - Voucher code displayed as text + QR code
+  - Basic success/failure logging
+  
+- **Phase 2**: Device registration (Tier 3 foundation)
+  - Teens register device MAC addresses
+  - Direct network access without vouchers
+  - Device management endpoints
+
+### Configuration
+```env
+UNIFI_HOST=https://unifi.example.com:8443
+UNIFI_USERNAME=admin
+UNIFI_PASSWORD=secret
+UNIFI_SITE=default
+UNIFI_ALLOW_SELF_SIGNED=true  # for dev/self-signed certs
+```
+
+### Database Schema Changes
+- New table: `unifi_sync_logs` (tracks voucher generation attempts)
+- Extended `reward_redemptions`: `voucher_code`, `voucher_expires_at`, `unifi_sync_status`, `device_mac`
+
+### Key Implementation Details
+- Service class: `App\Services\UniFiService` encapsulates all UniFi API interactions
+- Synchronous voucher generation (fail fast if UniFi unavailable)
+- Error handling: Fail the redemption if UniFi is down
+- Credentials stored in `.env`, never logged
+
+### Libraries
+- `Art-of-WiFi/UniFi-API-client` - PHP UniFi controller client
+- `bacon/bacon-qr-code` - QR code generation (optional, can use frontend library)
+
 ## Local Test Accounts
 - Parent: parent@example.com
 - Teen: teen@example.com

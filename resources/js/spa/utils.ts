@@ -6,6 +6,7 @@ export const EMPTY_PAYLOAD: BootstrapPayload = {
     chores: [],
     claims: [],
     rewards: [],
+    redemptions: [],
     stats: {
         availableChores: 0,
         pendingClaims: 0,

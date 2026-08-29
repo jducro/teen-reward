@@ -45,6 +45,8 @@ export default function Tasks({
   canClaim,
   canManage,
   onClaim,
+  onApproveClaim,
+  onRejectClaim,
   onCreate,
   onUpdate,
   onDelete,
@@ -152,6 +154,60 @@ export default function Tasks({
           {canManage ? 'Crée, modifie et supprime les missions' : `${coins} ChoreCoins accumulés`}
         </p>
       </div>
+
+      {canManage ? (
+        <motion.section
+          className="approval-panel"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+        >
+          <h3 className="approval-panel-title">🧾 Pending approvals</h3>
+          {claims.length === 0 ? (
+      <p className="approval-empty">No pending claims right now.</p>
+          ) : (
+      <div className="approval-list">
+        {claims.map((claim) => {
+        const approveBusy = busyKey === `claim:approve:${claim.id}`;
+        const rejectBusy = busyKey === `claim:reject:${claim.id}`;
+
+        return (
+          <div key={claim.id} className="approval-card">
+            <div>
+              <div className="approval-title">{claim.chore?.title ?? 'Mission'}</div>
+              <div className="approval-meta">
+                {claim.user?.name ?? 'Teen'} • {claim.chore?.pointsValue ?? 0} pts
+              </div>
+            </div>
+            <div className="approval-actions">
+              <button
+                type="button"
+                className="approval-btn approve"
+                disabled={approveBusy}
+                onClick={() => {
+                  void onApproveClaim(claim.id);
+                }}
+              >
+                {approveBusy ? '…' : 'Approve'}
+              </button>
+              <button
+                type="button"
+                className="approval-btn reject"
+                disabled={rejectBusy}
+                onClick={() => {
+                  void onRejectClaim(claim.id);
+                }}
+              >
+                {rejectBusy ? '…' : 'Reject'}
+              </button>
+            </div>
+          </div>
+        );
+        })}
+      </div>
+          )}
+        </motion.section>
+      ) : null}
 
       {canManage ? (
         <form className="crud-panel" onSubmit={submitParentForm}>

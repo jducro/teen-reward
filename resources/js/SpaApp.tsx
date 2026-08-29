@@ -25,6 +25,8 @@ export default function App() {
                     isParent={app.isParent}
                     onLogout={app.logout}
                     onClaim={app.claimChore}
+                    onApproveClaim={app.approveClaim}
+                    onRejectClaim={app.rejectClaim}
                     onCreateChore={app.createChore}
                     onUpdateChore={app.updateChore}
                     onDeleteChore={app.deleteChore}
@@ -35,6 +37,15 @@ export default function App() {
                     onCreateTeen={app.createTeen}
                     onUpdateTeen={app.updateTeen}
                     onDeleteTeen={app.deleteTeen}
+                    profileForm={app.profileForm}
+                    passwordForm={app.passwordForm}
+                    deletePassword={app.deletePassword}
+                    onUpdateProfile={app.updateProfile}
+                    onUpdatePassword={app.updatePassword}
+                    onDeleteAccount={app.deleteAccount}
+                    onChangeProfile={app.updateProfileField}
+                    onChangePassword={app.updatePasswordField}
+                    onChangeDeletePassword={app.setDeletePassword}
                 />
             ) : (
                 <Login

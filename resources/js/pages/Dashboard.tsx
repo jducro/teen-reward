@@ -17,6 +17,7 @@ export default function Dashboard({
   role,
   pendingClaims,
   availableChores,
+  rewardsRedeemed,
 }: DashboardProps) {
   const previousLevelAt = thresholdForLevel(level - 1)
   const nextLevelAt = thresholdForLevel(level)
@@ -98,6 +99,34 @@ export default function Dashboard({
           ? `🎁 Missions disponibles : ${availableChores}`
           : `🧾 Demandes en attente : ${pendingClaims}`}
       </motion.div>
+
+      <motion.div
+        className="dashboard-summary-grid"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65 }}
+      >
+        <SummaryCard icon="🧹" label="Tâches disponibles" value={availableChores} tone="teal" />
+        <SummaryCard icon="📝" label="Demandes en attente" value={pendingClaims} tone="violet" />
+        <SummaryCard icon="🎁" label="Récompenses échangées" value={rewardsRedeemed} tone="amber" />
+      </motion.div>
+    </div>
+  )
+}
+
+type SummaryCardProps = {
+  icon: string
+  label: string
+  value: number
+  tone: 'teal' | 'violet' | 'amber'
+}
+
+function SummaryCard({ icon, label, value, tone }: SummaryCardProps) {
+  return (
+    <div className={`summary-card summary-card-${tone}`}>
+      <div className="summary-card-icon">{icon}</div>
+      <div className="summary-card-value">{value}</div>
+      <div className="summary-card-label">{label}</div>
     </div>
   )
 }
