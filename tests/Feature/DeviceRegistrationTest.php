@@ -5,27 +5,21 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\UserDevice;
 use App\Services\UniFiService;
+use Mockery;
 use Tests\TestCase;
 
 class DeviceRegistrationTest extends TestCase
 {
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Mock UniFiService
-        $unifiService = $this->mock(UniFiService::class);
-        $this->app->instance(UniFiService::class, $unifiService);
+        $this->app->instance(UniFiService::class, Mockery::mock(UniFiService::class));
     }
 
     public function test_teen_can_register_a_device(): void
     {
         $teen = User::factory()->create(['role' => 'teen']);
-        $unifiService = $this->app->make(UniFiService::class);
-        // registerDevice should NOT be called - registration is deferred until parent approval
-        $unifiService->shouldNotReceive('registerDevice');
-
         $response = $this->actingAs($teen)
             ->postJson('/api/devices', [
                 'mac_address' => 'aa:bb:cc:dd:ee:ff',
@@ -45,10 +39,6 @@ class DeviceRegistrationTest extends TestCase
     public function test_teen_can_register_device_with_bandwidth_limit(): void
     {
         $teen = User::factory()->create(['role' => 'teen']);
-        $unifiService = $this->app->make(UniFiService::class);
-        // registerDevice should NOT be called - registration is deferred until parent approval
-        $unifiService->shouldNotReceive('registerDevice');
-
         $this->actingAs($teen)
             ->postJson('/api/devices', [
                 'mac_address' => 'aa:bb:cc:dd:ee:ff',
@@ -67,10 +57,6 @@ class DeviceRegistrationTest extends TestCase
     public function test_mac_address_is_normalized_to_lowercase(): void
     {
         $teen = User::factory()->create(['role' => 'teen']);
-        $unifiService = $this->app->make(UniFiService::class);
-        // registerDevice should NOT be called - registration is deferred until parent approval
-        $unifiService->shouldNotReceive('registerDevice');
-
         $this->actingAs($teen)
             ->postJson('/api/devices', [
                 'mac_address' => 'AA-BB-CC-DD-EE-FF', // uppercase with dashes
@@ -93,9 +79,6 @@ class DeviceRegistrationTest extends TestCase
             'status' => 'active',
             'authorized_at' => now(),
         ]);
-
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldNotReceive('registerDevice');
 
         $this->actingAs($teen)
             ->postJson('/api/devices', [
@@ -174,9 +157,6 @@ class DeviceRegistrationTest extends TestCase
             'status' => 'active',
             'authorized_at' => now(),
         ]);
-
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('unregisterDevice')->with($device->mac_address);
 
         $this->actingAs($teen)
             ->deleteJson("/api/devices/{$device->id}")
