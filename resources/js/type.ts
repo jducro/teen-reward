@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react';
 
 export type Role = 'parent' | 'teen';
-export type AppPage = 'home' | 'tasks' | 'shop' | 'teens';
+export type AppPage = 'home' | 'tasks' | 'shop' | 'teens' | 'settings' | 'activity';
 
 export type User = {
     id: number;
@@ -25,6 +25,11 @@ export type ClaimStatus = 'pending' | 'approved' | 'rejected';
 export type Claim = {
     id: number;
     status: ClaimStatus;
+    createdAt?: string | null;
+    user?: {
+        id: number;
+        name: string;
+    } | null;
     chore: {
         id: number;
         title: string;
@@ -65,6 +70,17 @@ export type BootstrapPayload = {
     chores: Chore[];
     claims: Claim[];
     rewards: Reward[];
+    redemptions: Array<{
+        id: number;
+        status: string;
+        voucherCode: string | null;
+        redeemedAt: string | null;
+        reward: {
+            id: number;
+            name: string;
+            durationMinutes: number;
+        } | null;
+    }>;
     stats: {
         availableChores: number;
         pendingClaims: number;
@@ -125,6 +141,42 @@ export type DashboardProps = {
     role: Role;
     pendingClaims: number;
     availableChores: number;
+    rewardsRedeemed: number;
+};
+
+export type SettingsProps = {
+    busyKey: string;
+    profileForm: {
+        name: string;
+        email: string;
+    };
+    passwordForm: {
+        currentPassword: string;
+        password: string;
+        passwordConfirmation: string;
+    };
+    deletePassword: string;
+    onUpdateProfile: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+    onUpdatePassword: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+    onDeleteAccount: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+    onChangeProfile: (field: 'name' | 'email', value: string) => void;
+    onChangePassword: (field: 'currentPassword' | 'password' | 'passwordConfirmation', value: string) => void;
+    onChangeDeletePassword: (value: string) => void;
+};
+
+export type ActivityProps = {
+    claims: Claim[];
+    redemptions: Array<{
+        id: number;
+        status: string;
+        voucherCode: string | null;
+        redeemedAt: string | null;
+        reward: {
+            id: number;
+            name: string;
+            durationMinutes: number;
+        } | null;
+    }>;
 };
 
 export type TasksProps = {
@@ -135,6 +187,8 @@ export type TasksProps = {
     canClaim: boolean;
     canManage: boolean;
     onClaim: (choreId: number) => Promise<boolean>;
+    onApproveClaim: (claimId: number) => Promise<boolean>;
+    onRejectClaim: (claimId: number) => Promise<boolean>;
     onCreate: (input: ChoreDraft) => Promise<boolean>;
     onUpdate: (choreId: number, input: ChoreDraft) => Promise<boolean>;
     onDelete: (choreId: number) => Promise<boolean>;

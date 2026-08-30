@@ -155,6 +155,203 @@ body {
   animation: pulse 2s infinite;
 }
 
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.summary-card {
+  border-radius: 18px;
+  padding: 14px 12px;
+  color: white;
+  text-align: left;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.summary-card-teal {
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+}
+
+.summary-card-violet {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.summary-card-amber {
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+}
+
+.summary-card-icon {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.summary-card-value {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.summary-card-label {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.approval-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  text-align: left;
+}
+
+.approval-panel-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.approval-empty {
+  font-size: 14px;
+  color: #777;
+}
+
+.approval-list {
+  display: grid;
+  gap: 12px;
+}
+
+.approval-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff8f0;
+  border: 2px solid #ffe8b3;
+}
+
+.approval-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #222;
+}
+
+.approval-meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #777;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.approval-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.approval-btn.approve {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.approval-btn.reject {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.activity-page {
+  display: grid;
+  gap: 16px;
+}
+
+.activity-panel {
+  padding: 18px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.activity-title {
+  font-size: 20px;
+  font-weight: 900;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.activity-empty {
+  color: #777;
+  font-size: 14px;
+}
+
+.activity-list {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff8f0;
+  border: 2px solid #ffe8b3;
+}
+
+.activity-name {
+  font-weight: 900;
+  color: #222;
+}
+
+.activity-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #777;
+}
+
+.activity-status {
+  align-self: center;
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
+}
+
+.activity-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.activity-status.approved {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.activity-status.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.activity-voucher {
+  align-self: center;
+  font-family: monospace;
+  color: #0f766e;
+  font-weight: 800;
+}
+
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.02); }

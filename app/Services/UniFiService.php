@@ -47,13 +47,10 @@ class UniFiService
             $username,
             $password,
             $site,
-            '8443',
-            false // SSL verification - set to true in production
+            null,
+            false,
+            'unificookie'
         );
-
-        if (config('services.unifi.allow_self_signed')) {
-            $this->client->set_request_timeout(5);
-        }
 
         try {
             $this->client->login();
@@ -71,41 +68,36 @@ class UniFiService
         try {
             $this->ensureConnected();
 
-            $voucher_params = [
-                'n_vouchers' => 1,
-                'expire' => $duration,
-                'up' => $bandwidth,
-                'down' => $bandwidth,
-            ];
+            $response = $this->client->create_voucher(
+                minutes: $duration,
+                count: 1,
+                quota: 0,
+                note: '',
+                up: $bandwidth,
+                down: $bandwidth,
+            );
 
-            // Remove bandwidth params if not specified
-            if ($bandwidth === null) {
-                unset($voucher_params['up'], $voucher_params['down']);
-            }
-
-            $response = $this->client->create_voucher($voucher_params);
-
-            if (!$response || empty($response)) {
+            if ($response === []) {
                 throw new \Exception('UniFi API returned empty voucher response');
             }
 
-            // Extract the voucher code from response
-            $voucher_code = $response[0] ?? null;
-            if (!$voucher_code) {
+            $voucherCode = is_array($response) ? ($response[0]['code'] ?? $response[0]['voucher'] ?? null) : null;
+
+            if (!is_string($voucherCode) || $voucherCode === '') {
                 throw new \Exception('No voucher code in UniFi response');
             }
 
-            $expires_at = now()->addMinutes($duration);
+            $expiresAt = now()->addMinutes($duration);
 
             Log::info('UniFi voucher generated successfully', [
-                'code' => $voucher_code,
+                'code' => $voucherCode,
                 'duration_minutes' => $duration,
-                'expires_at' => $expires_at,
+                'expires_at' => $expiresAt,
             ]);
 
             return [
-                'code' => $voucher_code,
-                'expires_at' => $expires_at,
+                'code' => $voucherCode,
+                'expires_at' => $expiresAt,
             ];
         } catch (\Exception $e) {
             Log::error('UniFi voucher generation failed', [
@@ -163,18 +155,7 @@ class UniFiService
             // Normalize MAC address format
             $deviceMac = strtolower(str_replace('-', ':', $deviceMac));
 
-            $device_params = [
-                'mac' => $deviceMac,
-                'up' => $bandwidth,
-                'down' => $bandwidth,
-            ];
-
-            // Remove bandwidth params if not specified
-            if ($bandwidth === null) {
-                unset($device_params['up'], $device_params['down']);
-            }
-
-            $this->client->authorize_guest($device_params);
+            $this->client->authorize_guest($deviceMac, 0, $bandwidth, $bandwidth);
 
             Log::info('UniFi device registered successfully', [
                 'mac' => $deviceMac,
@@ -232,7 +213,7 @@ class UniFiService
     {
         try {
             $this->ensureConnected();
-            $this->client->stat_client();
+            $this->client->stat_client('00:00:00:00:00:00');
             return true;
         } catch (\Exception $e) {
             Log::warning('UniFi health check failed', [

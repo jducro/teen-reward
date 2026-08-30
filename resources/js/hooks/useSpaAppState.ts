@@ -13,6 +13,16 @@ export function useSpaAppState() {
     const [panelError, setPanelError] = useState('');
     const [payload, setPayload] = useState<BootstrapPayload>(EMPTY_PAYLOAD);
     const [authForm, setAuthForm] = useState(INITIAL_AUTH_FORM);
+    const [profileForm, setProfileForm] = useState({
+        name: '',
+        email: '',
+    });
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        password: '',
+        passwordConfirmation: '',
+    });
+    const [deletePassword, setDeletePassword] = useState('');
 
     const refresh = useCallback(async () => {
         setLoading(true);
@@ -40,6 +50,17 @@ export function useSpaAppState() {
     const isParent = user?.role === 'parent';
     const coins = user?.pointsBalance ?? 0;
     const level = useMemo(() => levelFromCoins(coins), [coins]);
+
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+
+        setProfileForm({
+            name: user.name,
+            email: user.email,
+        });
+    }, [user]);
 
     async function login(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -95,6 +116,50 @@ export function useSpaAppState() {
             return true;
         } catch (error) {
             setPanelError(resolveErrorMessage(error));
+            return false;
+        } finally {
+            setBusyKey('');
+        }
+    }
+
+    async function approveClaim(claimId: number) {
+        setBusyKey(`claim:approve:${claimId}`);
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request(`/api/claims/${claimId}/approve`, {
+                method: 'POST',
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+
+            return true;
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+
+            return false;
+        } finally {
+            setBusyKey('');
+        }
+    }
+
+    async function rejectClaim(claimId: number) {
+        setBusyKey(`claim:reject:${claimId}`);
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request(`/api/claims/${claimId}/reject`, {
+                method: 'POST',
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+
+            return true;
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+
             return false;
         } finally {
             setBusyKey('');
@@ -364,6 +429,89 @@ export function useSpaAppState() {
         }
     }
 
+    async function updateProfile(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setBusyKey('profile:update');
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request('/api/profile', {
+                method: 'PATCH',
+                body: {
+                    name: profileForm.name,
+                    email: profileForm.email,
+                },
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+        } finally {
+            setBusyKey('');
+        }
+    }
+
+    async function updatePassword(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setBusyKey('profile:password');
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request('/api/profile/password', {
+                method: 'PUT',
+                body: {
+                    current_password: passwordForm.currentPassword,
+                    password: passwordForm.password,
+                    password_confirmation: passwordForm.passwordConfirmation,
+                },
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            setPasswordForm({
+                currentPassword: '',
+                password: '',
+                passwordConfirmation: '',
+            });
+            await refresh();
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+        } finally {
+            setBusyKey('');
+        }
+    }
+
+    async function deleteAccount(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        setBusyKey('profile:delete');
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request('/api/profile', {
+                method: 'DELETE',
+                body: {
+                    password: deletePassword,
+                },
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            setDeletePassword('');
+            await refresh();
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+        } finally {
+            setBusyKey('');
+        }
+    }
+
+    function updateProfileField(field: 'name' | 'email', value: string) {
+        setProfileForm((current) => ({ ...current, [field]: value }));
+    }
+
+    function updatePasswordField(field: 'currentPassword' | 'password' | 'passwordConfirmation', value: string) {
+        setPasswordForm((current) => ({ ...current, [field]: value }));
+    }
+
     function updateAuthForm(field: 'email' | 'password', value: string) {
         setAuthForm((current) => ({ ...current, [field]: value }));
     }
@@ -385,6 +533,8 @@ export function useSpaAppState() {
         login,
         logout,
         claimChore,
+        approveClaim,
+        rejectClaim,
         createChore,
         updateChore,
         deleteChore,
@@ -396,5 +546,14 @@ export function useSpaAppState() {
         deleteTeen,
         redeemReward,
         updateAuthForm,
+        profileForm,
+        passwordForm,
+        deletePassword,
+        updateProfile,
+        updatePassword,
+        deleteAccount,
+        updateProfileField,
+        updatePasswordField,
+        setDeletePassword,
     };
 }

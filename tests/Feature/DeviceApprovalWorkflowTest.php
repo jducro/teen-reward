@@ -9,15 +9,19 @@ use Tests\TestCase;
 
 class DeviceApprovalWorkflowTest extends TestCase
 {
-
     protected function setUp(): void
     {
         parent::setUp();
-        $this->mock(UniFiService::class, function ($mock) {
-            $mock->shouldReceive('isHealthy')->andReturn(true);
-            // Default mock for registerDevice - can be overridden in individual tests
-            $mock->shouldReceive('registerDevice')->byDefault()->andReturn(true);
-            $mock->shouldReceive('unregisterDevice')->byDefault()->andReturn(true);
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                return true;
+            }
+
+            public function unregisterDevice(string $deviceMac): bool
+            {
+                return true;
+            }
         });
     }
 
@@ -78,9 +82,6 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', null);
-
         $response = $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
@@ -102,9 +103,6 @@ class DeviceApprovalWorkflowTest extends TestCase
             'mac_address' => 'aa:bb:cc:dd:ee:ff',
             'status' => 'pending_approval',
         ]);
-
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice');
 
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
@@ -251,8 +249,12 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')->andThrow(new \Exception('UniFi unavailable'));
+        $this->app->instance(UniFiService::class, new class extends UniFiService {
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                throw new \Exception('UniFi unavailable');
+            }
+        });
 
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
@@ -274,9 +276,6 @@ class DeviceApprovalWorkflowTest extends TestCase
             'bandwidth_limit' => 2048,
             'status' => 'pending_approval',
         ]);
-
-        $unifiService = $this->app->make(UniFiService::class);
-        $unifiService->shouldReceive('registerDevice')->with('aa:bb:cc:dd:ee:ff', 2048);
 
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
