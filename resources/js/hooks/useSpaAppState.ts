@@ -436,8 +436,8 @@ export function useSpaAppState() {
         setNotice('');
 
         try {
-            const response = (await request('/api/profile/update', {
-                method: 'POST',
+            const response = (await request('/api/profile', {
+                method: 'PATCH',
                 body: {
                     name: profileForm.name,
                     email: profileForm.email,
