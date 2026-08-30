@@ -114,11 +114,11 @@ class AppBootstrapController extends Controller
                     ]
                     : null,
             ])->values(),
-            'claimHistory' => ChoreClaim::query()
-                    ->where('user_id', $user->id)
-                    ->with('chore')
-                    ->latest()
-                    ->get()
+'claimHistory' => ChoreClaim::query()
+    ->when($user->role !== 'parent', fn ($query) => $query->where('user_id', $user->id))
+    ->with($user->role === 'parent' ? ['chore', 'user'] : ['chore'])
+    ->latest()
+    ->get()
                     ->map(fn (ChoreClaim $claim) => [
                         'id' => $claim->id,
                         'status' => $claim->status,
