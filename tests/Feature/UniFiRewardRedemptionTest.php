@@ -125,18 +125,29 @@ class UniFiRewardRedemptionTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 120]);
 
-        $this->app->instance(UniFiService::class, new class extends UniFiService {
+        $service = new class extends UniFiService {
+            public ?int $receivedDuration = null;
+            public ?int $receivedBandwidth = null;
+
             public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
             {
+                $this->receivedDuration = $duration;
+                $this->receivedBandwidth = $bandwidth;
+
                 return [
                     'code' => 'XYZ789',
                     'expires_at' => now()->addMinutes($duration),
                 ];
             }
-        });
+        };
+
+        $this->app->instance(UniFiService::class, $service);
 
         $this->actingAs($teen)
             ->postJson("/api/rewards/{$reward->id}/redeem")
             ->assertCreated();
+
+        $this->assertSame(120, $service->receivedDuration);
+        $this->assertNull($service->receivedBandwidth);
     }
 }

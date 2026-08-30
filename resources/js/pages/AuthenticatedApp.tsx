@@ -175,7 +175,7 @@ export default function AuthenticatedApp({
                     )}
 
                     {page === 'activity' && (
-                        <Activity claims={payload.claims} redemptions={payload.redemptions} />
+                        <Activity claims={payload.claimHistory} redemptions={payload.redemptions} />
                     )}
 
                     {page === 'teens' && (

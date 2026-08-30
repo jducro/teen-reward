@@ -8,12 +8,12 @@ const defaultTabs: Tab[] = [
   { id: 'tasks', emoji: '🧹', label: 'Missions' },
   { id: 'shop', emoji: '🛍', label: 'Boutique' },
   { id: 'activity', emoji: '📋', label: 'Activité' },
+  { id: 'settings', emoji: '⚙️', label: 'Compte' },
 ];
 
 const parentTabs: Tab[] = [
   ...defaultTabs,
   { id: 'teens', emoji: '🧑‍🎓', label: 'Ados' },
-  { id: 'settings', emoji: '⚙️', label: 'Compte' },
 ];
 
 export default function Navbar({

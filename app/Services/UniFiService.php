@@ -37,19 +37,20 @@ class UniFiService
         $username = config('services.unifi.username');
         $password = config('services.unifi.password');
         $site = config('services.unifi.site');
+        $allowSelfSigned = (bool) config('services.unifi.allow_self_signed', false);
 
         if (!$host || !$username || !$password || !$site) {
             throw new \Exception('UniFi configuration is incomplete. Check UNIFI_HOST, UNIFI_USERNAME, UNIFI_PASSWORD, UNIFI_SITE environment variables.');
         }
 
         $this->client = new Client(
-            $host,
-            $username,
-            $password,
-            $site,
-            null,
-            false,
-            'unificookie'
+            user: $username,
+            password: $password,
+            baseurl: $host,
+            site: $site,
+            version: null,
+            ssl_verify: ! $allowSelfSigned,
+            unificookie_name: 'unificookie'
         );
 
         try {
@@ -77,14 +78,29 @@ class UniFiService
                 down: $bandwidth,
             );
 
-            if ($response === []) {
+            if (!is_array($response) || $response === []) {
                 throw new \Exception('UniFi API returned empty voucher response');
             }
 
-            $voucherCode = is_array($response) ? ($response[0]['code'] ?? $response[0]['voucher'] ?? null) : null;
+            $createTime = $response[0]->create_time ?? $response[0]['create_time'] ?? null;
+
+            if (!is_int($createTime)) {
+                throw new \Exception('No voucher creation timestamp in UniFi response');
+            }
+
+            $voucherResponse = $this->client->stat_voucher($createTime);
+
+            if (!is_array($voucherResponse) || $voucherResponse === []) {
+                throw new \Exception('Unable to retrieve created UniFi voucher');
+            }
+
+            $voucher = $voucherResponse[0] ?? null;
+            $voucherCode = is_object($voucher)
+                ? ($voucher->code ?? null)
+                : (is_array($voucher) ? ($voucher['code'] ?? null) : null);
 
             if (!is_string($voucherCode) || $voucherCode === '') {
-                throw new \Exception('No voucher code in UniFi response');
+                throw new \Exception('No voucher code in UniFi voucher details');
             }
 
             $expiresAt = now()->addMinutes($duration);
