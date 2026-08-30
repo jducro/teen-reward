@@ -69,6 +69,7 @@ export type BootstrapPayload = {
     teens: Teen[];
     chores: Chore[];
     claims: Claim[];
+    claimHistory: Claim[];
     rewards: Reward[];
     redemptions: Array<{
         id: number;

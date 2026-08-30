@@ -12,17 +12,6 @@ class DeviceApprovalWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app->instance(UniFiService::class, new class extends UniFiService {
-            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
-            {
-                return true;
-            }
-
-            public function unregisterDevice(string $deviceMac): bool
-            {
-                return true;
-            }
-        });
     }
 
     public function test_teen_can_register_device_with_pending_approval_status(): void
@@ -82,11 +71,28 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
+        $service = new class extends UniFiService {
+            public ?string $receivedMac = null;
+            public ?int $receivedBandwidth = null;
+
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                $this->receivedMac = $deviceMac;
+                $this->receivedBandwidth = $bandwidth;
+
+                return true;
+            }
+        };
+
+        $this->app->instance(UniFiService::class, $service);
+
         $response = $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
 
         $this->assertEquals('Device approved and activated', $response->json('message'));
+        $this->assertSame('aa:bb:cc:dd:ee:ff', $service->receivedMac);
+        $this->assertNull($service->receivedBandwidth);
         $this->assertDatabaseHas('user_devices', [
             'id' => $device->id,
             'status' => 'active',
@@ -104,10 +110,24 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
+        $service = new class extends UniFiService {
+            public ?string $receivedMac = null;
+
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                $this->receivedMac = $deviceMac;
+
+                return true;
+            }
+        };
+
+        $this->app->instance(UniFiService::class, $service);
+
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
 
+        $this->assertSame('aa:bb:cc:dd:ee:ff', $service->receivedMac);
         $this->assertDatabaseHas('device_approvals', [
             'device_id' => $device->id,
             'parent_id' => $parent->id,
@@ -125,6 +145,19 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
+        $service = new class extends UniFiService {
+            public ?string $receivedMac = null;
+
+            public function unregisterDevice(string $deviceMac): bool
+            {
+                $this->receivedMac = $deviceMac;
+
+                return true;
+            }
+        };
+
+        $this->app->instance(UniFiService::class, $service);
+
         $response = $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/reject", [
                 'reason' => 'Device brand not permitted',
@@ -132,6 +165,7 @@ class DeviceApprovalWorkflowTest extends TestCase
             ->assertOk();
 
         $this->assertEquals('Device registration rejected', $response->json('message'));
+        $this->assertNull($service->receivedMac);
         $this->assertDatabaseHas('user_devices', [
             'id' => $device->id,
             'status' => 'rejected',
@@ -277,8 +311,26 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
+        $service = new class extends UniFiService {
+            public ?string $receivedMac = null;
+            public ?int $receivedBandwidth = null;
+
+            public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
+            {
+                $this->receivedMac = $deviceMac;
+                $this->receivedBandwidth = $bandwidth;
+
+                return true;
+            }
+        };
+
+        $this->app->instance(UniFiService::class, $service);
+
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
+
+        $this->assertSame('aa:bb:cc:dd:ee:ff', $service->receivedMac);
+        $this->assertSame(2048, $service->receivedBandwidth);
     }
 }

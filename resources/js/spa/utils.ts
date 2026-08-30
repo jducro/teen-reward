@@ -5,6 +5,7 @@ export const EMPTY_PAYLOAD: BootstrapPayload = {
     teens: [],
     chores: [],
     claims: [],
+    claimHistory: [],
     rewards: [],
     redemptions: [],
     stats: {
