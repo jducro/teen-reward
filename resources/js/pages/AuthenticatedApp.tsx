@@ -2,7 +2,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import type { AppPage, BootstrapPayload, ChoreDraft, RedeemResult, RewardDraft, TeenDraft, User } from '../type';
 import Dashboard from './Dashboard';
+import Activity from './Activity';
 import Shop from './Shop';
+import Settings from './Settings';
 import Teens from './Teens';
 import Tasks from './Tasks';
 
@@ -20,6 +22,8 @@ type AuthenticatedAppProps = {
     isParent: boolean;
     onLogout: () => Promise<void>;
     onClaim: (choreId: number) => Promise<boolean>;
+    onApproveClaim: (claimId: number) => Promise<boolean>;
+    onRejectClaim: (claimId: number) => Promise<boolean>;
     onCreateChore: (input: ChoreDraft) => Promise<boolean>;
     onUpdateChore: (choreId: number, input: ChoreDraft) => Promise<boolean>;
     onDeleteChore: (choreId: number) => Promise<boolean>;
@@ -30,6 +34,22 @@ type AuthenticatedAppProps = {
     onCreateTeen: (input: TeenDraft) => Promise<boolean>;
     onUpdateTeen: (teenId: number, input: TeenDraft) => Promise<boolean>;
     onDeleteTeen: (teenId: number) => Promise<void>;
+    profileForm: {
+        name: string;
+        email: string;
+    };
+    passwordForm: {
+        currentPassword: string;
+        password: string;
+        passwordConfirmation: string;
+    };
+    deletePassword: string;
+    onUpdateProfile: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+    onUpdatePassword: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+    onDeleteAccount: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+    onChangeProfile: (field: 'name' | 'email', value: string) => void;
+    onChangePassword: (field: 'currentPassword' | 'password' | 'passwordConfirmation', value: string) => void;
+    onChangeDeletePassword: (value: string) => void;
 };
 
 export default function AuthenticatedApp({
@@ -46,6 +66,8 @@ export default function AuthenticatedApp({
     isParent,
     onLogout,
     onClaim,
+    onApproveClaim,
+    onRejectClaim,
     onCreateChore,
     onUpdateChore,
     onDeleteChore,
@@ -56,6 +78,15 @@ export default function AuthenticatedApp({
     onCreateTeen,
     onUpdateTeen,
     onDeleteTeen,
+    profileForm,
+    passwordForm,
+    deletePassword,
+    onUpdateProfile,
+    onUpdatePassword,
+    onDeleteAccount,
+    onChangeProfile,
+    onChangePassword,
+    onChangeDeletePassword,
 }: AuthenticatedAppProps) {
     return (
         <>
@@ -93,6 +124,7 @@ export default function AuthenticatedApp({
                             role={user.role}
                             pendingClaims={payload.stats.pendingClaims}
                             availableChores={payload.stats.availableChores}
+                            rewardsRedeemed={payload.stats.rewardsRedeemed}
                         />
                     )}
 
@@ -105,6 +137,8 @@ export default function AuthenticatedApp({
                             canClaim={isTeen}
                             canManage={isParent}
                             onClaim={onClaim}
+                            onApproveClaim={onApproveClaim}
+                            onRejectClaim={onRejectClaim}
                             onCreate={onCreateChore}
                             onUpdate={onUpdateChore}
                             onDelete={onDeleteChore}
@@ -123,6 +157,25 @@ export default function AuthenticatedApp({
                             onUpdate={onUpdateReward}
                             onDelete={onDeleteReward}
                         />
+                    )}
+
+                    {page === 'settings' && (
+                        <Settings
+                            busyKey={busyKey}
+                            profileForm={profileForm}
+                            passwordForm={passwordForm}
+                            deletePassword={deletePassword}
+                            onUpdateProfile={onUpdateProfile}
+                            onUpdatePassword={onUpdatePassword}
+                            onDeleteAccount={onDeleteAccount}
+                            onChangeProfile={onChangeProfile}
+                            onChangePassword={onChangePassword}
+                            onChangeDeletePassword={onChangeDeletePassword}
+                        />
+                    )}
+
+                    {page === 'activity' && (
+                        <Activity claims={payload.claims} redemptions={payload.redemptions} />
                     )}
 
                     {page === 'teens' && (
