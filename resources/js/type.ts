@@ -73,7 +73,7 @@ export type BootstrapPayload = {
     redemptions: Array<{
         id: number;
         status: string;
-        voucherCode: string;
+        voucherCode: string | null;
         redeemedAt: string | null;
         reward: {
             id: number;
@@ -169,7 +169,7 @@ export type ActivityProps = {
     redemptions: Array<{
         id: number;
         status: string;
-        voucherCode: string;
+        voucherCode: string | null;
         redeemedAt: string | null;
         reward: {
             id: number;
