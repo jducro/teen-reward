@@ -286,6 +286,7 @@ export function useSpaAppState() {
                 method: 'PUT',
                 body: {
                     name: input.name,
+                    type: input.type,
                     points_cost: input.pointsCost,
                     duration_minutes: input.durationMinutes,
                     emoji: input.emoji,
