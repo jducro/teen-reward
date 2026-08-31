@@ -19,6 +19,7 @@ services:
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
+            - 'sail-node-modules:/var/www/html/node_modules'
         networks:
             - sail
         depends_on:
@@ -27,15 +28,16 @@ services:
             - mariadb
     vite:
         image: sail-8.5/app
-        command: npm run dev -- --host=0.0.0.0 --port=${VITE_PORT:-5173}
+        entrypoint: []
+        command: sh -c 'pnpm install --frozen-lockfile --store-dir /var/www/html/node_modules/.pnpm-store && pnpm run dev -- --host=0.0.0.0 --port=${VITE_PORT:-5173}'
         working_dir: /var/www/html
         ports:
             - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
         environment:
-            WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
         volumes:
             - '.:/var/www/html'
+            - 'sail-node-modules:/var/www/html/node_modules'
         networks:
             - sail
         depends_on:
@@ -93,4 +95,6 @@ volumes:
     sail-redis:
         driver: local
     sail-mariadb:
+        driver: local
+    sail-node-modules:
         driver: local

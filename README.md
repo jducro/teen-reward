@@ -26,7 +26,7 @@ Rewards can include Wi-Fi access. Wi-Fi rewards generate a time-limited UniFi gu
 
 - Docker Desktop
 - PHP and Composer, for installing project dependencies
-- Node.js and npm, for frontend dependencies
+- Node.js and pnpm, for frontend dependencies
 
 ## Getting started
 
@@ -49,15 +49,14 @@ Rewards can include Wi-Fi access. Wi-Fi rewards generate a time-limited UniFi gu
    ./vendor/bin/sail up -d
    ```
 
-4. Install frontend dependencies, prepare the database, and build the frontend:
+4. Prepare the database and build the frontend:
 
    ```bash
-   ./vendor/bin/sail npm install
    ./vendor/bin/sail artisan migrate:fresh --seed
-   ./vendor/bin/sail npm run build
+   ./vendor/bin/sail pnpm run build
    ```
 
-Open [http://localhost](http://localhost). While developing the frontend, run `./vendor/bin/sail npm run dev` in a separate terminal.
+The Vite service installs frontend dependencies into a Docker volume on startup. This keeps native Vite dependencies compatible with the Linux container instead of the host OS. Open [http://localhost](http://localhost). While developing the frontend, Vite is available at [http://localhost:5173](http://localhost:5173).
 
 ## Demo accounts
 
@@ -98,7 +97,7 @@ When the controller cannot create a voucher, the redemption is recorded as faile
 ./vendor/bin/sail bin pint --test
 
 # Check frontend types
-./vendor/bin/sail npm run type-check
+./vendor/bin/sail pnpm run type-check
 ```
 
 ## Architecture

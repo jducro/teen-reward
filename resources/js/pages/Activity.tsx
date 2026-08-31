@@ -35,8 +35,23 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
                   <div className="activity-name">{redemption.reward?.name ?? 'Reward'}</div>
                   <div className="activity-meta">{redemption.redeemedAt ?? ''}</div>
                 </div>
-                <div className="activity-voucher">
-                  {redemption.voucherCode ?? redemption.status}
+                <div>
+                  <div className={`activity-status ${redemption.status}`}>{redemption.status}</div>
+                  {redemption.voucherCode && (
+                    <div className="activity-voucher-code" style={{
+                      fontFamily: 'monospace',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#0891b2',
+                      marginTop: '8px',
+                      padding: '4px 8px',
+                      backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                      borderRadius: '4px',
+                      wordBreak: 'break-all',
+                    }}>
+                      {redemption.voucherCode}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
