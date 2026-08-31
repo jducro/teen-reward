@@ -16,7 +16,7 @@ class UniFiRewardRedemptionTest extends TestCase
     {
         parent::setUp();
         $this->app->instance(UniFiService::class, new class extends UniFiService {
-            public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+            public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
             {
                 return [
                     'code' => 'ABC123DEF456',
@@ -65,7 +65,7 @@ class UniFiRewardRedemptionTest extends TestCase
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 60]);
 
         $this->app->instance(UniFiService::class, new class extends UniFiService {
-            public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+            public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
             {
                 throw new \Exception('UniFi controller unreachable');
             }
@@ -134,11 +134,13 @@ class UniFiRewardRedemptionTest extends TestCase
         $service = new class extends UniFiService {
             public ?int $receivedDuration = null;
             public ?int $receivedBandwidth = null;
+            public ?string $receivedNote = null;
 
-            public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+            public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
             {
                 $this->receivedDuration = $duration;
                 $this->receivedBandwidth = $bandwidth;
+                $this->receivedNote = $note;
 
                 return [
                     'code' => 'XYZ789',
