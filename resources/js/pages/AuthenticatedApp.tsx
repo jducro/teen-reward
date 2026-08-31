@@ -136,7 +136,6 @@ export default function AuthenticatedApp({
                             claims={payload.claims}
                             coins={coins}
                             busyKey={busyKey}
-                            isParent={isParent}
                             canClaim={isTeen}
                             canManage={isParent}
                             onClaim={onClaim}
@@ -155,6 +154,7 @@ export default function AuthenticatedApp({
                             canRedeem={isTeen}
                             canManage={isParent}
                             busyKey={busyKey}
+                            isParent={isParent}
                             onRedeem={onRedeemReward}
                             onCreate={onCreateReward}
                             onUpdate={onUpdateReward}
