@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion';
+import { useIntl } from 'react-intl';
 import type { ActivityProps } from '../type';
 
 export default function Activity({ claims, redemptions }: ActivityProps) {
+  const intl = useIntl();
+
   return (
     <div className="activity-page">
       <motion.section className="activity-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h2 className="activity-title">📋 Claim history</h2>
+        <h2 className="activity-title">{intl.formatMessage({ id: 'claims.history.title', defaultMessage: 'Claim history' })}</h2>
         {claims.length === 0 ? (
-          <p className="activity-empty">No chore claims yet.</p>
+          <p className="activity-empty">{intl.formatMessage({ id: 'claims.empty', defaultMessage: 'No chore claims yet.' })}</p>
         ) : (
           <div className="activity-list">
             {claims.map((claim) => (
@@ -16,7 +19,12 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
                   <div className="activity-name">{claim.chore?.title ?? 'Mission'}</div>
                   <div className="activity-meta">{claim.createdAt ?? ''}</div>
                 </div>
-                <div className={`activity-status ${claim.status}`}>{claim.status}</div>
+                <div className={`activity-status ${claim.status}`}>
+                  {intl.formatMessage({
+                    id: `claim.status.${claim.status}`,
+                    defaultMessage: claim.status,
+                  })}
+                </div>
               </div>
             ))}
           </div>
@@ -24,9 +32,9 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
       </motion.section>
 
       <motion.section className="activity-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-        <h2 className="activity-title">🎁 Voucher history</h2>
+        <h2 className="activity-title">{intl.formatMessage({ id: 'redemptions.history.title', defaultMessage: 'Voucher history' })}</h2>
         {redemptions.length === 0 ? (
-          <p className="activity-empty">No rewards redeemed yet.</p>
+          <p className="activity-empty">{intl.formatMessage({ id: 'redemptions.empty', defaultMessage: 'No rewards redeemed yet.' })}</p>
         ) : (
           <div className="activity-list">
             {redemptions.map((redemption) => (
@@ -36,22 +44,28 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
                   <div className="activity-meta">{redemption.redeemedAt ?? ''}</div>
                 </div>
                 <div>
-                  <div className={`activity-status ${redemption.status}`}>{redemption.status}</div>
-                  {redemption.voucherCode && (
-                    <div className="activity-voucher-code" style={{
-                      fontFamily: 'monospace',
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#0891b2',
-                      marginTop: '8px',
-                      padding: '4px 8px',
-                      backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                      borderRadius: '4px',
-                      wordBreak: 'break-all',
-                    }}>
-                      {redemption.voucherCode}
-                    </div>
-                  )}
+                  <div className={`activity-status ${redemption.status}`}>
+                    {intl.formatMessage({
+                      id: `redemption.status.${redemption.status}`,
+                      defaultMessage: redemption.status,
+                    })}
+                  </div>
+                  <div className="activity-voucher-label">
+                    {intl.formatMessage({ id: 'redemptions.voucherCode.label', defaultMessage: 'Voucher code' })}
+                  </div>
+                  <div className="activity-voucher-code" style={{
+                    fontFamily: 'monospace',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#0891b2',
+                    marginTop: '8px',
+                    padding: '4px 8px',
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                    borderRadius: '4px',
+                    wordBreak: 'break-all',
+                  }}>
+                    {redemption.voucherCode ?? intl.formatMessage({ id: 'common.notAvailable', defaultMessage: '—' })}
+                  </div>
                 </div>
               </div>
             ))}
