@@ -503,21 +503,22 @@ export function useSpaAppState() {
             setBusyKey('');
         }
 
-        async function testUniFiConnection() {
-            setBusyKey('unifi:test-connection');
-            setPanelError('');
-            setNotice('');
+    }
 
-            try {
-                const response = (await request('/api/unifi/test-connection', {
-                    method: 'POST',
-                })) as ApiSuccessPayload;
-                setNotice(response.message ?? '');
-            } catch (error) {
-                setPanelError(resolveErrorMessage(error));
-            } finally {
-                setBusyKey('');
-            }
+    async function testUniFiConnection() {
+        setBusyKey('unifi:test-connection');
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request('/api/unifi/test-connection', {
+                method: 'POST',
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+        } finally {
+            setBusyKey('');
         }
     }
 
