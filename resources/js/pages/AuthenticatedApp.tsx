@@ -154,7 +154,6 @@ export default function AuthenticatedApp({
                             canRedeem={isTeen}
                             canManage={isParent}
                             busyKey={busyKey}
-                            isParent={isParent}
                             onRedeem={onRedeemReward}
                             onCreate={onCreateReward}
                             onUpdate={onUpdateReward}
@@ -165,6 +164,7 @@ export default function AuthenticatedApp({
                     {page === 'settings' && (
                         <Settings
                             busyKey={busyKey}
+                            isParent={isParent}
                             profileForm={profileForm}
                             passwordForm={passwordForm}
                             deletePassword={deletePassword}
