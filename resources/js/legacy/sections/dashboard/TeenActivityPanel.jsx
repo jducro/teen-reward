@@ -91,7 +91,18 @@ function TeenActivityPanel({ claims, redemptions }) {
                                         },
                                     )}
                                 </p>
-                                <p className="mt-3 font-mono text-cyan-300">{redemption.voucherCode}</p>
+                                <p className="mt-3 text-xs uppercase tracking-wide text-slate-400">
+                                    {intl.formatMessage({
+                                        id: 'redemptions.voucherCode.label',
+                                        defaultMessage: 'Voucher code',
+                                    })}
+                                </p>
+                                <p className="mt-1 font-mono text-cyan-300">
+                                    {redemption.voucherCode || intl.formatMessage({
+                                        id: 'common.notAvailable',
+                                        defaultMessage: '—',
+                                    })}
+                                </p>
                             </div>
                         ))
                     )}

@@ -83,6 +83,7 @@
     "messages.reward.redeemed": "Récompense échangée.",
     "redemptions.history.title": "Historique des bons",
     "redemptions.empty": "Aucune récompense échangée pour le moment.",
+    "redemptions.voucherCode.label": "Code du bon",
     "redemption.status.pending": "En attente",
     "redemption.status.fulfilled": "Traitée",
     "redemption.status.failed": "Échouée",
