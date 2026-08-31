@@ -4,6 +4,11 @@ import { cardVariants, formatDate } from '../../spa/utils';
 
 function TeenActivityPanel({ claims, redemptions }) {
     const intl = useIntl();
+    const redemptionStatusMessageIds = {
+        pending: 'redemption.status.pending',
+        fulfilled: 'redemption.status.fulfilled',
+        failed: 'redemption.status.failed',
+    };
 
     return (
         <motion.section
@@ -78,6 +83,14 @@ function TeenActivityPanel({ claims, redemptions }) {
                             <div key={redemption.id} className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
                                 <p className="font-semibold text-white">{redemption.reward?.name}</p>
                                 <p className="mt-1 text-sm text-slate-400">{formatDate(intl, redemption.redeemedAt)}</p>
+                                <p className="mt-2 text-xs uppercase tracking-wide text-slate-300">
+                                    {intl.formatMessage(
+                                        {
+                                            id: redemptionStatusMessageIds[redemption.status] ?? 'redemption.status.unknown',
+                                            defaultMessage: redemption.status ?? 'unknown',
+                                        },
+                                    )}
+                                </p>
                                 <p className="mt-3 font-mono text-cyan-300">{redemption.voucherCode}</p>
                             </div>
                         ))
