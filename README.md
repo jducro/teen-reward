@@ -1,58 +1,114 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Teen Reward
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Teen Reward is a local, family-focused rewards app that helps parents turn completed chores into points and lets teens exchange those points for rewards. It is built with Laravel, React, Vite, and Docker-based Laravel Sail.
 
-## About Laravel
+## How it works
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1. A parent creates chores and assigns them to a teen.
+2. The teen claims a completed chore.
+3. The parent approves or rejects the claim.
+4. Approval adds the chore's points to the teen's balance.
+5. The teen redeems available points for a reward.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Rewards can include Wi-Fi access. Wi-Fi rewards generate a time-limited UniFi guest voucher and return its code to the teen. Teens can also register devices for parent approval, providing a path to direct network access.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Features
 
-## Learning Laravel
+- Parent and teen accounts with role-based access
+- Chore creation, assignment, recurrence, and approval workflow
+- Points balances and reward redemption
+- Voucher-style Wi-Fi rewards backed by a UniFi controller
+- Teen device registration and parent device approval
+- Profile management and session/CSRF-based authentication
+- Seeded sample accounts, chores, and rewards for local development
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Requirements
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Docker Desktop
+- PHP and Composer, for installing project dependencies
+- Node.js and npm, for frontend dependencies
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Getting started
 
-## Agentic Development
+1. Install PHP dependencies:
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+   ```bash
+   composer install
+   ```
 
-```bash
-composer require laravel/boost --dev
+2. Copy the environment file and generate an application key:
 
-php artisan boost:install
+   ```bash
+   cp .env.example .env
+   ./vendor/bin/sail artisan key:generate
+   ```
+
+3. Start the application services:
+
+   ```bash
+   ./vendor/bin/sail up -d
+   ```
+
+4. Install frontend dependencies, prepare the database, and build the frontend:
+
+   ```bash
+   ./vendor/bin/sail npm install
+   ./vendor/bin/sail artisan migrate:fresh --seed
+   ./vendor/bin/sail npm run build
+   ```
+
+Open [http://localhost](http://localhost). While developing the frontend, run `./vendor/bin/sail npm run dev` in a separate terminal.
+
+## Demo accounts
+
+After seeding, sign in with either account:
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Parent | `parent@example.com` | `password` |
+| Teen | `teen@example.com` | `password` |
+
+## UniFi configuration
+
+Wi-Fi rewards require access to a UniFi controller. Set these values in `.env` before redeeming a Wi-Fi reward:
+
+```env
+UNIFI_HOST=https://unifi.example.com:8443
+UNIFI_USERNAME=admin
+UNIFI_PASSWORD=secret
+UNIFI_SITE=default
+UNIFI_ALLOW_SELF_SIGNED=false
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Use `UNIFI_ALLOW_SELF_SIGNED=true` only for a trusted local or development controller with a self-signed certificate. Keep real controller credentials out of version control.
 
-## Contributing
+When the controller cannot create a voucher, the redemption is recorded as failed and the teen's points are returned.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Useful commands
 
-## Code of Conduct
+```bash
+# Start or stop the Docker services
+./vendor/bin/sail up -d
+./vendor/bin/sail stop
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Run the test suite
+./vendor/bin/sail artisan test --compact
 
-## Security Vulnerabilities
+# Check PHP formatting
+./vendor/bin/sail bin pint --test
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Check frontend types
+./vendor/bin/sail npm run type-check
+```
+
+## Architecture
+
+- `routes/web.php` serves the single-page application and mounts API routes under `/api`.
+- `app/Http/Controllers/Api` contains authentication, chores, claims, rewards, profiles, teens, and devices endpoints.
+- `resources/js/legacy` contains the API-driven frontend.
+- `app/Services/UniFiService.php` contains UniFi voucher and device-access operations.
+- `database/seeders` provides the local demo data.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is available under the [MIT License](LICENSE).

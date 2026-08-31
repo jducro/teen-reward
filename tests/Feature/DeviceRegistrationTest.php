@@ -16,7 +16,7 @@ class DeviceRegistrationTest extends TestCase
         $this->app->instance(UniFiService::class, new class extends UniFiService {
             public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
             {
-                return true;
+                throw new \LogicException('UniFi registration must be deferred until parent approval.');
             }
 
             public function unregisterDevice(string $deviceMac): bool
