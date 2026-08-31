@@ -227,16 +227,11 @@ class UniFiService
      */
     public function isHealthy(): bool
     {
-        try {
-            $this->ensureConnected();
-            $this->client->stat_client('00:00:00:00:00:00');
-            return true;
-        } catch (\Exception $e) {
-            Log::warning('UniFi health check failed', [
-                'error' => $e->getMessage(),
-            ]);
-            return false;
-        }
+        $this->ensureConnected();
+
+        $this->client->stat_client('00:00:00:00:00:00');
+
+        return true;
     }
 
     /**

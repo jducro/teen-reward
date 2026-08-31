@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RewardController;
 use App\Http\Controllers\Api\TeenController;
+use App\Http\Controllers\Api\UniFiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/bootstrap', AppBootstrapController::class)->name('api.bootstrap');
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/rewards/{reward}', [RewardController::class, 'update'])->name('api.rewards.update');
     Route::delete('/rewards/{reward}', [RewardController::class, 'destroy'])->name('api.rewards.destroy');
     Route::post('/rewards/{reward}/redeem', [RewardController::class, 'redeem'])->name('api.rewards.redeem');
+    Route::post('/unifi/test-connection', [UniFiController::class, 'testConnection'])->name('api.unifi.test-connection');
 
     // Device routes - pending must come before apiResource to avoid route matching issues
     Route::get('/devices/pending', [DeviceController::class, 'pending'])->name('api.devices.pending');
