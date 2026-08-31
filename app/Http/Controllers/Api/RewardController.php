@@ -79,6 +79,16 @@ class RewardController extends Controller
 
         // WiFi vouchers require UniFi integration
         try {
+            if (config('app.debug')) {
+                logger()->debug('Reward redemption requesting UniFi voucher', [
+                    'reward_id' => $reward->id,
+                    'reward_type' => $reward->type,
+                    'duration_minutes' => $reward->duration_minutes,
+                    'user_id' => $user->id,
+                    'redemption_id' => $redemption->id,
+                ]);
+            }
+
             $voucher = $this->unifiService->generateVoucher(
                 duration: $reward->duration_minutes,
                 bandwidth: null
@@ -102,6 +112,17 @@ class RewardController extends Controller
                 'voucherExpiresAt' => $voucher['expires_at'],
             ], 201);
         } catch (\Exception $e) {
+            if (config('app.debug')) {
+                logger()->debug('Reward redemption fell back to demo voucher', [
+                    'reward_id' => $reward->id,
+                    'reward_type' => $reward->type,
+                    'user_id' => $user->id,
+                    'redemption_id' => $redemption->id,
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                ]);
+            }
+
             $redemption->update([
                 'unifi_sync_status' => 'failed',
             ]);

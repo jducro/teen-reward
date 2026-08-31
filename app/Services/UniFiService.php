@@ -67,6 +67,15 @@ class UniFiService
     public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
     {
         try {
+            if (config('app.debug')) {
+                Log::debug('UniFi voucher generation started', [
+                    'duration_minutes' => $duration,
+                    'bandwidth' => $bandwidth,
+                    'host' => config('services.unifi.host'),
+                    'site' => config('services.unifi.site'),
+                ]);
+            }
+
             $this->ensureConnected();
 
             $response = $this->client->create_voucher(
@@ -82,6 +91,12 @@ class UniFiService
                 throw new \Exception('UniFi API returned empty voucher response');
             }
 
+            if (config('app.debug')) {
+                Log::debug('UniFi voucher create response received', [
+                    'response' => $response,
+                ]);
+            }
+
             $createTime = $response[0]->create_time ?? $response[0]['create_time'] ?? null;
 
             if (!is_int($createTime)) {
@@ -92,6 +107,13 @@ class UniFiService
 
             if (!is_array($voucherResponse) || $voucherResponse === []) {
                 throw new \Exception('Unable to retrieve created UniFi voucher');
+            }
+
+            if (config('app.debug')) {
+                Log::debug('UniFi voucher details response received', [
+                    'create_time' => $createTime,
+                    'response' => $voucherResponse,
+                ]);
             }
 
             $voucher = $voucherResponse[0] ?? null;
@@ -121,6 +143,15 @@ class UniFiService
                 'duration' => $duration,
                 'bandwidth' => $bandwidth,
             ]);
+
+            if (config('app.debug')) {
+                Log::debug('UniFi voucher generation exception context', [
+                    'exception' => $e::class,
+                    'message' => $e->getMessage(),
+                    'trace' => collect(explode("\n", $e->getTraceAsString()))->take(12)->all(),
+                ]);
+            }
+
             throw $e;
         }
     }
