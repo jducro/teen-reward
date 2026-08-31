@@ -73,16 +73,22 @@ class UniFiRewardRedemptionTest extends TestCase
 
         $response = $this->actingAs($teen)
             ->postJson("/api/rewards/{$reward->id}/redeem")
-            ->assertUnprocessable();
+            ->assertCreated();
 
-        // Verify points were refunded
-        $this->assertEquals(100, $teen->fresh()->points_balance);
+        // Verify response contains fallback voucher code
+        $response->assertJsonStructure([
+            'message',
+            'voucherCode',
+        ]);
 
-        // Verify RewardRedemption has failed status
+        // Verify points were NOT refunded (fallback voucher means success)
+        $this->assertEquals(50, $teen->fresh()->points_balance);
+
+        // Verify RewardRedemption has fallback status (not failed)
         $this->assertDatabaseHas('reward_redemptions', [
             'user_id' => $teen->id,
             'reward_id' => $reward->id,
-            'unifi_sync_status' => 'failed',
+            'unifi_sync_status' => 'fallback',
         ]);
 
         // Verify UniFiSyncLog records the failure
