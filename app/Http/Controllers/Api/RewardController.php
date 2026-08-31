@@ -91,7 +91,8 @@ class RewardController extends Controller
 
             $voucher = $this->unifiService->generateVoucher(
                 duration: $reward->duration_minutes,
-                bandwidth: null
+                bandwidth: null,
+                note: $user->name . ' - ' . $reward->name
             );
 
             $redemption->update([

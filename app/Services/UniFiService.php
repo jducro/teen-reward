@@ -64,7 +64,7 @@ class UniFiService
         }
     }
 
-    public function generateVoucher(int $duration = 60, ?int $bandwidth = null): array
+    public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
     {
         try {
             if (config('app.debug')) {
@@ -82,7 +82,7 @@ class UniFiService
                 minutes: $duration,
                 count: 1,
                 quota: 0,
-                note: '',
+                note: $note ?? '',
                 up: $bandwidth,
                 down: $bandwidth,
             );
