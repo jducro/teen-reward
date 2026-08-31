@@ -229,8 +229,6 @@ class UniFiService
     {
         $this->ensureConnected();
 
-        $this->client->stat_client('00:00:00:00:00:00');
-
         return true;
     }
 
