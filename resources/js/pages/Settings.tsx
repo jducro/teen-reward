@@ -2,12 +2,14 @@ import type { SettingsProps } from '../type';
 
 export default function Settings({
   busyKey,
+  isParent,
   profileForm,
   passwordForm,
   deletePassword,
   onUpdateProfile,
   onUpdatePassword,
   onDeleteAccount,
+  onTestUniFiConnection,
   onChangeProfile,
   onChangePassword,
   onChangeDeletePassword,
@@ -98,6 +100,21 @@ export default function Settings({
           Delete account
         </button>
       </form>
+
+      {isParent && (
+        <div className="crud-panel">
+          <h3>UniFi integration</h3>
+          <p>Test UniFi controller credentials and connectivity.</p>
+          <button
+            className="crud-submit-btn"
+            type="button"
+            disabled={busyKey === 'unifi:test-connection'}
+            onClick={() => void onTestUniFiConnection()}
+          >
+            Test UniFi connection
+          </button>
+        </div>
+      )}
     </div>
   );
 }

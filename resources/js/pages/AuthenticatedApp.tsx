@@ -47,6 +47,7 @@ type AuthenticatedAppProps = {
     onUpdateProfile: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
     onUpdatePassword: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
     onDeleteAccount: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
+    onTestUniFiConnection: () => Promise<void>;
     onChangeProfile: (field: 'name' | 'email', value: string) => void;
     onChangePassword: (field: 'currentPassword' | 'password' | 'passwordConfirmation', value: string) => void;
     onChangeDeletePassword: (value: string) => void;
@@ -84,6 +85,7 @@ export default function AuthenticatedApp({
     onUpdateProfile,
     onUpdatePassword,
     onDeleteAccount,
+    onTestUniFiConnection,
     onChangeProfile,
     onChangePassword,
     onChangeDeletePassword,
@@ -134,6 +136,7 @@ export default function AuthenticatedApp({
                             claims={payload.claims}
                             coins={coins}
                             busyKey={busyKey}
+                            isParent={isParent}
                             canClaim={isTeen}
                             canManage={isParent}
                             onClaim={onClaim}
@@ -168,6 +171,7 @@ export default function AuthenticatedApp({
                             onUpdateProfile={onUpdateProfile}
                             onUpdatePassword={onUpdatePassword}
                             onDeleteAccount={onDeleteAccount}
+                            onTestUniFiConnection={onTestUniFiConnection}
                             onChangeProfile={onChangeProfile}
                             onChangePassword={onChangePassword}
                             onChangeDeletePassword={onChangeDeletePassword}

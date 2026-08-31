@@ -147,6 +147,7 @@ export type DashboardProps = {
 
 export type SettingsProps = {
     busyKey: string;
+    isParent: boolean;
     profileForm: {
         name: string;
         email: string;
@@ -160,6 +161,7 @@ export type SettingsProps = {
     onUpdateProfile: (event: FormEvent<HTMLFormElement>) => Promise<void>;
     onUpdatePassword: (event: FormEvent<HTMLFormElement>) => Promise<void>;
     onDeleteAccount: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+    onTestUniFiConnection: () => Promise<void>;
     onChangeProfile: (field: 'name' | 'email', value: string) => void;
     onChangePassword: (field: 'currentPassword' | 'password' | 'passwordConfirmation', value: string) => void;
     onChangeDeletePassword: (value: string) => void;

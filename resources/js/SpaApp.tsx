@@ -43,6 +43,7 @@ export default function App() {
                     onUpdateProfile={app.updateProfile}
                     onUpdatePassword={app.updatePassword}
                     onDeleteAccount={app.deleteAccount}
+                    onTestUniFiConnection={app.testUniFiConnection}
                     onChangeProfile={app.updateProfileField}
                     onChangePassword={app.updatePasswordField}
                     onChangeDeletePassword={app.setDeletePassword}

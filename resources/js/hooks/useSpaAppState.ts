@@ -502,6 +502,23 @@ export function useSpaAppState() {
         } finally {
             setBusyKey('');
         }
+
+        async function testUniFiConnection() {
+            setBusyKey('unifi:test-connection');
+            setPanelError('');
+            setNotice('');
+
+            try {
+                const response = (await request('/api/unifi/test-connection', {
+                    method: 'POST',
+                })) as ApiSuccessPayload;
+                setNotice(response.message ?? '');
+            } catch (error) {
+                setPanelError(resolveErrorMessage(error));
+            } finally {
+                setBusyKey('');
+            }
+        }
     }
 
     function updateProfileField(field: 'name' | 'email', value: string) {
@@ -552,6 +569,7 @@ export function useSpaAppState() {
         updateProfile,
         updatePassword,
         deleteAccount,
+        testUniFiConnection,
         updateProfileField,
         updatePasswordField,
         setDeletePassword,
