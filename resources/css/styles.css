@@ -416,6 +416,7 @@ body {
 
 .crud-panel {
   background: white;
+  margin-top: 18px;
   border-radius: 20px;
   padding: 16px;
   margin-bottom: 16px;

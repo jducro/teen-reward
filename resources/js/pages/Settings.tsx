@@ -40,9 +40,11 @@ export default function Settings({
             required
           />
         </div>
-        <button className="crud-submit-btn" type="submit" disabled={busyKey === 'profile:update'}>
-          Save profile
-        </button>
+        <div className="crud-actions">
+          <button className="crud-submit-btn" type="submit" disabled={busyKey === 'profile:update'}>
+            Save profile
+          </button>
+        </div>
       </form>
 
       <form className="crud-panel" onSubmit={onUpdatePassword}>
@@ -79,9 +81,11 @@ export default function Settings({
             required
           />
         </div>
-        <button className="crud-submit-btn" type="submit" disabled={busyKey === 'profile:password'}>
-          Update password
-        </button>
+        <div className="crud-actions">
+          <button className="crud-submit-btn" type="submit" disabled={busyKey === 'profile:password'}>
+            Update password
+          </button>
+        </div>
       </form>
 
       <form className="crud-panel" onSubmit={onDeleteAccount}>
@@ -96,23 +100,27 @@ export default function Settings({
             required
           />
         </div>
-        <button className="crud-delete-btn" type="submit" disabled={busyKey === 'profile:delete'}>
-          Delete account
-        </button>
+        <div className="crud-actions">
+          <button className="crud-delete-btn" type="submit" disabled={busyKey === 'profile:delete'}>
+            Delete account
+          </button>
+        </div>
       </form>
 
       {isParent && (
         <div className="crud-panel">
           <h3>UniFi integration</h3>
           <p>Test UniFi controller credentials and connectivity.</p>
-          <button
-            className="crud-submit-btn"
-            type="button"
-            disabled={busyKey === 'unifi:test-connection'}
-            onClick={() => void onTestUniFiConnection()}
-          >
-            Test UniFi connection
-          </button>
+          <div className="crud-actions">
+            <button
+              className="crud-submit-btn"
+              type="button"
+              disabled={busyKey === 'unifi:test-connection'}
+              onClick={() => void onTestUniFiConnection()}
+            >
+              Test UniFi connection
+            </button>
+          </div>
         </div>
       )}
     </div>
