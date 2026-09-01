@@ -120,6 +120,30 @@ export function useSpaAppState() {
         } finally {
             setBusyKey('');
         }
+   
+    }
+
+    async function claimChoreForTeen(choreId: number, teenId: number) {
+        setBusyKey(`claim-for-teen:${choreId}:${teenId}`);
+        setPanelError('');
+        setNotice('');
+
+        try {
+            const response = (await request(`/api/chores/${choreId}/claim-for-teen`, {
+                method: 'POST',
+                body: {
+                    teen_id: teenId,
+                },
+            })) as ApiSuccessPayload;
+            setNotice(response.message ?? '');
+            await refresh();
+            return true;
+        } catch (error) {
+            setPanelError(resolveErrorMessage(error));
+            return false;
+        } finally {
+            setBusyKey('');
+        }
     }
 
     async function approveClaim(claimId: number) {
@@ -553,6 +577,7 @@ export function useSpaAppState() {
         login,
         logout,
         claimChore,
+        claimChoreForTeen,
         approveClaim,
         rejectClaim,
         createChore,

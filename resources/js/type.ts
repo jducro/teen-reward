@@ -67,6 +67,7 @@ export type TeenDraft = {
 export type BootstrapPayload = {
     user: User | null;
     teens: Teen[];
+    availableChoresByTeen?: Record<number, Chore[]>;
     chores: Chore[];
     claims: Claim[];
     claimHistory: Claim[];
@@ -197,7 +198,10 @@ export type TasksProps = {
     busyKey: string;
     canClaim: boolean;
     canManage: boolean;
+    teens: Teen[];
+    availableChoresByTeen?: Record<number, Chore[]>;
     onClaim: (choreId: number) => Promise<boolean>;
+    onClaimForTeen: (choreId: number, teenId: number) => Promise<boolean>;
     onApproveClaim: (claimId: number) => Promise<boolean>;
     onRejectClaim: (claimId: number) => Promise<boolean>;
     onCreate: (input: ChoreDraft) => Promise<boolean>;

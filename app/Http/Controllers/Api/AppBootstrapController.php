@@ -8,12 +8,14 @@ use App\Models\ChoreClaim;
 use App\Models\Reward;
 use App\Models\RewardRedemption;
 use App\Models\User;
+use App\Services\ClaimService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AppBootstrapController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, ClaimService $claimService): JsonResponse
     {
         $user = $request->user();
 
@@ -66,6 +68,13 @@ class AppBootstrapController extends Controller
                 ->get()
             : User::query()->whereKey([])->get();
 
+        $availableChoresByTeen = [];
+        if ($user->role === 'parent') {
+            foreach ($teens as $teen) {
+                $availableChoresByTeen[$teen->id] = $this->getAvailableChores($chores, $teen, $claimService);
+            }
+        }
+
         return response()->json([
             'csrfToken' => csrf_token(),
             'user' => [
@@ -86,6 +95,7 @@ class AppBootstrapController extends Controller
                 'email' => $teen->email,
                 'pointsBalance' => $teen->points_balance,
             ])->values(),
+            'availableChoresByTeen' => $availableChoresByTeen,
             'chores' => $chores->map(fn (Chore $chore) => [
                 'id' => $chore->id,
                 'title' => $chore->title,
@@ -178,5 +188,32 @@ class AppBootstrapController extends Controller
                     : null,
             ])->values(),
         ]);
+    }
+
+    /**
+     * Get available chores for a teen (not claimed in current period).
+     */
+    private function getAvailableChores($chores, User $teen, ClaimService $claimService): array
+    {
+        $now = Carbon::now();
+
+        return $chores->filter(function (Chore $chore) use ($teen, $claimService, $now) {
+            $periodStart = $claimService->calculatePeriodStart($chore, $now);
+
+            $existing = ChoreClaim::query()
+                ->where('chore_id', $chore->id)
+                ->where('user_id', $teen->id)
+                ->whereDate('period_start', $periodStart->toDateString())
+                ->first();
+
+            return ! $existing;
+        })->map(fn (Chore $chore) => [
+            'id' => $chore->id,
+            'title' => $chore->title,
+            'description' => $chore->description,
+            'pointsValue' => $chore->points_value,
+            'emoji' => $chore->emoji,
+            'recurrenceType' => $chore->recurrence_type,
+        ])->values()->toArray();
     }
 }

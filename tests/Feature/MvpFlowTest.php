@@ -88,4 +88,94 @@ class MvpFlowTest extends TestCase
             'unifi_sync_status' => 'synced',
         ]);
     }
+
+    public function test_parent_can_create_claim_for_teen_with_immediate_approval(): void
+    {
+        $parent = User::factory()->create([
+            'role' => 'parent',
+            'points_balance' => 0,
+        ]);
+
+        $teen = User::factory()->create([
+            'role' => 'teen',
+            'points_balance' => 0,
+        ]);
+
+        $chore = Chore::factory()->create([
+            'title' => 'Wash dishes',
+            'points_value' => 10,
+            'created_by' => $parent->id,
+        ]);
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", [
+                'teen_id' => $teen->id,
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('chore_claims', [
+            'chore_id' => $chore->id,
+            'user_id' => $teen->id,
+            'status' => 'approved',
+            'points_awarded' => 10,
+        ]);
+
+        $teen->refresh();
+        $this->assertSame(10, $teen->points_balance);
+    }
+
+    public function test_parent_cannot_create_claim_twice_for_same_period(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+        $teen = User::factory()->create(['role' => 'teen']);
+        $chore = Chore::factory()->create([
+            'points_value' => 10,
+            'created_by' => $parent->id,
+        ]);
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", [
+                'teen_id' => $teen->id,
+            ])
+            ->assertCreated();
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", [
+                'teen_id' => $teen->id,
+            ])
+            ->assertUnprocessable();
+    }
+
+    public function test_only_parent_can_create_claim_for_teen(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+        $teen = User::factory()->create(['role' => 'teen']);
+        $other_teen = User::factory()->create(['role' => 'teen']);
+
+        $chore = Chore::factory()->create([
+            'points_value' => 10,
+            'created_by' => $parent->id,
+        ]);
+
+        $this->actingAs($teen)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", [
+                'teen_id' => $other_teen->id,
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_parent_must_provide_valid_teen_id(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+        $chore = Chore::factory()->create([
+            'points_value' => 10,
+            'created_by' => $parent->id,
+        ]);
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", [
+                'teen_id' => 99999,
+            ])
+            ->assertUnprocessable();
+    }
 }

@@ -45,7 +45,10 @@ export default function Tasks({
   busyKey,
   canClaim,
   canManage,
+  teens,
+  availableChoresByTeen,
   onClaim,
+  onClaimForTeen,
   onApproveClaim,
   onRejectClaim,
   onCreate,
@@ -57,6 +60,7 @@ export default function Tasks({
   const [doneTask, setDoneTask] = useState<DoneTask | null>(null);
   const [burstPos, setBurstPos] = useState({ x: 0, y: 0 });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedTeenId, setSelectedTeenId] = useState<number | null>(null);
   const [form, setForm] = useState<ChoreDraft>({
     title: '',
     description: '',
@@ -84,6 +88,24 @@ export default function Tasks({
     () => (filter === 'tous' ? chores : chores.filter((task) => categoryForPoints(task.pointsValue) === filter)),
     [chores, filter],
   );
+
+  const teenClaimOptions = useMemo(() => {
+    if (!canManage) {
+      return [];
+    }
+
+    const teen = selectedTeenId ? teens.find((entry) => entry.id === selectedTeenId) : teens[0];
+    if (!teen) {
+      return [];
+    }
+
+    const choreMap = new Map(chores.map((chore) => [chore.id, chore]));
+    const available = availableChoresByTeen?.[teen.id] ?? [];
+
+    return available
+      .map((chore) => choreMap.get(chore.id) ?? chore)
+      .filter((chore): chore is Chore => Boolean(chore));
+  }, [availableChoresByTeen, canManage, chores, selectedTeenId, teens]);
 
   async function complete(task: Chore, event: React.MouseEvent<HTMLButtonElement>) {
     const succeeded = await onClaim(task.id);
@@ -210,6 +232,81 @@ export default function Tasks({
         );
         })}
       </div>
+          )}
+        </motion.section>
+      ) : null}
+
+      {canManage ? (
+        <motion.section className="approval-panel" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <h3 className="approval-panel-title">
+            🧑‍🎓 {intl.formatMessage({ id: 'claims.parent.quickClaim.title', defaultMessage: 'Claim for a teen' })}
+          </h3>
+          {teens.length === 0 ? (
+            <p className="approval-empty">
+              {intl.formatMessage({ id: 'teens.empty', defaultMessage: 'No teen accounts found.' })}
+            </p>
+          ) : (
+            <>
+              <div className="form-field">
+                <label htmlFor="claim-teen-select">
+                  {intl.formatMessage({ id: 'parent.selectTeen', defaultMessage: 'View teen:' })}
+                </label>
+                <select
+                  id="claim-teen-select"
+                  className="crud-input"
+                  value={selectedTeenId ?? teens[0].id}
+                  onChange={(event) => setSelectedTeenId(Number(event.target.value))}
+                >
+                  {teens.map((teen) => (
+                    <option key={teen.id} value={teen.id}>
+                      {teen.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="approval-list">
+                {teenClaimOptions.length === 0 ? (
+                  <p className="approval-empty">
+                    {intl.formatMessage({
+                      id: 'claims.noAvailableChores',
+                      defaultMessage: 'No available chores for this teen.',
+                    })}
+                  </p>
+                ) : (
+                  teenClaimOptions.map((chore) => {
+                    const targetTeenId = selectedTeenId ?? teens[0].id;
+                    const claimBusyKey = `claim-for-teen:${chore.id}:${targetTeenId}`;
+                    const isClaimBusy = busyKey === claimBusyKey;
+
+                    return (
+                      <div key={chore.id} className="approval-card">
+                        <div>
+                          <div className="approval-title">{chore.title}</div>
+                          <div className="approval-meta">
+                            {intl.formatMessage(
+                              { id: 'chore.points.label', defaultMessage: '{points} points' },
+                              { points: chore.pointsValue },
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="approval-btn approve"
+                          disabled={isClaimBusy}
+                          onClick={() => {
+                            void onClaimForTeen(chore.id, targetTeenId);
+                          }}
+                        >
+                          {isClaimBusy
+                            ? '…'
+                            : intl.formatMessage({ id: 'claims.action.claimForTeen', defaultMessage: 'Claim' })}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
           )}
         </motion.section>
       ) : null}

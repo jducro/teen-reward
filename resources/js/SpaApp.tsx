@@ -25,6 +25,7 @@ export default function App() {
                     isParent={app.isParent}
                     onLogout={app.logout}
                     onClaim={app.claimChore}
+                    onClaimForTeen={app.claimChoreForTeen}
                     onApproveClaim={app.approveClaim}
                     onRejectClaim={app.rejectClaim}
                     onCreateChore={app.createChore}

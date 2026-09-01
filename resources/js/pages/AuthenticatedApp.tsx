@@ -22,6 +22,7 @@ type AuthenticatedAppProps = {
     isParent: boolean;
     onLogout: () => Promise<void>;
     onClaim: (choreId: number) => Promise<boolean>;
+    onClaimForTeen: (choreId: number, teenId: number) => Promise<boolean>;
     onApproveClaim: (claimId: number) => Promise<boolean>;
     onRejectClaim: (claimId: number) => Promise<boolean>;
     onCreateChore: (input: ChoreDraft) => Promise<boolean>;
@@ -67,6 +68,7 @@ export default function AuthenticatedApp({
     isParent,
     onLogout,
     onClaim,
+    onClaimForTeen,
     onApproveClaim,
     onRejectClaim,
     onCreateChore,
@@ -138,7 +140,10 @@ export default function AuthenticatedApp({
                             busyKey={busyKey}
                             canClaim={isTeen}
                             canManage={isParent}
+                            teens={payload.teens}
+                            availableChoresByTeen={payload.availableChoresByTeen}
                             onClaim={onClaim}
+                            onClaimForTeen={onClaimForTeen}
                             onApproveClaim={onApproveClaim}
                             onRejectClaim={onRejectClaim}
                             onCreate={onCreateChore}

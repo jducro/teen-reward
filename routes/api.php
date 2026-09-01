@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/chores/{chore}', [ChoreController::class, 'update'])->name('api.chores.update');
     Route::delete('/chores/{chore}', [ChoreController::class, 'destroy'])->name('api.chores.destroy');
     Route::post('/chores/{chore}/claim', [ClaimController::class, 'store'])->name('api.chores.claim');
+    Route::post('/chores/{chore}/claim-for-teen', [ClaimController::class, 'storeForTeen'])->name('api.chores.claim_for_teen');
 
     Route::post('/claims/{claim}/approve', [ClaimController::class, 'approve'])->name('api.claims.approve');
     Route::post('/claims/{claim}/reject', [ClaimController::class, 'reject'])->name('api.claims.reject');
