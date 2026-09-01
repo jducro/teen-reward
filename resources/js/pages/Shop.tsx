@@ -4,6 +4,8 @@ import AppIcon from '../components/AppIcon';
 import IconPicker from '../components/IconPicker';
 import { rewardIconOptions } from '../spa/iconOptions';
 import type { PurchasedReward, Reward, RewardDraft, ShopProps } from '../type';
+import { formatDuration } from 'date-fns';
+import { durationToHumanReadable } from '../utils/date';
 
 export default function Shop({
   rewards,
@@ -232,7 +234,7 @@ export default function Shop({
                 {reward.type === 'wifi' ? '📡 WiFi' : '🎁 Physique'}
               </div>
               <div className="reward-cost">💰 {reward.pointsCost}</div>
-              {reward.type === 'wifi' && <p className="reward-duration">{reward.durationMinutes} min</p>}
+              {reward.type === 'wifi' && <p className="reward-duration">{durationToHumanReadable(reward.durationMinutes)}</p>}
 
               {canManage ? (
                 <div className="reward-admin-actions">

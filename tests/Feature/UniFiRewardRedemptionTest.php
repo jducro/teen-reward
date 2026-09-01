@@ -157,5 +157,6 @@ class UniFiRewardRedemptionTest extends TestCase
 
         $this->assertSame(120, $service->receivedDuration);
         $this->assertNull($service->receivedBandwidth);
+        $this->assertSame($teen->name . ' - ' . $reward->name, $service->receivedNote);
     }
 }
