@@ -92,7 +92,7 @@ class RewardController extends Controller
             $voucher = $this->unifiService->generateVoucher(
                 duration: $reward->duration_minutes,
                 bandwidth: null,
-                note: $user->name . ' - ' . $reward->name
+                note: $user->name.' - '.$reward->name
             );
 
             $redemption->update([
@@ -135,7 +135,7 @@ class RewardController extends Controller
             ]);
 
             // Generate a local fallback voucher code for local development
-            $voucherCode = 'DEMO-' . strtoupper(substr(md5($redemption->id . now()), 0, 8));
+            $voucherCode = 'DEMO-'.strtoupper(substr(md5($redemption->id.now()), 0, 8));
             $expiresAt = now()->addMinutes($reward->duration_minutes);
 
             $redemption->update([

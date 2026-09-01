@@ -7,7 +7,6 @@ use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
-
     public function test_spa_shell_can_be_rendered(): void
     {
         $response = $this->get('/');

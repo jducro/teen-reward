@@ -2,13 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\Chore;
+use App\Models\User;
+use Tests\TestCase;
 
 class ChoreManagementTest extends TestCase
 {
-
     public function test_parent_can_create_edit_and_delete_chore(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);

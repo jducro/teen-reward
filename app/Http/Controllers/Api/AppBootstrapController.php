@@ -47,11 +47,16 @@ class AppBootstrapController extends Controller
                 ->latest()
                 ->get();
 
-        $redemptions = RewardRedemption::query()
-            ->where('user_id', $user->id)
-            ->with('reward')
-            ->latest()
-            ->get();
+        $redemptions = $user->role === 'parent'
+            ? RewardRedemption::query()
+                ->with(['reward', 'user'])
+                ->latest()
+                ->get()
+            : RewardRedemption::query()
+                ->where('user_id', $user->id)
+                ->with('reward')
+                ->latest()
+                ->get();
 
         $teens = $user->role === 'parent'
             ? User::query()
@@ -114,36 +119,36 @@ class AppBootstrapController extends Controller
                     ]
                     : null,
             ])->values(),
-'claimHistory' => ChoreClaim::query()
-    ->when($user->role !== 'parent', fn ($query) => $query->where('user_id', $user->id))
-    ->with($user->role === 'parent' ? ['chore', 'user'] : ['chore'])
-    ->latest()
-    ->get()
-                    ->map(fn (ChoreClaim $claim) => [
-                        'id' => $claim->id,
-                        'status' => $claim->status,
-                        'periodStart' => optional($claim->period_start)->toDateString(),
-                        'pointsAwarded' => $claim->points_awarded,
-                        'createdAt' => optional($claim->created_at)->toIso8601String(),
-                        'chore' => $claim->relationLoaded('chore')
-                            ? [
-                                'id' => $claim->chore->id,
-                                'title' => $claim->chore->title,
-                                'pointsValue' => $claim->chore->points_value,
-                                'emoji' => $claim->chore->emoji,
-                            ]
-                            : null,
-                        'user' => $claim->relationLoaded('user')
-                            ? [
-                                'id' => $claim->user->id,
-                                'name' => $claim->user->name,
-                            ]
-                            : null,
-                    ])
-                    ->values(),
+            'claimHistory' => ChoreClaim::query()
+                ->when($user->role !== 'parent', fn ($query) => $query->where('user_id', $user->id))
+                ->with($user->role === 'parent' ? ['chore', 'user'] : ['chore'])
+                ->latest()
+                ->get()
+                ->map(fn (ChoreClaim $claim) => [
+                    'id' => $claim->id,
+                    'status' => $claim->status,
+                    'periodStart' => optional($claim->period_start)->toDateString(),
+                    'pointsAwarded' => $claim->points_awarded,
+                    'createdAt' => optional($claim->created_at)->toIso8601String(),
+                    'chore' => $claim->relationLoaded('chore')
+                        ? [
+                            'id' => $claim->chore->id,
+                            'title' => $claim->chore->title,
+                            'pointsValue' => $claim->chore->points_value,
+                            'emoji' => $claim->chore->emoji,
+                        ]
+                        : null,
+                    'user' => $claim->relationLoaded('user')
+                        ? [
+                            'id' => $claim->user->id,
+                            'name' => $claim->user->name,
+                        ]
+                        : null,
+                ])
+                ->values(),
             'rewards' => Reward::query()
-                    ->latest()
-                    ->get()
+                ->latest()
+                ->get()
                 ->map(fn (Reward $reward) => [
                     'id' => $reward->id,
                     'name' => $reward->name,
@@ -158,6 +163,12 @@ class AppBootstrapController extends Controller
                 'status' => $redemption->status,
                 'voucherCode' => $redemption->voucher_code,
                 'redeemedAt' => optional($redemption->redeemed_at)->toIso8601String(),
+                'user' => $redemption->relationLoaded('user')
+                   ? [
+                       'id' => $redemption->user->id,
+                       'name' => $redemption->user->name,
+                   ]
+                   : null,
                 'reward' => $redemption->reward
                     ? [
                         'id' => $redemption->reward->id,

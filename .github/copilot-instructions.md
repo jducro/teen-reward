@@ -10,9 +10,16 @@ Use existing project commands only:
 - Run one test file: `php artisan test tests/Feature/MvpFlowTest.php`
 - Run one test method: `php artisan test --filter=test_parent_can_approve_a_chore_and_teen_can_redeem_a_voucher_reward`
 - PHP formatting/lint check: `vendor/bin/pint --test`
+- PHP formatting/auto-fix: `vendor/bin/pint` (run this before every commit)
 - Static analysis: `vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=1G`
 
 For Docker/Sail workflows used in this repo, run equivalents with `./vendor/bin/sail ...` (for example `./vendor/bin/sail artisan test`).
+
+**Before committing any PHP changes, always run Pint to fix formatting:**
+```bash
+./vendor/bin/sail bin pint --dirty --format agent
+```
+A git pre-commit hook enforces this automatically, but agents must also run it manually before staging files for a commit.
 
 ## High-level architecture
 

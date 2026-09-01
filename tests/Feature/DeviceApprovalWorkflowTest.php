@@ -71,8 +71,10 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $service = new class extends UniFiService {
+        $service = new class extends UniFiService
+        {
             public ?string $receivedMac = null;
+
             public ?int $receivedBandwidth = null;
 
             public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
@@ -110,7 +112,8 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $service = new class extends UniFiService {
+        $service = new class extends UniFiService
+        {
             public ?string $receivedMac = null;
 
             public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
@@ -145,7 +148,8 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $service = new class extends UniFiService {
+        $service = new class extends UniFiService
+        {
             public ?string $receivedMac = null;
 
             public function unregisterDevice(string $deviceMac): bool
@@ -283,7 +287,8 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $this->app->instance(UniFiService::class, new class extends UniFiService {
+        $this->app->instance(UniFiService::class, new class extends UniFiService
+        {
             public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
             {
                 throw new \Exception('UniFi unavailable');
@@ -311,8 +316,10 @@ class DeviceApprovalWorkflowTest extends TestCase
             'status' => 'pending_approval',
         ]);
 
-        $service = new class extends UniFiService {
+        $service = new class extends UniFiService
+        {
             public ?string $receivedMac = null;
+
             public ?int $receivedBandwidth = null;
 
             public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool

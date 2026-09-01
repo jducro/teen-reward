@@ -6,7 +6,6 @@ use Tests\TestCase;
 
 class RegistrationTest extends TestCase
 {
-
     public function test_new_users_can_register_through_the_api(): void
     {
         $response = $this->postJson('/api/register', [

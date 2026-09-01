@@ -7,7 +7,6 @@ use App\Models\RewardRedemption;
 use App\Models\UniFiSyncLog;
 use App\Models\User;
 use App\Services\UniFiService;
-use Mockery;
 use Tests\TestCase;
 
 class UniFiRewardRedemptionTest extends TestCase
@@ -15,7 +14,8 @@ class UniFiRewardRedemptionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->app->instance(UniFiService::class, new class extends UniFiService {
+        $this->app->instance(UniFiService::class, new class extends UniFiService
+        {
             public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
             {
                 return [
@@ -64,7 +64,8 @@ class UniFiRewardRedemptionTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 60]);
 
-        $this->app->instance(UniFiService::class, new class extends UniFiService {
+        $this->app->instance(UniFiService::class, new class extends UniFiService
+        {
             public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
             {
                 throw new \Exception('UniFi controller unreachable');
@@ -131,9 +132,12 @@ class UniFiRewardRedemptionTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['points_cost' => 50, 'type' => 'wifi', 'duration_minutes' => 120]);
 
-        $service = new class extends UniFiService {
+        $service = new class extends UniFiService
+        {
             public ?int $receivedDuration = null;
+
             public ?int $receivedBandwidth = null;
+
             public ?string $receivedNote = null;
 
             public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array
@@ -157,6 +161,6 @@ class UniFiRewardRedemptionTest extends TestCase
 
         $this->assertSame(120, $service->receivedDuration);
         $this->assertNull($service->receivedBandwidth);
-        $this->assertSame($teen->name . ' - ' . $reward->name, $service->receivedNote);
+        $this->assertSame($teen->name.' - '.$reward->name, $service->receivedNote);
     }
 }

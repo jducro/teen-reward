@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chore;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Contracts\View\View;
 
 class ChoreController extends Controller
 {
@@ -55,9 +54,9 @@ class ChoreController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'points_value' => 'required|integer|min:0',
-            'recurrence_type' => ['required', Rule::in(['none','daily','weekly','monthly','custom'])],
+            'recurrence_type' => ['required', Rule::in(['none', 'daily', 'weekly', 'monthly', 'custom'])],
             'recurrence_interval' => 'nullable|integer|min:1',
-            'recurrence_unit' => ['nullable', Rule::in(['days','weeks','months'])],
+            'recurrence_unit' => ['nullable', Rule::in(['days', 'weeks', 'months'])],
         ]);
 
         if ($data['recurrence_type'] !== 'custom') {
@@ -93,9 +92,9 @@ class ChoreController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'points_value' => 'required|integer|min:0',
-            'recurrence_type' => ['required', Rule::in(['none','daily','weekly','monthly','custom'])],
+            'recurrence_type' => ['required', Rule::in(['none', 'daily', 'weekly', 'monthly', 'custom'])],
             'recurrence_interval' => 'nullable|integer|min:1',
-            'recurrence_unit' => ['nullable', Rule::in(['days','weeks','months'])],
+            'recurrence_unit' => ['nullable', Rule::in(['days', 'weeks', 'months'])],
         ]);
 
         if ($data['recurrence_type'] !== 'custom') {

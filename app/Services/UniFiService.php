@@ -39,7 +39,7 @@ class UniFiService
         $site = config('services.unifi.site');
         $allowSelfSigned = (bool) config('services.unifi.allow_self_signed', false);
 
-        if (!$host || !$username || !$password || !$site) {
+        if (! $host || ! $username || ! $password || ! $site) {
             throw new \Exception('UniFi configuration is incomplete. Check UNIFI_HOST, UNIFI_USERNAME, UNIFI_PASSWORD, UNIFI_SITE environment variables.');
         }
 
@@ -60,7 +60,7 @@ class UniFiService
                 'host' => $host,
                 'error' => $e->getMessage(),
             ]);
-            throw new \Exception('Failed to authenticate with UniFi controller: ' . $e->getMessage());
+            throw new \Exception('Failed to authenticate with UniFi controller: '.$e->getMessage());
         }
     }
 
@@ -87,7 +87,7 @@ class UniFiService
                 down: $bandwidth,
             );
 
-            if (!is_array($response) || $response === []) {
+            if (! is_array($response) || $response === []) {
                 throw new \Exception('UniFi API returned empty voucher response');
             }
 
@@ -99,13 +99,13 @@ class UniFiService
 
             $createTime = $response[0]->create_time ?? $response[0]['create_time'] ?? null;
 
-            if (!is_int($createTime)) {
+            if (! is_int($createTime)) {
                 throw new \Exception('No voucher creation timestamp in UniFi response');
             }
 
             $voucherResponse = $this->client->stat_voucher($createTime);
 
-            if (!is_array($voucherResponse) || $voucherResponse === []) {
+            if (! is_array($voucherResponse) || $voucherResponse === []) {
                 throw new \Exception('Unable to retrieve created UniFi voucher');
             }
 
@@ -121,7 +121,7 @@ class UniFiService
                 ? ($voucher->code ?? null)
                 : (is_array($voucher) ? ($voucher['code'] ?? null) : null);
 
-            if (!is_string($voucherCode) || $voucherCode === '') {
+            if (! is_string($voucherCode) || $voucherCode === '') {
                 throw new \Exception('No voucher code in UniFi voucher details');
             }
 
@@ -159,8 +159,6 @@ class UniFiService
     /**
      * Revoke a guest voucher.
      *
-     * @param string $voucherCode
-     * @return bool
      *
      * @throws \Exception
      */
@@ -188,9 +186,8 @@ class UniFiService
     /**
      * Register a device for direct network access (Tier 3).
      *
-     * @param string $deviceMac Device MAC address
-     * @param ?int $bandwidth Bandwidth limit in Kbps (optional)
-     * @return bool
+     * @param  string  $deviceMac  Device MAC address
+     * @param  ?int  $bandwidth  Bandwidth limit in Kbps (optional)
      *
      * @throws \Exception
      */
@@ -222,8 +219,7 @@ class UniFiService
     /**
      * Unregister a device (revoke access).
      *
-     * @param string $deviceMac Device MAC address
-     * @return bool
+     * @param  string  $deviceMac  Device MAC address
      *
      * @throws \Exception
      */
@@ -253,8 +249,6 @@ class UniFiService
 
     /**
      * Get UniFi controller health status (for testing connection).
-     *
-     * @return bool
      */
     public function isHealthy(): bool
     {

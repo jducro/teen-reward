@@ -8,7 +8,6 @@ use Tests\TestCase;
 
 class RewardManagementTest extends TestCase
 {
-
     public function test_parent_can_create_edit_and_delete_reward(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);

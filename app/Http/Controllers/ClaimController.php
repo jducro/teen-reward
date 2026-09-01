@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Chore;
 use App\Models\ChoreClaim;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Contracts\View\View;
 use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClaimController extends Controller
 {

@@ -16,6 +16,11 @@ class RewardRedemption extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'redeemed_at' => 'datetime',
+        'voucher_expires_at' => 'datetime',
+    ];
+
     public function reward(): BelongsTo
     {
         return $this->belongsTo(Reward::class);

@@ -16,7 +16,7 @@ return new class extends Migration
             }
 
             // recurrence fields
-            $table->enum('recurrence_type', ['none','daily','weekly','monthly','custom'])->default('none');
+            $table->enum('recurrence_type', ['none', 'daily', 'weekly', 'monthly', 'custom'])->default('none');
             $table->integer('recurrence_interval')->nullable();
             $table->string('recurrence_unit')->nullable();
             $table->boolean('active')->default(true);

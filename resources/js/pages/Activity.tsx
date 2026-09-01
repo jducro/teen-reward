@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { useIntl } from 'react-intl';
 import type { ActivityProps } from '../type';
+import { intlFormat } from 'date-fns';
 
 export default function Activity({ claims, redemptions }: ActivityProps) {
   const intl = useIntl();
+  const dateFormat = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' } as const;
 
   return (
     <div className="activity-page">
@@ -17,7 +19,10 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
               <div key={claim.id} className="activity-card">
                 <div>
                   <div className="activity-name">{claim.chore?.title ?? 'Mission'}</div>
-                  <div className="activity-meta">{claim.createdAt ?? ''}</div>
+                  <div className="activity-meta">
+                    {claim.user?.name ? `${claim.user.name} • ` : ''}
+                    {claim.createdAt ? intlFormat(claim.createdAt, dateFormat) : ''}
+                  </div>
                 </div>
                 <div className={`activity-status ${claim.status}`}>
                   {intl.formatMessage({
@@ -41,7 +46,10 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
               <div key={redemption.id} className="activity-card">
                 <div>
                   <div className="activity-name">{redemption.reward?.name ?? 'Reward'}</div>
-                  <div className="activity-meta">{redemption.redeemedAt ?? ''}</div>
+                  <div className="activity-meta">
+                    {redemption.user?.name ? `${redemption.user.name} • ` : ''}
+                    {redemption.redeemedAt ? intlFormat(redemption.redeemedAt, dateFormat) : ''}
+                  </div>
                 </div>
                 <div>
                   <div className={`activity-status ${redemption.status}`}>

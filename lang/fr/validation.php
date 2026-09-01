@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Validation\ValidationRuleParser;
-
 return [
     'accepted' => 'Le champ :attribute doit être accepté.',
     'accepted_if' => 'Le champ :attribute doit être accepté lorsque :other est :value.',
