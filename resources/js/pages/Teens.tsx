@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useIntl } from 'react-intl';
 import type { Teen, TeenDraft } from '../type';
 
 type TeensProps = {
@@ -30,6 +31,7 @@ export default function Teens({
   const [editingTeenId, setEditingTeenId] = useState<number | null>(null);
   const [confirmDeleteTeenId, setConfirmDeleteTeenId] = useState<number | null>(null);
   const [form, setForm] = useState<TeenDraft>(defaultForm);
+  const intl = useIntl();
 
   const orderedTeens = useMemo(
     () => [...teens].sort((left, right) => left.name.localeCompare(right.name)),
@@ -90,7 +92,7 @@ export default function Teens({
   if (!canManage) {
     return (
       <div className="teens-page">
-        <p className="role-tip">Accès parent uniquement.</p>
+        <p className="role-tip">{intl.formatMessage({ id: 'teens.parentOnly', defaultMessage: 'Parent access only.' })}</p>
       </div>
     );
   }
@@ -98,14 +100,14 @@ export default function Teens({
   return (
     <div className="teens-page">
       <header className="teens-header">
-        <h2>🧑‍🎓 Gestion des ados</h2>
-        <p>{orderedTeens.length} compte(s) ado • {totalPoints} points cumulés</p>
+        <h2>🧑‍🎓 {intl.formatMessage({ id: 'teens.title', defaultMessage: 'Manage teens' })}</h2>
+        <p>{intl.formatMessage({ id: 'teens.summary', defaultMessage: '{count} teen account(s) • {points} total points' }, { count: orderedTeens.length, points: totalPoints })}</p>
       </header>
 
       <form className="crud-panel" onSubmit={submitTeenForm}>
         <div className="crud-row">
           <div className="form-field">
-            <label htmlFor="teen-name-input">Nom</label>
+            <label htmlFor="teen-name-input">{intl.formatMessage({ id: 'auth.label.name', defaultMessage: 'Name' })}</label>
             <input
               id="teen-name-input"
               className="crud-input"
@@ -115,7 +117,7 @@ export default function Teens({
             />
           </div>
           <div className="form-field">
-            <label htmlFor="teen-email-input">Email</label>
+            <label htmlFor="teen-email-input">{intl.formatMessage({ id: 'auth.label.email', defaultMessage: 'Email' })}</label>
             <input
               id="teen-email-input"
               className="crud-input"
@@ -129,7 +131,7 @@ export default function Teens({
 
         <div className="crud-row">
           <div className="form-field">
-            <label htmlFor="teen-points-input">Points</label>
+            <label htmlFor="teen-points-input">{intl.formatMessage({ id: 'field.points', defaultMessage: 'Points' })}</label>
             <input
               id="teen-points-input"
               className="crud-input"
@@ -145,7 +147,9 @@ export default function Teens({
           </div>
           <div className="form-field">
             <label htmlFor="teen-password-input">
-              {editingTeenId ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
+              {editingTeenId
+                ? intl.formatMessage({ id: 'teens.form.newPasswordOptional', defaultMessage: 'New password (optional)' })
+                : intl.formatMessage({ id: 'auth.label.password', defaultMessage: 'Password' })}
             </label>
             <input
               id="teen-password-input"
@@ -158,7 +162,9 @@ export default function Teens({
           </div>
           <div className="form-field">
             <label htmlFor="teen-password-confirmation-input">
-              {editingTeenId ? 'Confirmation (si mot de passe modifié)' : 'Confirmation mot de passe'}
+              {editingTeenId
+                ? intl.formatMessage({ id: 'teens.form.confirmIfChanged', defaultMessage: 'Confirm (if password changed)' })
+                : intl.formatMessage({ id: 'auth.label.passwordConfirmation', defaultMessage: 'Confirm password' })}
             </label>
             <input
               id="teen-password-confirmation-input"
@@ -177,12 +183,14 @@ export default function Teens({
             className="crud-submit-btn"
             disabled={busyKey === 'teen:create' || (editingTeenId !== null && busyKey === `teen:update:${editingTeenId}`)}
           >
-            {editingTeenId === null ? 'Ajouter un ado' : 'Mettre à jour l’ado'}
+            {editingTeenId === null
+              ? intl.formatMessage({ id: 'teens.form.addTeen', defaultMessage: 'Add teen' })
+              : intl.formatMessage({ id: 'teens.form.updateTeen', defaultMessage: 'Update teen' })}
           </button>
           {editingTeenId !== null ? (
             <>
               <button type="button" className="crud-cancel-btn" onClick={resetForm}>
-                Annuler
+                {intl.formatMessage({ id: 'common.action.cancel', defaultMessage: 'Cancel' })}
               </button>
               <button
                 type="button"
@@ -190,7 +198,9 @@ export default function Teens({
                 disabled={busyKey === `teen:delete:${editingTeenId}`}
                 onClick={() => setConfirmDeleteTeenId(editingTeenId)}
               >
-                {busyKey === `teen:delete:${editingTeenId}` ? '…' : 'Supprimer'}
+                {busyKey === `teen:delete:${editingTeenId}`
+                  ? '…'
+                  : intl.formatMessage({ id: 'common.action.delete', defaultMessage: 'Delete' })}
               </button>
             </>
           ) : null}
@@ -198,7 +208,7 @@ export default function Teens({
       </form>
 
       {orderedTeens.length === 0 ? (
-        <p className="role-tip">Aucun compte ado trouvé.</p>
+        <p className="role-tip">{intl.formatMessage({ id: 'teens.empty', defaultMessage: 'No teen accounts found.' })}</p>
       ) : (
         <div className="teens-list">
           {orderedTeens.map((teen, index) => {
@@ -216,7 +226,7 @@ export default function Teens({
                 <div className="teen-details">
                   <h3>{teen.name}</h3>
                   <p>{teen.email}</p>
-                  <p className="teen-points-label">{teen.pointsBalance} points</p>
+                  <p className="teen-points-label">{intl.formatMessage({ id: 'teens.card.points', defaultMessage: '{points} points' }, { points: teen.pointsBalance })}</p>
                 </div>
 
                 <div className="teen-actions">
@@ -226,7 +236,7 @@ export default function Teens({
                     disabled={isBusy}
                     onClick={() => beginEditTeen(teen)}
                   >
-                    {isBusy ? '…' : 'Modifier'}
+                    {isBusy ? '…' : intl.formatMessage({ id: 'common.action.edit', defaultMessage: 'Edit' })}
                   </button>
                 </div>
               </motion.article>
@@ -245,16 +255,16 @@ export default function Teens({
             exit={{ scale: 0.95, opacity: 0 }}
           >
             <h3>
-              Supprimer le compte de {orderedTeens.find((t) => t.id === editingTeenId)?.name} ?
+              {intl.formatMessage({ id: 'teens.confirmDelete.title', defaultMessage: 'Delete {name}\'s account?' }, { name: orderedTeens.find((t) => t.id === editingTeenId)?.name ?? '' })}
             </h3>
-            <p>Cette action est irréversible. Le compte et toutes les données associées seront supprimés.</p>
+            <p>{intl.formatMessage({ id: 'teens.confirmDelete.warning', defaultMessage: 'This action is irreversible. The account and all associated data will be deleted.' })}</p>
             <div className="confirmation-modal-actions">
               <button
                 type="button"
                 className="confirmation-modal-cancel"
                 onClick={() => setConfirmDeleteTeenId(null)}
               >
-                Annuler
+                {intl.formatMessage({ id: 'common.action.cancel', defaultMessage: 'Cancel' })}
               </button>
               <button
                 type="button"
@@ -262,7 +272,9 @@ export default function Teens({
                 disabled={busyKey === `teen:delete:${editingTeenId}`}
                 onClick={() => handleDeleteTeen(editingTeenId)}
               >
-                {busyKey === `teen:delete:${editingTeenId}` ? 'Suppression…' : 'Supprimer le compte'}
+                {busyKey === `teen:delete:${editingTeenId}`
+                  ? intl.formatMessage({ id: 'teens.confirmDelete.deleting', defaultMessage: 'Deleting…' })
+                  : intl.formatMessage({ id: 'teens.confirmDelete.confirm', defaultMessage: 'Delete account' })}
               </button>
             </div>
           </motion.div>

@@ -29,6 +29,7 @@ return [
         'updated' => 'Récompense mise à jour.',
         'deleted' => 'Récompense supprimée.',
         'not_enough_points' => 'Vous n\'avez pas assez de points.',
+        'redeemed' => 'Récompense échangée.',
         'redeemed_with_voucher' => 'Récompense échangée. Bon : :voucher',
     ],
     'teen' => [

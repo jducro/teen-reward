@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useIntl } from 'react-intl';
 import AppIcon from '../components/AppIcon';
 import IconPicker from '../components/IconPicker';
 import { choreIconOptions } from '../spa/iconOptions';
@@ -51,6 +52,7 @@ export default function Tasks({
   onUpdate,
   onDelete,
 }: TasksProps) {
+  const intl = useIntl();
   const [filter, setFilter] = useState<typeof FILTERS[number]>('tous');
   const [doneTask, setDoneTask] = useState<DoneTask | null>(null);
   const [burstPos, setBurstPos] = useState({ x: 0, y: 0 });
@@ -149,9 +151,11 @@ export default function Tasks({
   return (
     <div className="tasks-page">
       <div className="tasks-header">
-        <h2>🧹 Mes Missions</h2>
+        <h2>🧹 {intl.formatMessage({ id: 'tasks.title', defaultMessage: 'My Missions' })}</h2>
         <p style={{ color: '#999', marginTop: 6 }}>
-          {canManage ? 'Crée, modifie et supprime les missions' : `${coins} ChoreCoins accumulés`}
+          {canManage
+            ? intl.formatMessage({ id: 'tasks.subtitle.parent', defaultMessage: 'Create, edit and delete missions' })
+            : intl.formatMessage({ id: 'tasks.subtitle.teen', defaultMessage: '{coins} ChoreCoins earned' }, { coins })}
         </p>
       </div>
 
@@ -162,9 +166,9 @@ export default function Tasks({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12 }}
         >
-          <h3 className="approval-panel-title">🧾 Pending approvals</h3>
+          <h3 className="approval-panel-title">🧾 {intl.formatMessage({ id: 'tasks.approvals.title', defaultMessage: 'Pending approvals' })}</h3>
           {claims.length === 0 ? (
-      <p className="approval-empty">No pending claims right now.</p>
+      <p className="approval-empty">{intl.formatMessage({ id: 'tasks.approvals.empty', defaultMessage: 'No pending claims right now.' })}</p>
           ) : (
       <div className="approval-list">
         {claims.map((claim) => {
@@ -189,7 +193,7 @@ export default function Tasks({
                   void onApproveClaim(claim.id);
                 }}
               >
-                {approveBusy ? '…' : 'Approve'}
+                {approveBusy ? '…' : intl.formatMessage({ id: 'claims.action.approve', defaultMessage: 'Approve' })}
               </button>
               <button
                 type="button"
@@ -199,7 +203,7 @@ export default function Tasks({
                   void onRejectClaim(claim.id);
                 }}
               >
-                {rejectBusy ? '…' : 'Reject'}
+                {rejectBusy ? '…' : intl.formatMessage({ id: 'claims.action.reject', defaultMessage: 'Reject' })}
               </button>
             </div>
           </div>
@@ -213,7 +217,7 @@ export default function Tasks({
       {canManage ? (
         <form className="crud-panel" onSubmit={submitParentForm}>
           <div className="form-field">
-            <label>Icône</label>
+            <label>{intl.formatMessage({ id: 'field.icon', defaultMessage: 'Icon' })}</label>
             <IconPicker
               value={form.emoji}
               options={choreIconOptions}
@@ -223,7 +227,7 @@ export default function Tasks({
 
           <div className="crud-row">
             <div className="form-field">
-              <label htmlFor="task-title">Titre de la mission</label>
+              <label htmlFor="task-title">{intl.formatMessage({ id: 'tasks.form.missionTitle', defaultMessage: 'Mission title' })}</label>
               <input
                 id="task-title"
                 className="crud-input"
@@ -233,7 +237,7 @@ export default function Tasks({
               />
             </div>
             <div className="form-field">
-              <label htmlFor="task-points">Points</label>
+              <label htmlFor="task-points">{intl.formatMessage({ id: 'field.points', defaultMessage: 'Points' })}</label>
               <input
                 id="task-points"
                 className="crud-input"
@@ -248,7 +252,7 @@ export default function Tasks({
             </div>
           </div>
           <div className="form-field">
-            <label htmlFor="task-description">Description (optionnelle)</label>
+            <label htmlFor="task-description">{intl.formatMessage({ id: 'tasks.form.descriptionOptional', defaultMessage: 'Description (optional)' })}</label>
             <textarea
               id="task-description"
               className="crud-textarea"
@@ -258,11 +262,13 @@ export default function Tasks({
           </div>
           <div className="crud-actions">
             <button type="submit" className="crud-submit-btn" disabled={busyKey === 'chore:create' || (editingId !== null && busyKey === `chore:update:${editingId}`)}>
-              {editingId ? 'Mettre à jour' : 'Ajouter mission'}
+              {editingId
+                ? intl.formatMessage({ id: 'common.action.update', defaultMessage: 'Update' })
+                : intl.formatMessage({ id: 'tasks.form.addMission', defaultMessage: 'Add mission' })}
             </button>
             {editingId ? (
               <button type="button" className="crud-cancel-btn" onClick={resetForm}>
-                Annuler
+                {intl.formatMessage({ id: 'common.action.cancel', defaultMessage: 'Cancel' })}
               </button>
             ) : null}
           </div>
@@ -277,7 +283,13 @@ export default function Tasks({
             onClick={() => setFilter(f)}
             type="button"
           >
-            {f === 'tous' ? '✨ Tous' : f === 'rapide' ? '⚡ Rapide' : f === 'fun' ? '🎮 Fun' : '💪 Gros gain'}
+            {f === 'tous'
+              ? `✨ ${intl.formatMessage({ id: 'tasks.filter.all', defaultMessage: 'All' })}`
+              : f === 'rapide'
+                ? `⚡ ${intl.formatMessage({ id: 'tasks.filter.quick', defaultMessage: 'Quick' })}`
+                : f === 'fun'
+                  ? `🎮 ${intl.formatMessage({ id: 'tasks.filter.fun', defaultMessage: 'Fun' })}`
+                  : `💪 ${intl.formatMessage({ id: 'tasks.filter.big', defaultMessage: 'Big reward' })}`}
           </button>
         ))}
       </div>
@@ -315,9 +327,9 @@ export default function Tasks({
                   <div className="task-meta">
                     <span className="task-coins">+{task.pointsValue} 💰</span>
                     {canManage ? (
-                      <span className="task-status available">Gestion parent</span>
+                      <span className="task-status available">{intl.formatMessage({ id: 'tasks.status.parentManage', defaultMessage: 'Parent manage' })}</span>
                     ) : (
-                      <span className={`task-status ${status ?? 'available'}`}>{statusLabel(status)}</span>
+                      <span className={`task-status ${status ?? 'available'}`}>{statusLabel(status, intl)}</span>
                     )}
                   </div>
                   {task.description ? <p className="task-description">{task.description}</p> : null}
@@ -359,7 +371,7 @@ export default function Tasks({
         </AnimatePresence>
       </div>
 
-      {!canClaim && !canManage ? <p className="role-tip">Accès non disponible.</p> : null}
+      {!canClaim && !canManage ? <p className="role-tip">{intl.formatMessage({ id: 'common.accessUnavailable', defaultMessage: 'Access unavailable.' })}</p> : null}
 
       <AnimatePresence>
         {doneTask && (
@@ -385,8 +397,8 @@ export default function Tasks({
               >
                 🎉
               </motion.div>
-              <h3>Demande envoyée !</h3>
-              <p>Mission soumise :</p>
+              <h3>{intl.formatMessage({ id: 'tasks.modal.sent', defaultMessage: 'Request sent!' })}</h3>
+              <p>{intl.formatMessage({ id: 'tasks.modal.submitted', defaultMessage: 'Mission submitted:' })}</p>
               <p style={{ fontWeight: 800, fontSize: 18, marginTop: 6 }}>{doneTask.name}</p>
               <motion.div
                 className="modal-coins"
@@ -397,7 +409,7 @@ export default function Tasks({
               >
                 +{doneTask.coins} 💰
               </motion.div>
-              <p style={{ color: '#999', fontSize: 13 }}>En attente de validation parentale ✅</p>
+              <p style={{ color: '#999', fontSize: 13 }}>{intl.formatMessage({ id: 'tasks.modal.awaitingApproval', defaultMessage: 'Awaiting parental approval ✅' })}</p>
             </motion.div>
             <CoinBurst x={burstPos.x} y={burstPos.y} />
           </>
@@ -433,18 +445,18 @@ function iconForChore(title: string) {
   return '✅';
 }
 
-function statusLabel(status: Claim['status'] | undefined) {
+function statusLabel(status: Claim['status'] | undefined, intl: ReturnType<typeof useIntl>) {
   if (status === 'pending') {
-    return 'En attente';
+    return intl.formatMessage({ id: 'claim.status.pending', defaultMessage: 'Pending' });
   }
 
   if (status === 'approved') {
-    return 'Validée';
+    return intl.formatMessage({ id: 'claim.status.approved', defaultMessage: 'Approved' });
   }
 
   if (status === 'rejected') {
-    return 'Refusée';
+    return intl.formatMessage({ id: 'claim.status.rejected', defaultMessage: 'Rejected' });
   }
 
-  return 'Disponible';
+  return intl.formatMessage({ id: 'tasks.status.available', defaultMessage: 'Available' });
 }

@@ -29,6 +29,7 @@ return [
         'updated' => 'Reward updated.',
         'deleted' => 'Reward deleted.',
         'not_enough_points' => 'You do not have enough points.',
+        'redeemed' => 'Reward redeemed.',
         'redeemed_with_voucher' => 'Reward redeemed. Voucher: :voucher',
     ],
     'teen' => [

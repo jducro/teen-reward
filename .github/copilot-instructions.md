@@ -63,8 +63,12 @@ A git pre-commit hook enforces this automatically, but agents must also run it m
   - TypeScript tooling is enabled (tsconfig + `npm run type-check`).
   - Existing frontend files are still largely JavaScript/JSX; prefer TypeScript for new frontend modules and incremental migrations.
 - i18n conventions:
-  - Localization uses `react-intl` with locale detection in `resources/js/i18n/messages.js`.
+  - Localization uses `react-intl` with locale detection in `resources/js/i18n/messages.ts`.
   - French translations live in `resources/js/i18n/fr.json`.
+  - **All user-visible strings MUST use `intl.formatMessage()`** — never hardcode text directly in JSX. This applies to labels, buttons, headings, error messages, status labels, placeholder text, and any visible string.
+  - Always add the key to `resources/js/i18n/fr.json` with a French translation.
+  - Always include a `defaultMessage` in English as a fallback (used when locale is `en`).
+  - Key naming convention: `domain.context.identifier` (e.g. `shop.form.rewardName`, `common.action.cancel`).
 - Seeded local demo users expected by current docs/workflows:
   - `parent@example.com` / `password`
   - `teen@example.com` / `password`

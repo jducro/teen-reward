@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useIntl } from 'react-intl';
 import AppIcon from '../components/AppIcon';
 import IconPicker from '../components/IconPicker';
 import { rewardIconOptions } from '../spa/iconOptions';
 import type { PurchasedReward, Reward, RewardDraft, ShopProps } from '../type';
-import { formatDuration } from 'date-fns';
 import { durationToHumanReadable } from '../utils/date';
 
 export default function Shop({
@@ -18,6 +18,7 @@ export default function Shop({
   onUpdate,
   onDelete,
 }: ShopProps) {
+  const intl = useIntl();
   const [purchased, setPurchased] = useState<PurchasedReward | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<RewardDraft>({
@@ -100,16 +101,18 @@ export default function Shop({
   return (
     <div className="shop-page">
       <div className="shop-header">
-        <h2>🛍 Boutique</h2>
+        <h2>🛍 {intl.formatMessage({ id: 'shop.title', defaultMessage: 'Shop' })}</h2>
         <div className="shop-coins">
-          {canManage ? 'Gestion des récompenses' : `💰 ${coins} ChoreCoins`}
+          {canManage
+            ? intl.formatMessage({ id: 'shop.manageTitle', defaultMessage: 'Manage rewards' })
+            : intl.formatMessage({ id: 'shop.coins', defaultMessage: '💰 {coins} ChoreCoins' }, { coins })}
         </div>
       </div>
 
       {canManage ? (
         <form className="crud-panel" onSubmit={submitParentForm}>
           <div className="form-field">
-            <label>Icône</label>
+            <label>{intl.formatMessage({ id: 'field.icon', defaultMessage: 'Icon' })}</label>
             <IconPicker
               value={form.emoji}
               options={rewardIconOptions}
@@ -118,10 +121,10 @@ export default function Shop({
           </div>
 
           <div className="form-field">
-            <label>Type de récompense</label>
+            <label>{intl.formatMessage({ id: 'shop.form.rewardType', defaultMessage: 'Reward type' })}</label>
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               {[
-                { value: 'physical', label: 'Physique' },
+                { value: 'physical', label: intl.formatMessage({ id: 'reward.type.physical', defaultMessage: 'Physical' }) },
                 { value: 'wifi', label: 'WiFi' },
               ].map((type) => (
                 <button
@@ -138,7 +141,7 @@ export default function Shop({
 
           <div className="crud-row">
             <div className="form-field">
-              <label htmlFor="reward-name">Nom de la récompense</label>
+              <label htmlFor="reward-name">{intl.formatMessage({ id: 'shop.form.rewardName', defaultMessage: 'Reward name' })}</label>
               <input
                 id="reward-name"
                 className="crud-input"
@@ -148,7 +151,7 @@ export default function Shop({
               />
             </div>
             <div className="form-field">
-              <label htmlFor="reward-cost">Coût points</label>
+              <label htmlFor="reward-cost">{intl.formatMessage({ id: 'shop.form.pointsCost', defaultMessage: 'Points cost' })}</label>
               <input
                 id="reward-cost"
                 className="crud-input"
@@ -165,7 +168,7 @@ export default function Shop({
           {form.type === 'wifi' && (
             <div className="crud-row">
               <div className="form-field">
-                <label htmlFor="reward-duration">Durée (minutes)</label>
+                <label htmlFor="reward-duration">{intl.formatMessage({ id: 'shop.form.durationMinutes', defaultMessage: 'Duration (minutes)' })}</label>
                 <input
                   id="reward-duration"
                   className="crud-input"
@@ -186,11 +189,13 @@ export default function Shop({
               className="crud-submit-btn"
               disabled={busyKey === 'reward:create' || (editingId !== null && busyKey === `reward:update:${editingId}`)}
             >
-              {editingId ? 'Mettre à jour' : 'Ajouter récompense'}
+              {editingId
+                ? intl.formatMessage({ id: 'common.action.update', defaultMessage: 'Update' })
+                : intl.formatMessage({ id: 'shop.form.addReward', defaultMessage: 'Add reward' })}
             </button>
             {editingId ? (
               <button type="button" className="crud-cancel-btn" onClick={resetForm}>
-                Annuler
+                {intl.formatMessage({ id: 'common.action.cancel', defaultMessage: 'Cancel' })}
               </button>
             ) : null}
           </div>
@@ -231,7 +236,9 @@ export default function Shop({
                 fontWeight: 'bold',
                 marginTop: '4px',
               }}>
-                {reward.type === 'wifi' ? '📡 WiFi' : '🎁 Physique'}
+                {reward.type === 'wifi'
+                  ? intl.formatMessage({ id: 'reward.type.wifi.badge', defaultMessage: '📡 WiFi' })
+                  : intl.formatMessage({ id: 'reward.type.physical.badge', defaultMessage: '🎁 Physical' })}
               </div>
               <div className="reward-cost">💰 {reward.pointsCost}</div>
               {reward.type === 'wifi' && <p className="reward-duration">{durationToHumanReadable(reward.durationMinutes)}</p>}
@@ -265,8 +272,10 @@ export default function Shop({
                   {isRedeemBusy
                     ? '…'
                     : canRedeem
-                      ? (coins >= reward.pointsCost ? 'échanger' : 'pas assez')
-                      : 'réservé ado'}
+                      ? (coins >= reward.pointsCost
+                        ? intl.formatMessage({ id: 'shop.action.redeem', defaultMessage: 'Redeem' })
+                        : intl.formatMessage({ id: 'shop.action.notEnough', defaultMessage: 'Not enough' }))
+                      : intl.formatMessage({ id: 'shop.action.teenOnly', defaultMessage: 'Teen only' })}
                 </motion.button>
               )}
             </motion.div>
@@ -274,7 +283,7 @@ export default function Shop({
         })}
       </div>
 
-      {!canRedeem && !canManage ? <p className="role-tip">Accès non disponible.</p> : null}
+      {!canRedeem && !canManage ? <p className="role-tip">{intl.formatMessage({ id: 'common.accessUnavailable', defaultMessage: 'Access unavailable.' })}</p> : null}
 
       <AnimatePresence>
         {purchased && (
@@ -298,13 +307,13 @@ export default function Shop({
               >
                 🎁
               </motion.div>
-              <h3>Échange réussi !</h3>
-              <p style={{ color: '#666', marginTop: 4 }}>Tu as obtenu :</p>
+              <h3>{intl.formatMessage({ id: 'shop.modal.success', defaultMessage: 'Redemption successful!' })}</h3>
+              <p style={{ color: '#666', marginTop: 4 }}>{intl.formatMessage({ id: 'shop.modal.obtained', defaultMessage: 'You obtained:' })}</p>
               <div style={{ margin: '12px 0' }}>
                 <AppIcon value={purchased.emoji} className="modal-reward-icon" />
               </div>
               <div style={{ fontWeight: 800, fontSize: 20 }}>{purchased.name}</div>
-              <p className="voucher-code">Code: {purchased.voucherCode}</p>
+              <p className="voucher-code">{intl.formatMessage({ id: 'shop.modal.voucherCode', defaultMessage: 'Code: {code}' }, { code: purchased.voucherCode })}</p>
             </motion.div>
           </motion.div>
         )}

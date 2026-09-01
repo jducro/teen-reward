@@ -1,14 +1,6 @@
 import { motion } from 'framer-motion'
+import { useIntl } from 'react-intl'
 import type { DashboardProps } from '../type'
-
-const levelNames = [
-  'Novice du balai',      // 1
-  'Aspirateur en herbe',  // 2
-  'Apprenti Ninja 🏆',    // 3
-  'Maître du Magnifique',// 4
-  'Champion du Propre',   // 5
-  'Légende Ordure',       // 6
-]
 
 export default function Dashboard({
   coins,
@@ -19,12 +11,36 @@ export default function Dashboard({
   availableChores,
   rewardsRedeemed,
 }: DashboardProps) {
+  const intl = useIntl()
+
+  const levelNameIds = [
+    'dashboard.level.1',
+    'dashboard.level.2',
+    'dashboard.level.3',
+    'dashboard.level.4',
+    'dashboard.level.5',
+    'dashboard.level.6',
+  ] as const
+
+  const levelNameDefaults = [
+    'Broom Novice',
+    'Vacuum Apprentice',
+    'Ninja Apprentice 🏆',
+    'Master of Magnificent',
+    'Cleanliness Champion',
+    'Trash Legend',
+  ]
+
   const previousLevelAt = thresholdForLevel(level - 1)
   const nextLevelAt = thresholdForLevel(level)
   const pct = level >= 6
     ? 100
     : Math.min(((coins - previousLevelAt) / Math.max(nextLevelAt - previousLevelAt, 1)) * 100, 100)
-  const name = levelNames[level - 1] || 'Novice'
+  const nameId = levelNameIds[level - 1]
+  const nameDefault = levelNameDefaults[level - 1] ?? 'Novice'
+  const name = nameId
+    ? intl.formatMessage({ id: nameId, defaultMessage: nameDefault })
+    : intl.formatMessage({ id: 'dashboard.level.default', defaultMessage: 'Novice' })
   const remaining = Math.max(nextLevelAt - coins, 0)
 
   return (
@@ -34,7 +50,7 @@ export default function Dashboard({
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Salut petit ninja 👋
+        {intl.formatMessage({ id: 'dashboard.greeting', defaultMessage: 'Hey little ninja 👋' })}
       </motion.p>
       <motion.h1
         className="username"
@@ -51,7 +67,7 @@ export default function Dashboard({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <p className="balance-label">Points actuels</p>
+        <p className="balance-label">{intl.formatMessage({ id: 'dashboard.currentPoints', defaultMessage: 'Current points' })}</p>
         <motion.div
           className="balance-amount"
           key={coins}
@@ -73,7 +89,7 @@ export default function Dashboard({
       >
         {level < 6 ? (
           <p style={{ fontSize: 13, color: '#999', marginBottom: 6 }}>
-            Prochain niveau dans {remaining} coins
+            {intl.formatMessage({ id: 'dashboard.nextLevelIn', defaultMessage: 'Next level in {remaining} coins' }, { remaining })}
           </p>
         ) : null}
         <div className="level-progress">
@@ -85,7 +101,9 @@ export default function Dashboard({
           />
         </div>
         <p className="progress-text">
-          {level < 6 ? `${Math.round(pct)}% vers le niveau ${level + 1}` : 'Niveau maximum atteint 🎉'}
+          {level < 6
+            ? intl.formatMessage({ id: 'dashboard.progressPercent', defaultMessage: '{pct}% toward level {next}' }, { pct: Math.round(pct), next: level + 1 })
+            : intl.formatMessage({ id: 'dashboard.maxLevel', defaultMessage: 'Maximum level reached 🎉' })}
         </p>
       </motion.div>
 
@@ -96,8 +114,8 @@ export default function Dashboard({
         transition={{ delay: 0.5 }}
       >
         {role === 'teen'
-          ? `🎁 Missions disponibles : ${availableChores}`
-          : `🧾 Demandes en attente : ${pendingClaims}`}
+          ? intl.formatMessage({ id: 'dashboard.banner.teen', defaultMessage: '🎁 Available missions: {count}' }, { count: availableChores })
+          : intl.formatMessage({ id: 'dashboard.banner.parent', defaultMessage: '🧾 Pending requests: {count}' }, { count: pendingClaims })}
       </motion.div>
 
       <motion.div
@@ -106,9 +124,9 @@ export default function Dashboard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.65 }}
       >
-        <SummaryCard icon="🧹" label="Tâches disponibles" value={availableChores} tone="teal" />
-        <SummaryCard icon="📝" label="Demandes en attente" value={pendingClaims} tone="violet" />
-        <SummaryCard icon="🎁" label="Récompenses échangées" value={rewardsRedeemed} tone="amber" />
+        <SummaryCard icon="🧹" label={intl.formatMessage({ id: 'summary.availableChores', defaultMessage: 'Available chores' })} value={availableChores} tone="teal" />
+        <SummaryCard icon="📝" label={intl.formatMessage({ id: 'summary.pendingApprovals', defaultMessage: 'Pending approvals' })} value={pendingClaims} tone="violet" />
+        <SummaryCard icon="🎁" label={intl.formatMessage({ id: 'summary.rewardsRedeemed', defaultMessage: 'Rewards redeemed' })} value={rewardsRedeemed} tone="amber" />
       </motion.div>
     </div>
   )
