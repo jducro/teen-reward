@@ -29,7 +29,7 @@ A git pre-commit hook enforces this automatically, but agents must also run it m
   - Non-API paths render the SPA shell (`resources/views/app.blade.php`) via a catch-all route.
 - Auth is session + CSRF based, not token based:
   - API auth endpoints are in `App\Http\Controllers\Api\AuthController`.
-  - API responses frequently return `csrfToken`; the frontend request helper updates the `<meta name="csrf-token">` value (`resources/js/legacy/spa/api.js`).
+  - API responses frequently return `csrfToken`; the frontend request helper updates the `<meta name="csrf-token">` value (`resources/js/spa/api.ts`).
 - Core reward loop is API-first and role-gated in controllers:
   - Parent-only chore CRUD in `Api\ChoreController`.
   - Teen claim creation + parent approve/reject in `Api\ClaimController`.
@@ -49,16 +49,17 @@ A git pre-commit hook enforces this automatically, but agents must also run it m
   - Role checks are implemented inline in controllers with `abort_unless(..., 403)` and ownership checks, not via policies/gates.
 - Data-shape conventions between backend and frontend:
   - Database fields stay snake_case (for example `points_value`, `points_balance`), while bootstrap JSON maps to camelCase keys for the SPA (`pointsValue`, `pointsBalance`).
-  - If API payload shape changes, update both `Api\AppBootstrapController` and the API-driven frontend consumers in `resources/js/legacy`.
+  - If API payload shape changes, update both `Api\AppBootstrapController` and the modern React SPA consumers in `resources/js/pages/**`.
 - Validation and model conventions:
   - Most domain models (`Chore`, `ChoreClaim`, `ChoreCompletion`, `Reward`, `RewardRedemption`) use `protected $guarded = [];`.
   - Safety is enforced by controller/request validation; preserve strict validation when adding writable fields.
 - API response-message conventions:
   - Several tests assert exact response messages (for example `Logged in.`, `Profile updated.`, `Claim approved.`, `Account deleted.`). Keep message text stable unless tests are updated intentionally.
-- Frontend organization currently has two tracks:
-  - `resources/js/*` contains a lightweight/demo SPA path.
-  - `resources/js/legacy/*` contains the fuller API-driven SPA (auth + dashboard + API helper + sections).
-  - For reward-flow/API work, align with the legacy API-driven path and its expected payloads.
+- Frontend organization:
+  - `resources/js/pages/**` contains role-specific pages (Dashboard, Tasks, Shop, Settings, Activity, Teens).
+  - `resources/js/spa/**` contains shared API helpers and utilities.
+  - `resources/js/hooks/useSpaAppState.ts` provides centralized state management for auth, bootstrap, and all CRUD operations.
+  - All frontend work uses modern TypeScript/React with proper typing.
 - Frontend language/tooling:
   - TypeScript tooling is enabled (tsconfig + `npm run type-check`).
   - Existing frontend files are still largely JavaScript/JSX; prefer TypeScript for new frontend modules and incremental migrations.

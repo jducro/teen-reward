@@ -104,7 +104,7 @@ When the controller cannot create a voucher, the redemption is recorded as faile
 
 - `routes/web.php` serves the single-page application and mounts API routes under `/api`.
 - `app/Http/Controllers/Api` contains authentication, chores, claims, rewards, profiles, teens, and devices endpoints.
-- `resources/js/legacy` contains the API-driven frontend.
+- `resources/js` contains the modern React SPA with TypeScript.
 - `app/Services/UniFiService.php` contains UniFi voucher and device-access operations.
 - `database/seeders` provides the local demo data.
 

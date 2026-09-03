@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiRequest } from '../legacy/spa/api';
+import { apiRequest } from '../spa/api';
 import type { ApiSuccessPayload, AppPage, BootstrapPayload, ChoreDraft, RewardDraft, TeenDraft } from '../type';
 import { EMPTY_PAYLOAD, INITIAL_AUTH_FORM, levelFromCoins, resolveErrorMessage } from '../spa/utils';
 

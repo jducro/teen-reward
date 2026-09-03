@@ -123,9 +123,6 @@ Seed the local database with the example parent/teen accounts (password: `passwo
 ## Notes
 This file should be updated as the MVP evolves, especially if the UniFi integration or device-based access control is implemented.
 
-## Protected Paths
-- Do not modify files under `resources/js/legacy/**`; use the modern `resources/js/pages/**` and shared SPA modules instead.
-
 ===
 
 <laravel-boost-guidelines>

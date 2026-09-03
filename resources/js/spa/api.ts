@@ -1,16 +1,17 @@
 function readCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
+    return meta?.content ?? '';
 }
 
-function writeCsrfToken(token) {
-    const meta = document.querySelector('meta[name="csrf-token"]');
+function writeCsrfToken(token: string) {
+    const meta = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null;
 
     if (meta && token) {
         meta.content = token;
     }
 }
 
-export async function apiRequest(url, { method = 'GET', body } = {}) {
+export async function apiRequest(url: string, { method = 'GET', body }: { method?: string; body?: unknown } = {}) {
     const response = await fetch(url, {
         method,
         credentials: 'same-origin',
