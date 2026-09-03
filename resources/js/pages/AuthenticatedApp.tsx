@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
-import type { AppPage, BootstrapPayload, ChoreDraft, RedeemResult, RewardDraft, TeenDraft, User } from '../type';
+import type { SpaAppState } from '../hooks/useSpaAppState';
 import Dashboard from './Dashboard';
 import Activity from './Activity';
 import Shop from './Shop';
@@ -9,94 +9,20 @@ import Teens from './Teens';
 import Tasks from './Tasks';
 
 type AuthenticatedAppProps = {
-    page: AppPage;
-    setPage: (page: AppPage) => void;
-    notice: string;
-    panelError: string;
-    busyKey: string;
-    payload: BootstrapPayload;
-    user: User;
-    coins: number;
-    level: number;
-    isTeen: boolean;
-    isParent: boolean;
-    onLogout: () => Promise<void>;
-    onClaim: (choreId: number) => Promise<boolean>;
-    onClaimForTeen: (choreId: number, teenId: number) => Promise<boolean>;
-    onApproveClaim: (claimId: number) => Promise<boolean>;
-    onRejectClaim: (claimId: number) => Promise<boolean>;
-    onCreateChore: (input: ChoreDraft) => Promise<boolean>;
-    onUpdateChore: (choreId: number, input: ChoreDraft) => Promise<boolean>;
-    onDeleteChore: (choreId: number) => Promise<boolean>;
-    onRedeemReward: (rewardId: number) => Promise<RedeemResult>;
-    onCreateReward: (input: RewardDraft) => Promise<boolean>;
-    onUpdateReward: (rewardId: number, input: RewardDraft) => Promise<boolean>;
-    onDeleteReward: (rewardId: number) => Promise<boolean>;
-    onCreateTeen: (input: TeenDraft) => Promise<boolean>;
-    onUpdateTeen: (teenId: number, input: TeenDraft) => Promise<boolean>;
-    onDeleteTeen: (teenId: number) => Promise<void>;
-    profileForm: {
-        name: string;
-        email: string;
-    };
-    passwordForm: {
-        currentPassword: string;
-        password: string;
-        passwordConfirmation: string;
-    };
-    deletePassword: string;
-    onUpdateProfile: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
-    onUpdatePassword: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
-    onDeleteAccount: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
-    onTestUniFiConnection: () => Promise<void>;
-    onChangeProfile: (field: 'name' | 'email', value: string) => void;
-    onChangePassword: (field: 'currentPassword' | 'password' | 'passwordConfirmation', value: string) => void;
-    onChangeDeletePassword: (value: string) => void;
+    app: SpaAppState;
 };
 
-export default function AuthenticatedApp({
-    page,
-    setPage,
-    notice,
-    panelError,
-    busyKey,
-    payload,
-    user,
-    coins,
-    level,
-    isTeen,
-    isParent,
-    onLogout,
-    onClaim,
-    onClaimForTeen,
-    onApproveClaim,
-    onRejectClaim,
-    onCreateChore,
-    onUpdateChore,
-    onDeleteChore,
-    onRedeemReward,
-    onCreateReward,
-    onUpdateReward,
-    onDeleteReward,
-    onCreateTeen,
-    onUpdateTeen,
-    onDeleteTeen,
-    profileForm,
-    passwordForm,
-    deletePassword,
-    onUpdateProfile,
-    onUpdatePassword,
-    onDeleteAccount,
-    onTestUniFiConnection,
-    onChangeProfile,
-    onChangePassword,
-    onChangeDeletePassword,
-}: AuthenticatedAppProps) {
+export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
+    // `app.user` is guaranteed non-null here: SpaApp only renders AuthenticatedApp once authenticated.
+    if (!app.user) {
+        return null;
+    }
+
     return (
         <>
-            {(notice || panelError) && (
-                <div className={`app-alert ${panelError ? 'error' : 'success'}`}>
-                    {panelError || notice}
+            {(app.notice || app.panelError) && (
+                <div className={`app-alert ${app.panelError ? 'error' : 'success'}`}>
+                    {app.panelError || app.notice}
                 </div>
             )}
 
@@ -104,8 +30,8 @@ export default function AuthenticatedApp({
                 <button
                     type="button"
                     className="logout-btn"
-                    onClick={() => void onLogout()}
-                    disabled={busyKey === 'logout'}
+                    onClick={() => void app.logout()}
+                    disabled={app.busyKey === 'logout'}
                 >
                     Déconnexion
                 </button>
@@ -113,93 +39,93 @@ export default function AuthenticatedApp({
 
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={page}
+                    key={app.page}
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.3 }}
                     className="page"
                 >
-                    {page === 'home' && (
+                    {app.page === 'home' && (
                         <Dashboard
-                            coins={coins}
-                            level={level}
-                            userName={user.name}
-                            role={user.role}
-                            pendingClaims={payload.stats.pendingClaims}
-                            availableChores={payload.stats.availableChores}
-                            rewardsRedeemed={payload.stats.rewardsRedeemed}
+                            coins={app.coins}
+                            level={app.level}
+                            userName={app.user.name}
+                            role={app.user.role}
+                            pendingClaims={app.payload.stats.pendingClaims}
+                            availableChores={app.payload.stats.availableChores}
+                            rewardsRedeemed={app.payload.stats.rewardsRedeemed}
                         />
                     )}
 
-                    {page === 'tasks' && (
+                    {app.page === 'tasks' && (
                         <Tasks
-                            chores={payload.chores}
-                            claims={payload.claims}
-                            coins={coins}
-                            busyKey={busyKey}
-                            canClaim={isTeen}
-                            canManage={isParent}
-                            teens={payload.teens}
-                            availableChoresByTeen={payload.availableChoresByTeen}
-                            onClaim={onClaim}
-                            onClaimForTeen={onClaimForTeen}
-                            onApproveClaim={onApproveClaim}
-                            onRejectClaim={onRejectClaim}
-                            onCreate={onCreateChore}
-                            onUpdate={onUpdateChore}
-                            onDelete={onDeleteChore}
+                            chores={app.payload.chores}
+                            claims={app.payload.claims}
+                            coins={app.coins}
+                            busyKey={app.busyKey}
+                            canClaim={app.isTeen}
+                            canManage={app.isParent}
+                            teens={app.payload.teens}
+                            availableChoresByTeen={app.payload.availableChoresByTeen}
+                            onClaim={app.claimChore}
+                            onClaimForTeen={app.claimChoreForTeen}
+                            onApproveClaim={app.approveClaim}
+                            onRejectClaim={app.rejectClaim}
+                            onCreate={app.createChore}
+                            onUpdate={app.updateChore}
+                            onDelete={app.deleteChore}
                         />
                     )}
 
-                    {page === 'shop' && (
+                    {app.page === 'shop' && (
                         <Shop
-                            rewards={payload.rewards}
-                            coins={coins}
-                            canRedeem={isTeen}
-                            canManage={isParent}
-                            busyKey={busyKey}
-                            onRedeem={onRedeemReward}
-                            onCreate={onCreateReward}
-                            onUpdate={onUpdateReward}
-                            onDelete={onDeleteReward}
+                            rewards={app.payload.rewards}
+                            coins={app.coins}
+                            canRedeem={app.isTeen}
+                            canManage={app.isParent}
+                            busyKey={app.busyKey}
+                            onRedeem={app.redeemReward}
+                            onCreate={app.createReward}
+                            onUpdate={app.updateReward}
+                            onDelete={app.deleteReward}
                         />
                     )}
 
-                    {page === 'settings' && (
+                    {app.page === 'settings' && (
                         <Settings
-                            busyKey={busyKey}
-                            isParent={isParent}
-                            profileForm={profileForm}
-                            passwordForm={passwordForm}
-                            deletePassword={deletePassword}
-                            onUpdateProfile={onUpdateProfile}
-                            onUpdatePassword={onUpdatePassword}
-                            onDeleteAccount={onDeleteAccount}
-                            onTestUniFiConnection={onTestUniFiConnection}
-                            onChangeProfile={onChangeProfile}
-                            onChangePassword={onChangePassword}
-                            onChangeDeletePassword={onChangeDeletePassword}
+                            busyKey={app.busyKey}
+                            isParent={app.isParent}
+                            profileForm={app.profileForm}
+                            passwordForm={app.passwordForm}
+                            deletePassword={app.deletePassword}
+                            onUpdateProfile={app.updateProfile}
+                            onUpdatePassword={app.updatePassword}
+                            onDeleteAccount={app.deleteAccount}
+                            onTestUniFiConnection={app.testUniFiConnection}
+                            onChangeProfile={app.updateProfileField}
+                            onChangePassword={app.updatePasswordField}
+                            onChangeDeletePassword={app.setDeletePassword}
                         />
                     )}
 
-                    {page === 'activity' && (
-                        <Activity claims={payload.claimHistory} redemptions={payload.redemptions} />
+                    {app.page === 'activity' && (
+                        <Activity claims={app.payload.claimHistory} redemptions={app.payload.redemptions} />
                     )}
 
-                    {page === 'teens' && (
+                    {app.page === 'teens' && (
                         <Teens
-                            teens={payload.teens}
-                            busyKey={busyKey}
-                            canManage={isParent}
-                            onCreateTeen={onCreateTeen}
-                            onUpdateTeen={onUpdateTeen}
-                            onDeleteTeen={onDeleteTeen}
+                            teens={app.payload.teens}
+                            busyKey={app.busyKey}
+                            canManage={app.isParent}
+                            onCreateTeen={app.createTeen}
+                            onUpdateTeen={app.updateTeen}
+                            onDeleteTeen={app.deleteTeen}
                         />
                     )}
                 </motion.div>
             </AnimatePresence>
-            <Navbar setPage={setPage} activePage={page} isParent={isParent} />
+            <Navbar setPage={app.setPage} activePage={app.page} isParent={app.isParent} />
         </>
     );
 }

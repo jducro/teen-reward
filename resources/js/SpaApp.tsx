@@ -11,44 +11,7 @@ export default function App() {
             {app.loading ? (
                 <LoadingPage />
             ) : app.user ? (
-                <AuthenticatedApp
-                    page={app.page}
-                    setPage={app.setPage}
-                    notice={app.notice}
-                    panelError={app.panelError}
-                    busyKey={app.busyKey}
-                    payload={app.payload}
-                    user={app.user}
-                    coins={app.coins}
-                    level={app.level}
-                    isTeen={app.isTeen}
-                    isParent={app.isParent}
-                    onLogout={app.logout}
-                    onClaim={app.claimChore}
-                    onClaimForTeen={app.claimChoreForTeen}
-                    onApproveClaim={app.approveClaim}
-                    onRejectClaim={app.rejectClaim}
-                    onCreateChore={app.createChore}
-                    onUpdateChore={app.updateChore}
-                    onDeleteChore={app.deleteChore}
-                    onRedeemReward={app.redeemReward}
-                    onCreateReward={app.createReward}
-                    onUpdateReward={app.updateReward}
-                    onDeleteReward={app.deleteReward}
-                    onCreateTeen={app.createTeen}
-                    onUpdateTeen={app.updateTeen}
-                    onDeleteTeen={app.deleteTeen}
-                    profileForm={app.profileForm}
-                    passwordForm={app.passwordForm}
-                    deletePassword={app.deletePassword}
-                    onUpdateProfile={app.updateProfile}
-                    onUpdatePassword={app.updatePassword}
-                    onDeleteAccount={app.deleteAccount}
-                    onTestUniFiConnection={app.testUniFiConnection}
-                    onChangeProfile={app.updateProfileField}
-                    onChangePassword={app.updatePasswordField}
-                    onChangeDeletePassword={app.setDeletePassword}
-                />
+                <AuthenticatedApp app={app} />
             ) : (
                 <Login
                     authForm={app.authForm}
