@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { useIntl } from 'react-intl';
 import Navbar from '../components/Navbar';
 import type { SpaAppState } from '../hooks/useSpaAppState';
 import Dashboard from './Dashboard';
@@ -13,6 +14,8 @@ type AuthenticatedAppProps = {
 };
 
 export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
+    const intl = useIntl();
+
     // `app.user` is guaranteed non-null here: SpaApp only renders AuthenticatedApp once authenticated.
     if (!app.user) {
         return null;
@@ -33,7 +36,7 @@ export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
                     onClick={() => void app.logout()}
                     disabled={app.busyKey === 'logout'}
                 >
-                    Déconnexion
+                    {intl.formatMessage({ id: 'auth.action.logout', defaultMessage: 'Log out' })}
                 </button>
             </div>
 

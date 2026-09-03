@@ -1,19 +1,20 @@
 import { motion } from 'framer-motion'
+import { useIntl } from 'react-intl'
 import type { AppPage } from '../type'
 
-export type Tab = { id: AppPage, emoji: string, label: string }
+export type Tab = { id: AppPage, emoji: string, labelId: string, defaultLabel: string }
 
 const defaultTabs: Tab[] = [
-  { id: 'home', emoji: '🏠', label: 'Accueil' },
-  { id: 'tasks', emoji: '🧹', label: 'Missions' },
-  { id: 'shop', emoji: '🛍', label: 'Boutique' },
-  { id: 'activity', emoji: '📋', label: 'Activité' },
-  { id: 'settings', emoji: '⚙️', label: 'Compte' },
+  { id: 'home', emoji: '🏠', labelId: 'nav.home', defaultLabel: 'Home' },
+  { id: 'tasks', emoji: '🧹', labelId: 'nav.tasks', defaultLabel: 'Tasks' },
+  { id: 'shop', emoji: '🛍', labelId: 'nav.shop', defaultLabel: 'Shop' },
+  { id: 'activity', emoji: '📋', labelId: 'nav.activity', defaultLabel: 'Activity' },
+  { id: 'settings', emoji: '⚙️', labelId: 'nav.settings', defaultLabel: 'Account' },
 ];
 
 const parentTabs: Tab[] = [
   ...defaultTabs,
-  { id: 'teens', emoji: '🧑‍🎓', label: 'Ados' },
+  { id: 'teens', emoji: '🧑‍🎓', labelId: 'nav.teens', defaultLabel: 'Teens' },
 ];
 
 export default function Navbar({
@@ -25,6 +26,7 @@ export default function Navbar({
   activePage: AppPage;
   isParent: boolean;
 }) {
+  const intl = useIntl();
   const tabs = isParent ? parentTabs : defaultTabs;
 
   return (
@@ -34,8 +36,8 @@ export default function Navbar({
           key={tab.id}
           onClick={() => setPage(tab.id)}
           className={activePage === tab.id ? 'active' : ''}
-          title={tab.label}
-          aria-label={tab.label}
+          title={intl.formatMessage({ id: tab.labelId, defaultMessage: tab.defaultLabel })}
+          aria-label={intl.formatMessage({ id: tab.labelId, defaultMessage: tab.defaultLabel })}
           whileTap={{ scale: 0.9 }}
           whileHover={{ scale: 1.1 }}
         >

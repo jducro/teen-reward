@@ -18,7 +18,9 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
             {claims.map((claim) => (
               <div key={claim.id} className="activity-card">
                 <div>
-                  <div className="activity-name">{claim.chore?.title ?? 'Mission'}</div>
+                  <div className="activity-name">
+                    {claim.chore?.title ?? intl.formatMessage({ id: 'common.fallback.mission', defaultMessage: 'Mission' })}
+                  </div>
                   <div className="activity-meta">
                     {claim.user?.name ? `${claim.user.name} • ` : ''}
                     {claim.createdAt ? intlFormat(claim.createdAt, dateFormat) : ''}
@@ -45,7 +47,9 @@ export default function Activity({ claims, redemptions }: ActivityProps) {
             {redemptions.map((redemption) => (
               <div key={redemption.id} className="activity-card">
                 <div>
-                  <div className="activity-name">{redemption.reward?.name ?? 'Reward'}</div>
+                  <div className="activity-name">
+                    {redemption.reward?.name ?? intl.formatMessage({ id: 'common.fallback.reward', defaultMessage: 'Reward' })}
+                  </div>
                   <div className="activity-meta">
                     {redemption.user?.name ? `${redemption.user.name} • ` : ''}
                     {redemption.redeemedAt ? intlFormat(redemption.redeemedAt, dateFormat) : ''}

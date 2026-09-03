@@ -201,9 +201,11 @@ export default function Tasks({
         return (
           <div key={claim.id} className="approval-card">
             <div>
-              <div className="approval-title">{claim.chore?.title ?? 'Mission'}</div>
+              <div className="approval-title">
+                {claim.chore?.title ?? intl.formatMessage({ id: 'common.fallback.mission', defaultMessage: 'Mission' })}
+              </div>
               <div className="approval-meta">
-                {claim.user?.name ?? 'Teen'} • {claim.chore?.pointsValue ?? 0} pts
+                {claim.user?.name ?? intl.formatMessage({ id: 'common.fallback.teen', defaultMessage: 'Teen' })} • {claim.chore?.pointsValue ?? 0} pts
               </div>
             </div>
             <div className="approval-actions">
@@ -439,6 +441,7 @@ export default function Tasks({
                       className="task-admin-btn"
                       onClick={() => startEdit(task)}
                       disabled={isUpdateBusy || isDeleteBusy}
+                      aria-label={intl.formatMessage({ id: 'common.action.edit', defaultMessage: 'Edit' })}
                     >
                       ✏️
                     </button>
@@ -447,6 +450,7 @@ export default function Tasks({
                       className="task-admin-btn danger"
                       onClick={() => void removeTask(task.id)}
                       disabled={isDeleteBusy}
+                      aria-label={intl.formatMessage({ id: 'common.action.delete', defaultMessage: 'Delete' })}
                     >
                       {isDeleteBusy ? '…' : '🗑'}
                     </button>

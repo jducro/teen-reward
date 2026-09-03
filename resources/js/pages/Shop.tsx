@@ -125,7 +125,7 @@ export default function Shop({
             <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
               {[
                 { value: 'physical', label: intl.formatMessage({ id: 'reward.type.physical', defaultMessage: 'Physical' }) },
-                { value: 'wifi', label: 'WiFi' },
+                { value: 'wifi', label: intl.formatMessage({ id: 'reward.type.wifi', defaultMessage: 'WiFi' }) },
               ].map((type) => (
                 <button
                   key={type.value}
@@ -250,6 +250,7 @@ export default function Shop({
                     className="task-admin-btn"
                     onClick={() => startEdit(reward)}
                     disabled={isDeleteBusy}
+                    aria-label={intl.formatMessage({ id: 'common.action.edit', defaultMessage: 'Edit' })}
                   >
                     ✏️
                   </button>
@@ -258,6 +259,7 @@ export default function Shop({
                     className="task-admin-btn danger"
                     onClick={() => void removeReward(reward.id)}
                     disabled={isDeleteBusy}
+                    aria-label={intl.formatMessage({ id: 'common.action.delete', defaultMessage: 'Delete' })}
                   >
                     {isDeleteBusy ? '…' : '🗑'}
                   </button>

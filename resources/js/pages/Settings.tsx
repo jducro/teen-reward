@@ -1,3 +1,4 @@
+import { useIntl } from 'react-intl';
 import type { SettingsProps } from '../type';
 
 export default function Settings({
@@ -14,13 +15,15 @@ export default function Settings({
   onChangePassword,
   onChangeDeletePassword,
 }: SettingsProps) {
+  const intl = useIntl();
+
   return (
     <div className="settings-page">
-      <h2 className="settings-title">⚙️ Account settings</h2>
+      <h2 className="settings-title">⚙️ {intl.formatMessage({ id: 'account.title', defaultMessage: 'Account settings' })}</h2>
 
       <form className="crud-panel" onSubmit={onUpdateProfile}>
         <div className="form-field">
-          <label htmlFor="account-name">Name</label>
+          <label htmlFor="account-name">{intl.formatMessage({ id: 'auth.label.name', defaultMessage: 'Name' })}</label>
           <input
             id="account-name"
             className="crud-input"
@@ -30,7 +33,7 @@ export default function Settings({
           />
         </div>
         <div className="form-field">
-          <label htmlFor="account-email">Email</label>
+          <label htmlFor="account-email">{intl.formatMessage({ id: 'auth.label.email', defaultMessage: 'Email' })}</label>
           <input
             id="account-email"
             className="crud-input"
@@ -42,14 +45,14 @@ export default function Settings({
         </div>
         <div className="crud-actions">
           <button className="crud-submit-btn" type="submit" disabled={busyKey === 'profile:update'}>
-            Save profile
+            {intl.formatMessage({ id: 'account.action.saveProfile', defaultMessage: 'Save profile' })}
           </button>
         </div>
       </form>
 
       <form className="crud-panel" onSubmit={onUpdatePassword}>
         <div className="form-field">
-          <label htmlFor="current-password">Current password</label>
+          <label htmlFor="current-password">{intl.formatMessage({ id: 'account.label.currentPassword', defaultMessage: 'Current password' })}</label>
           <input
             id="current-password"
             className="crud-input"
@@ -60,7 +63,7 @@ export default function Settings({
           />
         </div>
         <div className="form-field">
-          <label htmlFor="new-password">New password</label>
+          <label htmlFor="new-password">{intl.formatMessage({ id: 'account.label.newPassword', defaultMessage: 'New password' })}</label>
           <input
             id="new-password"
             className="crud-input"
@@ -71,7 +74,7 @@ export default function Settings({
           />
         </div>
         <div className="form-field">
-          <label htmlFor="confirm-password">Confirm password</label>
+          <label htmlFor="confirm-password">{intl.formatMessage({ id: 'account.label.confirmPassword', defaultMessage: 'Confirm password' })}</label>
           <input
             id="confirm-password"
             className="crud-input"
@@ -83,14 +86,14 @@ export default function Settings({
         </div>
         <div className="crud-actions">
           <button className="crud-submit-btn" type="submit" disabled={busyKey === 'profile:password'}>
-            Update password
+            {intl.formatMessage({ id: 'account.action.updatePassword', defaultMessage: 'Update password' })}
           </button>
         </div>
       </form>
 
       <form className="crud-panel" onSubmit={onDeleteAccount}>
         <div className="form-field">
-          <label htmlFor="delete-password">Confirm password to delete account</label>
+          <label htmlFor="delete-password">{intl.formatMessage({ id: 'account.label.deletePassword', defaultMessage: 'Confirm password to delete account' })}</label>
           <input
             id="delete-password"
             className="crud-input"
@@ -102,15 +105,15 @@ export default function Settings({
         </div>
         <div className="crud-actions">
           <button className="crud-delete-btn" type="submit" disabled={busyKey === 'profile:delete'}>
-            Delete account
+            {intl.formatMessage({ id: 'account.action.deleteAccount', defaultMessage: 'Delete account' })}
           </button>
         </div>
       </form>
 
       {isParent && (
         <div className="crud-panel">
-          <h3>UniFi integration</h3>
-          <p>Test UniFi controller credentials and connectivity.</p>
+          <h3>{intl.formatMessage({ id: 'account.unifi.title', defaultMessage: 'UniFi integration' })}</h3>
+          <p>{intl.formatMessage({ id: 'account.unifi.description', defaultMessage: 'Test UniFi controller credentials and connectivity.' })}</p>
           <div className="crud-actions">
             <button
               className="crud-submit-btn"
@@ -118,7 +121,7 @@ export default function Settings({
               disabled={busyKey === 'unifi:test-connection'}
               onClick={() => void onTestUniFiConnection()}
             >
-              Test UniFi connection
+              {intl.formatMessage({ id: 'account.unifi.testConnection', defaultMessage: 'Test UniFi connection' })}
             </button>
           </div>
         </div>
