@@ -123,6 +123,9 @@ Seed the local database with the example parent/teen accounts (password: `passwo
 ## Notes
 This file should be updated as the MVP evolves, especially if the UniFi integration or device-based access control is implemented.
 
+## Engineering Guardrail
+- Every new feature should include unit tests as part of the same change set (React behavior with frontend unit tests, backend behavior with PHPUnit tests).
+
 ===
 
 <laravel-boost-guidelines>

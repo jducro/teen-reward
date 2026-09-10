@@ -5,7 +5,9 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "type-check": "tsc --noEmit"
+        "type-check": "tsc --noEmit",
+        "test:unit": "vitest run",
+        "test:unit:watch": "vitest"
     },
     "dependencies": {
         "date-fns": "^4.4.0",
@@ -20,13 +22,16 @@
         "@tailwindcss/vite": "^4.3.3",
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19.2.7",
+        "@testing-library/react": "^16.3.0",
         "@vitejs/plugin-react": "^5.0.0",
         "autoprefixer": "^10.5.5",
         "concurrently": "^10.0.5",
+        "jsdom": "^26.1.0",
         "laravel-vite-plugin": "^3.2",
         "postcss": "^8.5.28",
         "tailwindcss": "^4.3.3",
         "typescript": "^7.0.2",
-        "vite": "^8.2.2"
+        "vite": "^8.2.2",
+        "vitest": "^3.2.4"
     }
 }
