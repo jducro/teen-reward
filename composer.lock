@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "art-of-wifi/unifi-api-client",
-            "version": "v2.2.1",
+            "version": "v2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Art-of-WiFi/UniFi-API-client.git",
-                "reference": "ce7e6c84a05813ca52a03d5c6e6bac5e039d5b8f"
+                "reference": "6aac419fb7a9464511208e7cad067fe13900521b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Art-of-WiFi/UniFi-API-client/zipball/ce7e6c84a05813ca52a03d5c6e6bac5e039d5b8f",
-                "reference": "ce7e6c84a05813ca52a03d5c6e6bac5e039d5b8f",
+                "url": "https://api.github.com/repos/Art-of-WiFi/UniFi-API-client/zipball/6aac419fb7a9464511208e7cad067fe13900521b",
+                "reference": "6aac419fb7a9464511208e7cad067fe13900521b",
                 "shasum": ""
             },
             "require": {
@@ -55,9 +55,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Art-of-WiFi/UniFi-API-client/issues",
-                "source": "https://github.com/Art-of-WiFi/UniFi-API-client/tree/v2.2.1"
+                "source": "https://github.com/Art-of-WiFi/UniFi-API-client/tree/v2.3.0"
             },
-            "time": "2026-07-27T09:29:20+00:00"
+            "time": "2026-10-02T09:05:55+00:00"
         },
         {
             "name": "brick/math",
