@@ -11,7 +11,7 @@
     },
     "dependencies": {
         "date-fns": "^4.4.0",
-        "framer-motion": "^13.4.4",
+        "framer-motion": "^14.0.0",
         "react": "^19.3.0",
         "react-dom": "^19.3.0",
         "react-intl": "^12.1.3"
