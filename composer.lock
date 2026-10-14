@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "art-of-wifi/unifi-api-client",
-            "version": "v2.3.0",
+            "version": "v2.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Art-of-WiFi/UniFi-API-client.git",
-                "reference": "6aac419fb7a9464511208e7cad067fe13900521b"
+                "reference": "8d04134ca72d3994592c8ce7cb032b67bc684290"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Art-of-WiFi/UniFi-API-client/zipball/6aac419fb7a9464511208e7cad067fe13900521b",
-                "reference": "6aac419fb7a9464511208e7cad067fe13900521b",
+                "url": "https://api.github.com/repos/Art-of-WiFi/UniFi-API-client/zipball/8d04134ca72d3994592c8ce7cb032b67bc684290",
+                "reference": "8d04134ca72d3994592c8ce7cb032b67bc684290",
                 "shasum": ""
             },
             "require": {
@@ -55,9 +55,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Art-of-WiFi/UniFi-API-client/issues",
-                "source": "https://github.com/Art-of-WiFi/UniFi-API-client/tree/v2.3.0"
+                "source": "https://github.com/Art-of-WiFi/UniFi-API-client/tree/v2.3.1"
             },
-            "time": "2026-10-02T09:05:55+00:00"
+            "time": "2026-10-06T09:26:11+00:00"
         },
         {
             "name": "brick/math",
