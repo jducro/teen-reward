@@ -11,7 +11,6 @@ class ChoreSeeder extends Seeder
     public function run(): void
     {
         $parent = User::where('role', 'parent')->first();
-        $teen = User::where('role', 'teen')->first();
 
         Chore::create([
             'title' => 'Clean your room',

@@ -1,40 +1,38 @@
 services:
     laravel.test:
         build:
-            context: ./vendor/laravel/sail/runtimes/8.5
+            context: .
             dockerfile: Dockerfile
-            args:
-                WWWGROUP: '${WWWGROUP}'
-                MYSQL_CLIENT: mariadb-client
-        image: sail-8.5/app
+        image: teen-reward/app
+        restart: unless-stopped
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - '${APP_PORT:-80}:80'
+            - '${APP_PORT:-8080}:8080'
+        env_file:
+            - .env
         environment:
-            WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
-            - 'sail-node-modules:/var/www/html/node_modules'
         networks:
             - sail
         depends_on:
-            - redis
-            - mailpit
-            - mariadb
+            redis:
+                condition: service_healthy
+            mailpit:
+                condition: service_started
+            mariadb:
+                condition: service_healthy
     vite:
-        image: sail-8.5/app
-        entrypoint: []
-        command: sh -c 'pnpm install --frozen-lockfile --store-dir /var/www/html/node_modules/.pnpm-store && pnpm run dev -- --host=0.0.0.0 --port=${VITE_PORT:-5173}'
+        image: node:22-alpine
         working_dir: /var/www/html
+        command: sh -c 'corepack enable && pnpm install --frozen-lockfile && pnpm exec vite --host 0.0.0.0 --port ${VITE_PORT:-5173}'
         ports:
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
-        environment:
-            LARAVEL_SAIL: 1
+            - '${VITE_PORT:-5173}:5173'
         volumes:
             - '.:/var/www/html'
             - 'sail-node-modules:/var/www/html/node_modules'
@@ -51,17 +49,14 @@ services:
         networks:
             - sail
         healthcheck:
-            test:
-                - CMD
-                - redis-cli
-                - ping
+            test: [CMD, redis-cli, ping]
             retries: 3
             timeout: 5s
     mailpit:
         image: 'axllent/mailpit:latest'
         ports:
-            - '${FORWARD_MAILPIT_PORT:-1025}:1025'
-            - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+            - '${FORWARD_MAILPIT_PORT:-2525}:1025'
+            - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8026}:8025'
         networks:
             - sail
     mariadb:
@@ -77,15 +72,10 @@ services:
             MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
         volumes:
             - 'sail-mariadb:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mariadb/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
             - sail
         healthcheck:
-            test:
-                - CMD
-                - healthcheck.sh
-                - '--connect'
-                - '--innodb_initialized'
+            test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
             retries: 3
             timeout: 5s
 networks:

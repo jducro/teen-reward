@@ -235,13 +235,13 @@ class DeviceApprovalWorkflowTest extends TestCase
     {
         $teen = User::factory()->create(['role' => 'teen']);
 
-        $pending = UserDevice::create([
+        UserDevice::create([
             'user_id' => $teen->id,
             'mac_address' => 'aa:bb:cc:dd:ee:01',
             'status' => 'pending_approval',
         ]);
 
-        $active = UserDevice::create([
+        UserDevice::create([
             'user_id' => $teen->id,
             'mac_address' => 'aa:bb:cc:dd:ee:02',
             'status' => 'active',
