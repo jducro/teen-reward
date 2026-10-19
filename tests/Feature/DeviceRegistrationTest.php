@@ -30,7 +30,7 @@ class DeviceRegistrationTest extends TestCase
     public function test_teen_can_register_a_device(): void
     {
         $teen = User::factory()->create(['role' => 'teen']);
-        $response = $this->actingAs($teen)
+        $this->actingAs($teen)
             ->postJson('/api/devices', [
                 'mac_address' => 'aa:bb:cc:dd:ee:ff',
                 'name' => 'iPhone',
