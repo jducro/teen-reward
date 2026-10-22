@@ -1,3 +1,16 @@
+{
+    http_port 8188
+    https_port 8143
+}
+
 teen.ducro.fr {
+    tls {
+        dns ovh {
+            endpoint ovh-eu
+            application_key {env.OVH_APPLICATION_KEY}
+            application_secret {env.OVH_APPLICATION_SECRET}
+            consumer_key {env.OVH_CONSUMER_KEY}
+        }
+    }
     reverse_proxy app:8080
 }
