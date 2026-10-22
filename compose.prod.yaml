@@ -1,37 +1,32 @@
+x-app: &app
+  build: .
+  image: ${APP_IMAGE:-laravel-app}:latest
+  restart: unless-stopped
+  env_file: .env
+  volumes:
+    - app-storage:/var/www/html/storage
+  networks: [internal]
+
 services:
   app:
-    build: .
-    image: monapp:latest
-    restart: unless-stopped
-    env_file: .env
-    volumes:
-      - app-storage:/var/www/html/storage
+    <<: *app
     depends_on:
       mariadb:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks: [internal]
 
   queue:
-    image: monapp:latest
-    restart: unless-stopped
-    env_file: .env
+    <<: *app
+    build: !reset null
     command: ["php", "/var/www/html/artisan", "queue:work", "--tries=3"]
-    volumes:
-      - app-storage:/var/www/html/storage
     depends_on: [app]
-    networks: [internal]
 
   scheduler:
-    image: monapp:latest
-    restart: unless-stopped
-    env_file: .env
+    <<: *app
+    build: !reset null
     command: ["php", "/var/www/html/artisan", "schedule:work"]
-    volumes:
-      - app-storage:/var/www/html/storage
     depends_on: [app]
-    networks: [internal]
 
   mariadb:
     image: mariadb:11
