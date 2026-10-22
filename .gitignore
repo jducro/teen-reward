@@ -79,3 +79,4 @@ vendor
 .phpunit.result.cache
 testing
 public/build
+public/hot

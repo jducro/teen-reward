@@ -67,14 +67,16 @@ export default function Login({ authForm, busy, error, onChange, onSubmit }: Log
 
                 {error ? <p className="login-error">{error}</p> : null}
 
-                <motion.div
-                    className="bonus-banner"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
-                >
-                    {intl.formatMessage({ id: 'login.demoHint', defaultMessage: '🧪 Local test: teen@example.com / password' })}
-                </motion.div>
+                {import.meta.env.DEV ? (
+                    <motion.div
+                        className="bonus-banner"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        {intl.formatMessage({ id: 'login.demoHint', defaultMessage: '🧪 Local test: teen@example.com / password' })}
+                    </motion.div>
+                ) : null}
             </div>
         </div>
     );
