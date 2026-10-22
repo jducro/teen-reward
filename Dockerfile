@@ -9,6 +9,11 @@ RUN pnpm run build
 
 # --- Image applicative (PHP-FPM + Nginx) ---
 FROM serversideup/php:8.5-fpm-nginx
+
+USER root
+RUN install-php-extensions intl
+USER www-data
+
 ENV PHP_OPCACHE_ENABLE=1
 WORKDIR /var/www/html
 COPY --chown=www-data:www-data . .
