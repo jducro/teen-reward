@@ -58,6 +58,32 @@ Connect the reward redemption flow to the UniFi controller so that a reward can 
   - Direct network access without vouchers
   - Device management endpoints
 
+- **Phase 3**: External UniFi captive portal (planned)
+  - Replace the built-in voucher entry page with a public HTTPS page hosted by this app
+  - UniFi redirects a device on the guest SSID to the app's external portal and supplies connection context, including the client MAC and SSID
+  - The teen signs in, the app verifies the connected MAC against UniFi and the teen's approved device, then the teen redeems a Wi-Fi reward for that device
+  - The app creates a redemption linked to the device and grants direct UniFi guest access for the reward duration; it does not issue a voucher code for this flow
+  - Show the teen the device and access expiry on the portal page; leave manual voucher redemption available as a fallback for devices that cannot open a captive portal
+
+#### Phase 3 Implementation Plan
+1. **Confirm UniFi compatibility**
+   - Verify the controller version, external portal settings, and supported authorization API before implementation. The official [External Hotspot API guide](https://help.ui.com/hc/en-us/articles/31228198640023-External-Hotspot-API-for-Authorization-Clients) describes the redirect context and timed client authorization.
+   - Keep controller credentials/API keys server-side. Configure the guest network's pre-authorization allowlist so the public app origin and required assets are reachable before authorization.
+2. **Add a dedicated portal entry point**
+   - Add a minimal public portal route and page separate from the authenticated SPA shell.
+   - Accept UniFi redirect context (client MAC, SSID, AP, and return URL), validate the site/SSID, and never trust a query-string MAC by itself. Confirm that the MAC is a currently connected UniFi client before using it.
+   - Let the teen authenticate with the existing account flow; preserve a safe return to the portal after login and validate any return URL against an allowlist.
+3. **Connect portal redemption to device entitlement**
+   - Require the client MAC to match a device owned by the signed-in teen and approved by a parent. If it is unknown or pending, show a registration/approval explanation and do not authorize it.
+   - Add a redemption path that charges points once, associates the redemption with the approved device, and records the grant expiry and UniFi sync state. Use a transaction/lock so retries or repeated captive-portal requests cannot double-charge points or create overlapping grants.
+   - Authorize the specific client with the reward's remaining duration. Do not use the current `minutes = 0` device authorization for timed rewards. Keep voucher generation as a separate fallback path.
+4. **Expire and revoke access reliably**
+   - Store the device grant and expiry for audit/status display. Use UniFi's timed authorization where supported and add a scheduled reconciliation/revocation job as a backup.
+   - On expiry or teen unregister, revoke the UniFi authorization, update grant/redemption sync state, and log success or failure without logging credentials.
+5. **Test and roll out**
+   - Add PHPUnit coverage for valid and invalid portal context, authentication, device ownership/approval, duplicate submissions, insufficient points, UniFi failures, timed grants, expiry, and revocation.
+   - Add React tests for the portal states and reward selection. Verify redirects and captive-network reachability on real iOS/Android devices and the configured UniFi controller before enabling the flow for users.
+
 ### Configuration
 ```env
 UNIFI_HOST=https://unifi.example.com:8443
