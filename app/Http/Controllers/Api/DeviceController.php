@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\DeviceApproval;
+use App\Models\DeviceEvent;
 use App\Models\UserDevice;
 use App\Services\UniFiService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,21 +29,20 @@ class DeviceController extends Controller
             'bandwidth_limit' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        // Check if device already registered for this user
-        if (UserDevice::where('user_id', $user->id)
-            ->where('mac_address', $this->normalizeMac($data['mac_address']))
-            ->whereIn('status', ['active', 'pending_approval'])
-            ->exists()) {
+        // Reserve every registered MAC, including rejected devices, until the teen unregisters it.
+        $normalizedMac = $this->normalizeMac($data['mac_address']);
+
+        if (UserDevice::where('mac_address', $normalizedMac)->exists()) {
             return response()->json([
-                'message' => 'Device already registered',
-            ], 422);
+                'message' => 'This MAC address is already registered and cannot be shared between teens.',
+            ], 409);
         }
 
         try {
             // Create device record with pending_approval status (UniFi registration deferred)
             $device = UserDevice::create([
                 'user_id' => $user->id,
-                'mac_address' => $this->normalizeMac($data['mac_address']),
+                'mac_address' => $normalizedMac,
                 'name' => $data['name'],
                 'bandwidth_limit' => $data['bandwidth_limit'] ?? null,
                 'status' => 'pending_approval',
@@ -52,6 +53,10 @@ class DeviceController extends Controller
                 'message' => 'Device registration submitted for approval',
                 'device' => $device,
             ], 201);
+        } catch (UniqueConstraintViolationException) {
+            return response()->json([
+                'message' => 'This MAC address is already registered and cannot be shared between teens.',
+            ], 409);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to register device: '.$e->getMessage(),
@@ -68,7 +73,8 @@ class DeviceController extends Controller
         abort_unless($user?->role === 'teen', 403);
 
         $devices = UserDevice::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->get();
 
         return response()->json([
@@ -103,6 +109,15 @@ class DeviceController extends Controller
                 $this->unifiService->unregisterDevice($device->mac_address);
             }
 
+            DeviceEvent::create([
+                'device_id' => $device->id,
+                'user_id' => $device->user_id,
+                'actor_id' => $user->id,
+                'mac_address' => $device->mac_address,
+                'device_name' => $device->name,
+                'action' => 'unregistered',
+            ]);
+
             $device->delete();
 
             return response()->json([
@@ -125,7 +140,8 @@ class DeviceController extends Controller
 
         $devices = UserDevice::where('status', 'pending_approval')
             ->with('user')
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->get();
 
         return response()->json([

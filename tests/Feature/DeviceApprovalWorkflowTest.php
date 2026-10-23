@@ -48,8 +48,8 @@ class DeviceApprovalWorkflowTest extends TestCase
             ->assertOk();
 
         $this->assertCount(2, $response->json('devices'));
-        $this->assertEquals('aa:bb:cc:dd:ee:01', $response->json('devices.0.mac_address'));
-        $this->assertEquals('aa:bb:cc:dd:ee:03', $response->json('devices.1.mac_address'));
+        $this->assertEquals('aa:bb:cc:dd:ee:03', $response->json('devices.0.mac_address'));
+        $this->assertEquals('aa:bb:cc:dd:ee:01', $response->json('devices.1.mac_address'));
     }
 
     public function test_teen_cannot_list_pending_devices(): void

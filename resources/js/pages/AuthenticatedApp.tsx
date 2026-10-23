@@ -8,6 +8,7 @@ import Shop from './Shop';
 import Settings from './Settings';
 import Teens from './Teens';
 import Tasks from './Tasks';
+import Devices from './Devices';
 
 type AuthenticatedAppProps = {
     app: SpaAppState;
@@ -114,6 +115,18 @@ export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
 
                     {app.page === 'activity' && (
                         <Activity claims={app.payload.claimHistory} redemptions={app.payload.redemptions} />
+                    )}
+
+                    {app.page === 'devices' && (
+                        <Devices
+                            devices={app.payload.devices}
+                            isParent={app.isParent}
+                            busyKey={app.busyKey}
+                            onRegister={app.registerDevice}
+                            onUnregister={app.unregisterDevice}
+                            onApprove={app.approveDevice}
+                            onReject={app.rejectDevice}
+                        />
                     )}
 
                     {app.page === 'teens' && (

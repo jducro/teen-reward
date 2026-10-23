@@ -8,6 +8,7 @@ use App\Models\ChoreClaim;
 use App\Models\Reward;
 use App\Models\RewardRedemption;
 use App\Models\User;
+use App\Models\UserDevice;
 use App\Services\ClaimService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -68,6 +69,13 @@ class AppBootstrapController extends Controller
                 ->get()
             : User::query()->whereKey([])->get();
 
+        $devices = UserDevice::query()
+            ->when($user->role === 'parent', fn ($query) => $query->where('status', 'pending_approval')->with('user'))
+            ->when($user->role === 'teen', fn ($query) => $query->where('user_id', $user->id))
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
+
         $availableChoresByTeen = [];
         if ($user->role === 'parent') {
             foreach ($teens as $teen) {
@@ -94,6 +102,16 @@ class AppBootstrapController extends Controller
                 'name' => $teen->name,
                 'email' => $teen->email,
                 'pointsBalance' => $teen->points_balance,
+            ])->values(),
+            'devices' => $devices->map(fn (UserDevice $device) => [
+                'id' => $device->id,
+                'macAddress' => $device->mac_address,
+                'name' => $device->name,
+                'status' => $device->status,
+                'createdAt' => optional($device->created_at)->toIso8601String(),
+                'user' => $device->relationLoaded('user') && $device->user
+                    ? ['id' => $device->user->id, 'name' => $device->user->name]
+                    : null,
             ])->values(),
             'availableChoresByTeen' => $availableChoresByTeen,
             'chores' => $chores->map(fn (Chore $chore) => [

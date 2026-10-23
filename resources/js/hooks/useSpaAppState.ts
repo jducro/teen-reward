@@ -8,6 +8,7 @@ import { useClaimState } from './spa/useClaimState';
 import { useProfileState } from './spa/useProfileState';
 import { useRewardState } from './spa/useRewardState';
 import { useTeenState } from './spa/useTeenState';
+import { useDeviceState } from './spa/useDeviceState';
 
 const request = apiRequest as (url: string, options?: { method?: string; body?: unknown }) => Promise<unknown>;
 
@@ -77,6 +78,7 @@ export function useSpaAppState() {
         setPanelError,
         setNotice,
     });
+    const devices = useDeviceState({ refresh, setBusyKey, setPanelError, setNotice });
     const profile = useProfileState({
         user,
         refresh,
@@ -103,6 +105,7 @@ export function useSpaAppState() {
         ...claims,
         ...rewards,
         ...teens,
+        ...devices,
         ...profile,
     };
 }

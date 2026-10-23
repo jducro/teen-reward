@@ -9,6 +9,7 @@ const defaultTabs: Tab[] = [
   { id: 'tasks', emoji: '🧹', labelId: 'nav.tasks', defaultLabel: 'Tasks' },
   { id: 'shop', emoji: '🛍', labelId: 'nav.shop', defaultLabel: 'Shop' },
   { id: 'activity', emoji: '📋', labelId: 'nav.activity', defaultLabel: 'Activity' },
+  { id: 'devices', emoji: '📱', labelId: 'nav.devices', defaultLabel: 'Devices' },
   { id: 'settings', emoji: '⚙️', labelId: 'nav.settings', defaultLabel: 'Account' },
 ];
 

@@ -1,7 +1,16 @@
 import type { FormEvent } from 'react';
 
 export type Role = 'parent' | 'teen';
-export type AppPage = 'home' | 'tasks' | 'shop' | 'teens' | 'settings' | 'activity';
+export type AppPage = 'home' | 'tasks' | 'shop' | 'teens' | 'devices' | 'settings' | 'activity';
+
+export type Device = {
+    id: number;
+    macAddress: string;
+    name: string | null;
+    status: 'pending_approval' | 'active' | 'rejected' | 'inactive';
+    createdAt: string | null;
+    user?: { id: number; name: string } | null;
+};
 
 export type User = {
     id: number;
@@ -67,6 +76,7 @@ export type TeenDraft = {
 export type BootstrapPayload = {
     user: User | null;
     teens: Teen[];
+    devices: Device[];
     availableChoresByTeen?: Record<number, Chore[]>;
     chores: Chore[];
     claims: Claim[];

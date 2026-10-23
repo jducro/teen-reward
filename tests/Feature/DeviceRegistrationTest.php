@@ -95,7 +95,27 @@ class DeviceRegistrationTest extends TestCase
                 'mac_address' => 'aa:bb:cc:dd:ee:ff',
                 'name' => 'Duplicate',
             ])
-            ->assertUnprocessable();
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'This MAC address is already registered and cannot be shared between teens.');
+    }
+
+    public function test_mac_address_cannot_be_claimed_by_another_teen(): void
+    {
+        $firstTeen = User::factory()->create(['role' => 'teen']);
+        $secondTeen = User::factory()->create(['role' => 'teen']);
+        UserDevice::create([
+            'user_id' => $firstTeen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'status' => 'rejected',
+        ]);
+
+        $this->actingAs($secondTeen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'AA-BB-CC-DD-EE-FF',
+                'name' => 'Shared attempt',
+            ])
+            ->assertStatus(409)
+            ->assertJsonPath('message', 'This MAC address is already registered and cannot be shared between teens.');
     }
 
     public function test_invalid_mac_address_fails(): void
@@ -173,6 +193,20 @@ class DeviceRegistrationTest extends TestCase
             ->assertOk();
 
         $this->assertDatabaseMissing('user_devices', ['id' => $device->id]);
+        $this->assertDatabaseHas('device_events', [
+            'device_id' => null,
+            'user_id' => $teen->id,
+            'actor_id' => $teen->id,
+            'mac_address' => 'aa:bb:cc:dd:ee:ff',
+            'action' => 'unregistered',
+        ]);
+
+        $this->actingAs($teen)
+            ->postJson('/api/devices', [
+                'mac_address' => 'aa:bb:cc:dd:ee:ff',
+                'name' => 'Re-registered device',
+            ])
+            ->assertCreated();
     }
 
     public function test_parent_cannot_access_device_endpoints(): void
