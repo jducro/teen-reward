@@ -30,6 +30,16 @@ class UserDevice extends Model
         return $this->hasMany(DeviceApproval::class);
     }
 
+    public function redemptions(): HasMany
+    {
+        return $this->hasMany(RewardRedemption::class, 'user_device_id');
+    }
+
+    public function accessGrants(): HasMany
+    {
+        return $this->hasMany(DeviceAccessGrant::class, 'device_id');
+    }
+
     /**
      * Normalize MAC address to lowercase colon-separated format.
      */

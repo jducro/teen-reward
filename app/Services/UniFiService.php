@@ -217,6 +217,74 @@ class UniFiService
     }
 
     /**
+     * Confirm that a MAC address is currently connected to the configured UniFi site.
+     *
+     * @return array{mac: string, ssid: string|null, ap_mac: string|null}|null
+     *
+     * @throws \Exception
+     */
+    public function getConnectedClient(string $deviceMac): ?array
+    {
+        $this->ensureConnected();
+
+        $normalizedMac = strtolower(str_replace('-', ':', $deviceMac));
+        $response = $this->client->list_clients($normalizedMac);
+
+        if (is_array($response) && array_is_list($response)) {
+            $client = $response[0] ?? null;
+        } else {
+            $client = $response;
+        }
+
+        if (is_object($client)) {
+            $client = get_object_vars($client);
+        }
+
+        if (! is_array($client)) {
+            return null;
+        }
+
+        $clientMac = $client['mac'] ?? $client['macAddress'] ?? null;
+        if (! is_string($clientMac) || strtolower(str_replace('-', ':', $clientMac)) !== $normalizedMac) {
+            return null;
+        }
+
+        return [
+            'mac' => $normalizedMac,
+            'ssid' => isset($client['essid']) && is_string($client['essid']) ? $client['essid'] : null,
+            'ap_mac' => isset($client['ap_mac']) && is_string($client['ap_mac']) ? strtolower($client['ap_mac']) : null,
+        ];
+    }
+
+    /**
+     * Authorize a client for a finite number of minutes.
+     *
+     * @throws \Exception
+     */
+    public function authorizeDeviceForDuration(string $deviceMac, int $minutes, ?int $bandwidth = null): bool
+    {
+        if ($minutes < 1) {
+            throw new \InvalidArgumentException('Device authorization duration must be at least one minute.');
+        }
+
+        $this->ensureConnected();
+
+        $normalizedMac = strtolower(str_replace('-', ':', $deviceMac));
+        $authorized = $this->client->authorize_guest($normalizedMac, $minutes, $bandwidth, $bandwidth);
+
+        if (! $authorized) {
+            throw new \Exception('UniFi did not authorize the device.');
+        }
+
+        Log::info('UniFi timed device authorization succeeded', [
+            'mac' => $normalizedMac,
+            'duration_minutes' => $minutes,
+        ]);
+
+        return true;
+    }
+
+    /**
      * Unregister a device (revoke access).
      *
      * @param  string  $deviceMac  Device MAC address

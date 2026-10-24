@@ -10,7 +10,7 @@ Teen Reward is a local, family-focused rewards app that helps parents turn compl
 4. Approval adds the chore's points to the teen's balance.
 5. The teen redeems available points for a reward.
 
-Rewards can include Wi-Fi access. Wi-Fi rewards generate a time-limited UniFi guest voucher and return its code to the teen. Teens can also register devices for parent approval, providing a path to direct network access.
+Rewards can include Wi-Fi access. In the standard flow, Wi-Fi rewards generate a time-limited UniFi guest voucher. When the external captive portal is configured, a teen can instead redeem a reward for a registered, parent-approved device and receive timed access on that device.
 
 ## Features
 
@@ -19,6 +19,7 @@ Rewards can include Wi-Fi access. Wi-Fi rewards generate a time-limited UniFi gu
 - Points balances and reward redemption
 - Voucher-style Wi-Fi rewards backed by a UniFi controller
 - Teen device registration and parent device approval
+- External captive portal at `/portal` for device-linked, timed Wi-Fi reward redemption
 - Profile management and session/CSRF-based authentication
 - Seeded sample accounts, chores, and rewards for local development
 
@@ -77,11 +78,72 @@ UNIFI_USERNAME=admin
 UNIFI_PASSWORD=secret
 UNIFI_SITE=default
 UNIFI_ALLOW_SELF_SIGNED=false
+UNIFI_PORTAL_SSID="Family Guest"
 ```
+
+`UNIFI_HOST` is the controller API host, not the public URL of this app. `UNIFI_SITE` is the UniFi site name/slug used by the configured client. `UNIFI_PORTAL_SSID` must exactly match the guest SSID; the external portal refuses a redirect for another SSID. `APP_URL` must be the public HTTPS origin of this app when used by real guest devices.
 
 Use `UNIFI_ALLOW_SELF_SIGNED=true` only for a trusted local or development controller with a self-signed certificate. Keep real controller credentials out of version control.
 
 When the controller cannot create a voucher, the redemption is recorded as failed and the teen's points are returned.
+
+### External captive portal setup
+
+The external portal gives a teen a timed access grant for the device that opened the captive portal. It is separate from the voucher redemption flow, which remains available as a fallback.
+
+#### 1. Make the app reachable before guest authorization
+
+Deploy Teen Reward at a stable, publicly reachable HTTPS URL with a valid TLS certificate. The captive client must be able to load and submit the portal before it has Internet access. Add the app's hostname (and any required DNS/TLS dependencies) to the guest network's pre-authorization allowlist/walled garden. The portal is a standalone page with inline CSS and does not load the React/Vite bundle.
+
+For real phones, `http://localhost`, `artisan serve` on a developer laptop, or a private Docker hostname will not work as the portal URL. Use a deployed host or a temporary HTTPS tunnel reachable by both the guest device and the UniFi controller. Set `APP_URL` to that same HTTPS origin.
+
+#### 2. Configure the UniFi guest network
+
+In UniFi Network, enable the Hotspot/Captive Portal feature on the guest Wi-Fi SSID. Configure its external portal server URL as:
+
+```text
+https://your-public-host.example/portal
+```
+
+The redirect must include UniFi's client context. This implementation reads `id` (client MAC), `ssid`, and optional `ap` query parameters. The app checks that the MAC is currently connected through the configured controller, that the SSID matches `UNIFI_PORTAL_SSID`, and that the signed-in teen owns the approved device. Typing `/portal` directly without a captive redirect does not provide this context and will show a connection verification error.
+
+UniFi's settings labels vary by Network version. Follow Ubiquiti's [Hotspots and Captive Portals setup guide](https://help.ui.com/hc/en-us/articles/115000166827-UniFi-Hotspots-and-Captive-Portals) to enable the captive portal, then use the controller's external portal server setting for the URL above.
+
+#### 3. Configure the app and controller API
+
+Set these server-side values in `.env` (never in React/browser code):
+
+```env
+APP_URL=https://your-public-host.example
+UNIFI_HOST=https://your-controller.example:8443
+UNIFI_USERNAME=portal-service-account
+UNIFI_PASSWORD=replace-with-a-secret
+UNIFI_SITE=default
+UNIFI_ALLOW_SELF_SIGNED=false
+UNIFI_PORTAL_SSID="Family Guest"
+```
+
+The current app uses `Art-of-WiFi/UniFi-API-client` with the configured controller username/password for client verification and timed guest authorization. Ubiquiti's current [External Hotspot API guide](https://help.ui.com/hc/en-us/articles/31228198640023-External-Hotspot-API-for-Authorization-Clients) also describes its official API and API-key setup under **Network → Control Plane → Integrations**. That API-key flow is not wired into this app yet. Confirm that the installed UniFi Network version and controller accept the API calls used by this app before using the portal outside a test network; do not treat an API key as a drop-in replacement for the current username/password configuration.
+
+After changing environment values, clear cached configuration and apply database migrations:
+
+```bash
+./vendor/bin/sail artisan config:clear
+./vendor/bin/sail artisan migrate
+```
+
+#### 4. Register devices and redeem access
+
+1. On the app's normal site, the teen registers the device's MAC address from the Devices page.
+2. A parent signs in and approves the pending device. Approval allows it to receive rewards, but does not grant Wi-Fi access by itself.
+3. Connect the device to the configured guest SSID. The UniFi captive redirect opens the external portal.
+4. The teen signs in to the portal and chooses a Wi-Fi reward. The app checks account ownership and approval, deducts points, and asks UniFi to authorize that client for the reward duration. The portal shows the device and access expiry.
+
+The registered MAC must stay stable. Disable the device's randomized/private MAC feature for this guest network; rotating MAC addresses are out of scope. If a device cannot open the captive portal, use the existing voucher flow from the app instead.
+
+#### 5. Verify before relying on it
+
+Test the full redirect and authorization on the actual guest SSID with the target UniFi controller and at least one iOS or Android device. Confirm that the redirect contains `id` and `ssid`, that the app host is reachable before authorization, that a parent-approved device can redeem a reward, and that an unregistered/pending device cannot. This initial integration has automated tests, but has not been validated against a physical UniFi controller or captive-network behavior yet.
 
 ## Useful commands
 

@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeviceAccessGrant;
 use App\Models\DeviceApproval;
 use App\Models\DeviceEvent;
+use App\Models\User;
 use App\Models\UserDevice;
 use App\Services\UniFiService;
+use App\Services\WifiAccessService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DeviceController extends Controller
 {
-    public function __construct(private UniFiService $unifiService) {}
+    public function __construct(private UniFiService $unifiService, private WifiAccessService $wifiAccessService) {}
 
     /**
      * Register a new device for a teen.
@@ -47,6 +51,14 @@ class DeviceController extends Controller
                 'bandwidth_limit' => $data['bandwidth_limit'] ?? null,
                 'status' => 'pending_approval',
                 'authorized_at' => null,
+            ]);
+            DeviceEvent::create([
+                'device_id' => $device->id,
+                'user_id' => $user->id,
+                'actor_id' => $user->id,
+                'mac_address' => $device->mac_address,
+                'device_name' => $device->name,
+                'action' => 'registered',
             ]);
 
             return response()->json([
@@ -109,6 +121,11 @@ class DeviceController extends Controller
                 $this->unifiService->unregisterDevice($device->mac_address);
             }
 
+            DeviceAccessGrant::query()
+                ->where('device_id', $device->id)
+                ->whereIn('status', ['pending', 'synced', 'failed'])
+                ->update(['status' => 'revoked', 'revoked_at' => now()]);
+
             DeviceEvent::create([
                 'device_id' => $device->id,
                 'user_id' => $device->user_id,
@@ -159,30 +176,38 @@ class DeviceController extends Controller
         abort_unless($device->status === 'pending_approval', 422);
 
         try {
-            // Register device in UniFi
-            $this->unifiService->registerDevice(
-                deviceMac: $device->mac_address,
-                bandwidth: $device->bandwidth_limit ?? null
-            );
+            $teen = DB::transaction(function () use ($device, $user): User {
+                $lockedTeen = User::query()->lockForUpdate()->findOrFail($device->user_id);
+                $lockedDevice = UserDevice::query()->lockForUpdate()->findOrFail($device->id);
+                abort_unless($lockedDevice->status === 'pending_approval', 422);
+                $lockedDevice->update([
+                    'status' => 'active',
+                    'authorized_at' => null,
+                    'parent_action_by' => $user->id,
+                    'parent_action_at' => now(),
+                ]);
+                DeviceApproval::create(['device_id' => $lockedDevice->id, 'parent_id' => $user->id, 'action' => 'approved']);
+                DeviceEvent::create([
+                    'device_id' => $lockedDevice->id,
+                    'user_id' => $lockedTeen->id,
+                    'actor_id' => $user->id,
+                    'mac_address' => $lockedDevice->mac_address,
+                    'device_name' => $lockedDevice->name,
+                    'action' => 'approved',
+                ]);
 
-            // Update device status
-            $device->update([
-                'status' => 'active',
-                'authorized_at' => now(),
-                'parent_action_by' => $user->id,
-                'parent_action_at' => now(),
-            ]);
+                return $lockedTeen;
+            });
 
-            // Log approval
-            DeviceApproval::create([
-                'device_id' => $device->id,
-                'parent_id' => $user->id,
-                'action' => 'approved',
-            ]);
+            $activeRedemption = $this->wifiAccessService->activeRedemptionFor($teen);
+            $accessGranted = $activeRedemption !== null
+                ? $this->wifiAccessService->authorizeDeviceForRedemption($device->fresh(), $activeRedemption, 'device_approval')
+                : null;
 
             return response()->json([
-                'message' => 'Device approved and activated',
-                'device' => $device,
+                'message' => 'Device approved. It can receive Wi-Fi access when a reward is redeemed.',
+                'device' => $device->fresh(),
+                'wifi_access_granted' => $accessGranted,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -218,6 +243,14 @@ class DeviceController extends Controller
                 'parent_id' => $user->id,
                 'action' => 'rejected',
                 'reason' => $data['reason'] ?? null,
+            ]);
+            DeviceEvent::create([
+                'device_id' => $device->id,
+                'user_id' => $device->user_id,
+                'actor_id' => $user->id,
+                'mac_address' => $device->mac_address,
+                'device_name' => $device->name,
+                'action' => 'rejected',
             ]);
 
             return response()->json([

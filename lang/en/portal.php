@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'title' => 'Teen Reward Wi-Fi',
+    'invalid_context' => 'Open this page after joining the guest Wi-Fi network. We could not verify this connection with the network controller.',
+    'sign_in_intro' => 'Sign in with your teen account to continue on :ssid.',
+    'email' => 'Email',
+    'password' => 'Password',
+    'sign_in' => 'Sign in',
+    'teen_only' => 'This Wi-Fi portal is for teen accounts. Sign out of the parent account and sign in as a teen.',
+    'device_not_approved' => 'This device (:mac) is not registered and approved for your teen account yet. Register it in the app and ask a parent to approve it.',
+    'connected_device' => 'Connected device:',
+    'unknown_device' => 'Device',
+    'balance' => 'Your balance:',
+    'points' => 'points',
+    'access_active_until' => 'Wi-Fi access is active until :time.',
+    'redeem_title' => 'Redeem Wi-Fi access',
+    'reward_cost_duration' => ':points points · :duration minutes',
+    'redeem_action' => 'Redeem reward',
+    'no_rewards' => 'There are no Wi-Fi rewards available right now.',
+    'already_processed' => 'That access request was already processed.',
+    'access_granted_until' => 'Wi-Fi access granted until :time',
+    'errors' => [
+        'teen_account_required' => 'The external Wi-Fi portal is for teen accounts.',
+        'reconnect' => 'Reconnect to the guest Wi-Fi to continue.',
+        'device_not_approved' => 'This device must be registered and approved by a parent first.',
+        'not_enough_points' => 'You do not have enough points for this reward.',
+        'unifi_failed' => 'UniFi could not grant access. Your points have been returned.',
+    ],
+];

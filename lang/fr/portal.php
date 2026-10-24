@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'title' => 'Wi-Fi Teen Reward',
+    'invalid_context' => 'Ouvrez cette page après avoir rejoint le réseau Wi-Fi invité. Nous n’avons pas pu vérifier cette connexion auprès du contrôleur réseau.',
+    'sign_in_intro' => 'Connectez-vous avec votre compte ado pour continuer sur :ssid.',
+    'email' => 'Adresse e-mail',
+    'password' => 'Mot de passe',
+    'sign_in' => 'Se connecter',
+    'teen_only' => 'Ce portail Wi-Fi est réservé aux comptes ado. Déconnectez-vous du compte parent, puis connectez-vous avec un compte ado.',
+    'device_not_approved' => 'Cet appareil (:mac) n’est pas encore enregistré et approuvé pour votre compte ado. Enregistrez-le dans l’application et demandez à un parent de l’approuver.',
+    'connected_device' => 'Appareil connecté :',
+    'unknown_device' => 'Appareil',
+    'balance' => 'Votre solde :',
+    'points' => 'points',
+    'access_active_until' => 'L’accès Wi-Fi est actif jusqu’à :time.',
+    'redeem_title' => 'Échanger des points contre du Wi-Fi',
+    'reward_cost_duration' => ':points points · :duration minutes',
+    'redeem_action' => 'Échanger cette récompense',
+    'no_rewards' => 'Aucune récompense Wi-Fi n’est disponible pour le moment.',
+    'already_processed' => 'Cette demande d’accès a déjà été traitée.',
+    'access_granted_until' => 'Accès Wi-Fi accordé jusqu’à :time',
+    'errors' => [
+        'teen_account_required' => 'Le portail Wi-Fi externe est réservé aux comptes ado.',
+        'reconnect' => 'Reconnectez-vous au Wi-Fi invité pour continuer.',
+        'device_not_approved' => 'Cet appareil doit d’abord être enregistré et approuvé par un parent.',
+        'not_enough_points' => 'Vous n’avez pas assez de points pour cette récompense.',
+        'unifi_failed' => 'UniFi n’a pas pu accorder l’accès. Vos points vous ont été rendus.',
+    ],
+];
