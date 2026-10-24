@@ -100,6 +100,14 @@ When the controller cannot create a voucher, the redemption is recorded as faile
 ./vendor/bin/sail pnpm run type-check
 ```
 
+Update on production
+```bash
+git pull
+docker compose -f compose.prod.yaml up -d --build
+docker compose -f compose.prod.yaml exec app php artisan migrate --force
+docker compose -f compose.prod.yaml exec app php artisan optimize
+```
+
 ## Architecture
 
 - `routes/web.php` serves the single-page application and mounts API routes under `/api`.
