@@ -119,7 +119,11 @@ class ExternalPortalTest extends TestCase
 
         $this->post('/portal/login', ['email' => $teen->email, 'password' => 'teen-password'])
             ->assertRedirect(route('portal.show'));
-        $this->get('/portal')->assertOk()->assertSee('One hour')->assertDontSee(__('portal.confirm_device_action'));
+        $this->get('/portal')
+            ->assertOk()
+            ->assertSee('One hour')
+            ->assertSee(__('portal.choose_reward_prompt'))
+            ->assertDontSee(__('portal.confirm_device_action'));
 
         $this->assertDatabaseHas('user_devices', [
             'user_id' => $teen->id,
@@ -145,7 +149,9 @@ class ExternalPortalTest extends TestCase
         $this->actingAs($teen)->get('/portal')
             ->assertOk()
             ->assertSee(__('portal.client_pending'))
-            ->assertSee('http-equiv="refresh" content="3"', false);
+            ->assertSee(__('portal.retry_in'))
+            ->assertSee('id="portal-retry-countdown">10', false)
+            ->assertSee('http-equiv="refresh" content="10"', false);
 
         $this->assertDatabaseMissing('user_devices', ['mac_address' => self::MAC]);
 

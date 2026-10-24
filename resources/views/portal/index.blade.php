@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @if ($state === 'client_pending')
-        <meta http-equiv="refresh" content="3">
+        <meta http-equiv="refresh" content="10">
     @endif
     <title>{{ __('portal.title') }}</title>
     <style>
@@ -70,6 +70,10 @@
         <p>{{ __('portal.device_unavailable', ['mac' => $context['mac']]) }}</p>
     @elseif ($state === 'client_pending')
         <p>{{ __('portal.client_pending') }}</p>
+        <p class="notice" aria-live="off">
+            {{ __('portal.retry_in') }}
+            <strong><span id="portal-retry-countdown">10</span> {{ __('portal.seconds') }}</strong>
+        </p>
     @elseif ($state === 'confirm_device')
         <p class="notice">{{ __('portal.current_account', ['email' => auth()->user()->email]) }}</p>
         <p>{{ __('portal.confirm_device_intro', ['mac' => $context['mac']]) }}</p>
@@ -87,9 +91,12 @@
 
         @if ($activeRedemption)
             <p class="notice">{{ __('portal.access_active_until', ['time' => $activeRedemption->access_expires_at->format('H:i')]) }}</p>
+            <h2>{{ __('portal.redeem_title') }}</h2>
+        @else
+            <p class="notice">{{ __('portal.choose_reward_prompt') }}</p>
+            <h2>{{ __('portal.choose_reward_title') }}</h2>
         @endif
 
-        <h2>{{ __('portal.redeem_title') }}</h2>
         @forelse ($rewards as $reward)
             <section class="reward">
                 <h2>{{ $reward->emoji }} {{ $reward->name }}</h2>
@@ -106,5 +113,18 @@
         @endforelse
     @endif
 </main>
+@if ($state === 'client_pending')
+    <script>
+        (() => {
+            const countdown = document.getElementById('portal-retry-countdown');
+            let secondsRemaining = 10;
+
+            window.setInterval(() => {
+                secondsRemaining = Math.max(0, secondsRemaining - 1);
+                countdown.textContent = String(secondsRemaining);
+            }, 1000);
+        })();
+    </script>
+@endif
 </body>
 </html>
