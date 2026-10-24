@@ -58,12 +58,26 @@ class ExternalPortalController extends Controller
 
         $device = UserDevice::query()->where('mac_address', $context['mac'])->first();
         if ($device !== null && ($device->user_id !== $user->id || in_array($device->status, ['rejected', 'inactive'], true))) {
+            $request->session()->forget('external_portal_login_mac');
+
             return view('portal.index', ['state' => 'device_unavailable', 'context' => $context]);
         }
-        if ($device === null || $device->status === 'pending_approval') {
-            return view('portal.index', ['state' => 'confirm_device', 'context' => $context, 'device' => $device]);
+        if ($device?->status === 'active') {
+            $request->session()->forget('external_portal_login_mac');
         }
+        if ($device === null || $device->status === 'pending_approval') {
+            $loginMac = $request->session()->get('external_portal_login_mac');
+            if (is_string($loginMac) && hash_equals($loginMac, $context['mac'])) {
+                $request->session()->forget('external_portal_login_mac');
+                $device = $this->resolvePortalDevice($user->id, $context['mac']);
 
+                if ($device === null) {
+                    return view('portal.index', ['state' => 'device_unavailable', 'context' => $context]);
+                }
+            } else {
+                return view('portal.index', ['state' => 'confirm_device', 'context' => $context, 'device' => $device]);
+            }
+        }
         $activeRedemption = $this->wifiAccessService->activeRedemptionFor($user);
         $activeDeviceGrant = null;
         if ($activeRedemption !== null) {
@@ -95,9 +109,15 @@ class ExternalPortalController extends Controller
 
         if ($request->user()?->role !== 'teen') {
             Auth::logout();
+            $request->session()->forget('external_portal_login_mac');
             $request->session()->regenerate();
 
             return $this->portalRedirect($request, $site)->withErrors(['email' => __('portal.errors.teen_account_required')]);
+        }
+
+        $context = $request->session()->get('external_portal');
+        if (is_array($context) && is_string($context['mac'] ?? null)) {
+            $request->session()->put('external_portal_login_mac', $context['mac']);
         }
 
         return $this->portalRedirect($request, $site);

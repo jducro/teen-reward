@@ -107,6 +107,32 @@ class ExternalPortalTest extends TestCase
         ]);
     }
 
+    public function test_teen_who_just_signed_in_from_the_portal_is_registered_without_a_second_confirmation(): void
+    {
+        $this->enterPortal();
+        $teen = User::factory()->create([
+            'role' => 'teen',
+            'email' => 'portal-teen@example.com',
+            'password' => 'teen-password',
+        ]);
+        Reward::factory()->create(['type' => 'wifi', 'name' => 'One hour']);
+
+        $this->post('/portal/login', ['email' => $teen->email, 'password' => 'teen-password'])
+            ->assertRedirect(route('portal.show'));
+        $this->get('/portal')->assertOk()->assertSee('One hour')->assertDontSee(__('portal.confirm_device_action'));
+
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $teen->id,
+            'mac_address' => self::MAC,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('device_events', [
+            'user_id' => $teen->id,
+            'mac_address' => self::MAC,
+            'action' => 'portal_registered',
+        ]);
+    }
+
     public function test_portal_waits_for_unifi_to_index_the_guest_client_before_registering_it(): void
     {
         $service = $this->fakeUniFiService();
@@ -167,8 +193,13 @@ class ExternalPortalTest extends TestCase
             ->assertRedirect(route('portal.show'));
         $this->get('/portal')
             ->assertOk()
-            ->assertSee(__('portal.current_account', ['email' => $secondTeen->email]))
-            ->assertSee(__('portal.confirm_device_action'));
+            ->assertSee(__('portal.connected_device'))
+            ->assertDontSee(__('portal.confirm_device_action'));
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $secondTeen->id,
+            'mac_address' => self::MAC,
+            'status' => 'active',
+        ]);
     }
 
     public function test_portal_login_keeps_the_captive_context_and_rejects_parent_accounts(): void
