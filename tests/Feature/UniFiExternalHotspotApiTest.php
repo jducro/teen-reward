@@ -118,4 +118,39 @@ class UniFiExternalHotspotApiTest extends TestCase
                 return true;
             }));
     }
+
+    public function test_connected_client_is_found_by_pagination_when_the_api_filter_returns_no_results(): void
+    {
+        Http::fake([
+            '*' => Http::sequence()
+                ->push(['offset' => 0, 'limit' => 25, 'count' => 0, 'totalCount' => 0, 'data' => []])
+                ->push([
+                    'offset' => 0,
+                    'limit' => 100,
+                    'count' => 1,
+                    'totalCount' => 1,
+                    'data' => [[
+                        'id' => 'client-456',
+                        'type' => 'WIRELESS',
+                        'macAddress' => '78:3f:4d:6a:46:f1',
+                        'ssid' => 'Family Guest',
+                        'accessPointMac' => '11:22:33:44:55:66',
+                    ]],
+                ]),
+        ]);
+
+        $client = app(UniFiService::class)->getConnectedClient('78:3f:4d:6a:46:f1');
+
+        $this->assertSame([
+            'id' => 'client-456',
+            'mac' => '78:3f:4d:6a:46:f1',
+            'ssid' => 'Family Guest',
+            'ap_mac' => '11:22:33:44:55:66',
+        ], $client);
+        Http::assertSentCount(2);
+        Http::assertSent(fn ($request): bool => $request->method() === 'GET'
+            && str_contains($request->url(), 'offset=0')
+            && str_contains($request->url(), 'limit=100')
+            && ! str_contains($request->url(), 'filter='));
+    }
 }

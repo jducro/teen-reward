@@ -211,46 +211,126 @@ class UniFiService
         if (! is_array($payload)) {
             $this->logConnectedClientLookupMiss($normalizedMac, $response->status(), $payload, []);
 
-            return null;
+            return $this->findConnectedClientInUnfilteredPages($normalizedMac);
         }
 
-        // The API may return a client directly, wrap one client in `data`, or return a list.
-        if (isset($payload['macAddress']) || isset($payload['mac'])) {
-            $clients = [$payload];
-        } else {
-            $clients = $payload['data'] ?? $payload;
-        }
-        if (! is_array($clients)) {
-            $this->logConnectedClientLookupMiss($normalizedMac, $response->status(), $payload, []);
-
-            return null;
-        }
-        if (isset($clients['macAddress']) || isset($clients['mac'])) {
-            $clients = [$clients];
-        }
-
-        $clientRecords = array_values(array_filter($clients, 'is_array'));
-        foreach ($clients as $client) {
-            if (! is_array($client)) {
-                continue;
+        $clientRecords = $this->clientRecordsFromPayload($payload);
+        foreach ($clientRecords as $client) {
+            if ($this->clientMatchesMac($client, $normalizedMac)) {
+                return $this->normalizeConnectedClient($client, $normalizedMac);
             }
-
-            $clientMac = $client['macAddress'] ?? $client['mac'] ?? null;
-            if (! is_string($clientMac) || strtolower(str_replace('-', ':', $clientMac)) !== $normalizedMac) {
-                continue;
-            }
-
-            return [
-                'id' => is_string($client['id'] ?? null) ? $client['id'] : null,
-                'mac' => $normalizedMac,
-                'ssid' => $client['ssid'] ?? $client['essid'] ?? null,
-                'ap_mac' => isset($client['accessPointMac']) && is_string($client['accessPointMac'])
-                    ? strtolower(str_replace('-', ':', $client['accessPointMac']))
-                    : (isset($client['ap_mac']) && is_string($client['ap_mac']) ? strtolower(str_replace('-', ':', $client['ap_mac'])) : null),
-            ];
         }
 
         $this->logConnectedClientLookupMiss($normalizedMac, $response->status(), $payload, $clientRecords);
+
+        return $this->findConnectedClientInUnfilteredPages($normalizedMac);
+    }
+
+    /**
+     * @param  array<string|int, mixed>  $payload
+     * @return array<int, array<string|int, mixed>>
+     */
+    private function clientRecordsFromPayload(array $payload): array
+    {
+        if (isset($payload['macAddress']) || isset($payload['mac'])) {
+            return [$payload];
+        }
+
+        $clients = $payload['data'] ?? $payload;
+        if (! is_array($clients)) {
+            return [];
+        }
+        if (isset($clients['macAddress']) || isset($clients['mac'])) {
+            return [$clients];
+        }
+
+        return array_values(array_filter($clients, 'is_array'));
+    }
+
+    private function clientMatchesMac(array $client, string $normalizedMac): bool
+    {
+        $clientMac = $client['macAddress'] ?? $client['mac'] ?? null;
+
+        return is_string($clientMac) && strtolower(str_replace('-', ':', $clientMac)) === $normalizedMac;
+    }
+
+    /** @return array{id: string|null, mac: string, ssid: string|null, ap_mac: string|null} */
+    private function normalizeConnectedClient(array $client, string $normalizedMac): array
+    {
+        return [
+            'id' => is_string($client['id'] ?? null) ? $client['id'] : null,
+            'mac' => $normalizedMac,
+            'ssid' => is_string($client['ssid'] ?? $client['essid'] ?? null) ? ($client['ssid'] ?? $client['essid']) : null,
+            'ap_mac' => isset($client['accessPointMac']) && is_string($client['accessPointMac'])
+                ? strtolower(str_replace('-', ':', $client['accessPointMac']))
+                : (isset($client['ap_mac']) && is_string($client['ap_mac']) ? strtolower(str_replace('-', ':', $client['ap_mac'])) : null),
+        ];
+    }
+
+    /**
+     * The Integration API filter can return an empty page even when the client is listed.
+     * Fall back to paginating the site client list and still require an exact MAC match.
+     *
+     * @return array{id: string|null, mac: string, ssid: string|null, ap_mac: string|null}|null
+     */
+    private function findConnectedClientInUnfilteredPages(string $normalizedMac): ?array
+    {
+        $limit = 100;
+        $offset = 0;
+        $pageCount = 0;
+        $totalCount = null;
+        $baseUrl = $this->integrationApiUrl('/sites/'.rawurlencode($this->integrationSiteId()).'/clients');
+
+        do {
+            $response = $this->integrationApiRequest()->get($baseUrl, [
+                'offset' => $offset,
+                'limit' => $limit,
+            ]);
+            if (! $response->successful()) {
+                Log::warning('UniFi unfiltered client list returned an unsuccessful response', [
+                    'site_id' => $this->integrationSiteId(),
+                    'http_status' => $response->status(),
+                    'offset' => $offset,
+                ]);
+                $response->throw();
+            }
+
+            $payload = $response->json();
+            if (! is_array($payload)) {
+                break;
+            }
+
+            $clients = $this->clientRecordsFromPayload($payload);
+            $pageCount++;
+            $totalCount = is_numeric($payload['totalCount'] ?? null) ? (int) $payload['totalCount'] : null;
+
+            foreach ($clients as $client) {
+                if ($this->clientMatchesMac($client, $normalizedMac)) {
+                    Log::notice('UniFi connected client was found in the unfiltered client list', [
+                        'requested_mac' => $normalizedMac,
+                        'site_id' => $this->integrationSiteId(),
+                        'page_offset' => $offset,
+                        'pages_scanned' => $pageCount,
+                        'total_count' => $totalCount,
+                    ]);
+
+                    return $this->normalizeConnectedClient($client, $normalizedMac);
+                }
+            }
+
+            $returnedCount = is_numeric($payload['count'] ?? null) ? (int) $payload['count'] : count($clients);
+            if ($returnedCount < 1) {
+                break;
+            }
+            $offset += $returnedCount;
+        } while ($totalCount !== null && $offset < $totalCount && $pageCount < 100);
+
+        Log::debug('UniFi connected client was not present in the unfiltered client list', [
+            'requested_mac' => $normalizedMac,
+            'site_id' => $this->integrationSiteId(),
+            'pages_scanned' => $pageCount,
+            'total_count' => $totalCount,
+        ]);
 
         return null;
     }
