@@ -203,6 +203,8 @@
     "common.fallback.teen": "Ado",
     "nav.home": "Accueil",
     "nav.tasks": "Missions",
+    "nav.approvals": "À valider",
+    "nav.pendingApprovals": "{label}, {count} éléments à valider",
     "nav.shop": "Boutique",
     "nav.activity": "Activité",
     "nav.devices": "Appareils",

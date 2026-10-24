@@ -63,23 +63,36 @@ export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
                     )}
 
                     {app.page === 'tasks' && (
-                        <Tasks
-                            chores={app.payload.chores}
-                            claims={app.payload.claims}
-                            coins={app.coins}
-                            busyKey={app.busyKey}
-                            canClaim={app.isTeen}
-                            canManage={app.isParent}
-                            teens={app.payload.teens}
-                            availableChoresByTeen={app.payload.availableChoresByTeen}
-                            onClaim={app.claimChore}
-                            onClaimForTeen={app.claimChoreForTeen}
-                            onApproveClaim={app.approveClaim}
-                            onRejectClaim={app.rejectClaim}
-                            onCreate={app.createChore}
-                            onUpdate={app.updateChore}
-                            onDelete={app.deleteChore}
-                        />
+                        <>
+                            <Tasks
+                                chores={app.payload.chores}
+                                claims={app.payload.claims}
+                                coins={app.coins}
+                                busyKey={app.busyKey}
+                                canClaim={app.isTeen}
+                                canManage={app.isParent}
+                                teens={app.payload.teens}
+                                availableChoresByTeen={app.payload.availableChoresByTeen}
+                                onClaim={app.claimChore}
+                                onClaimForTeen={app.claimChoreForTeen}
+                                onApproveClaim={app.approveClaim}
+                                onRejectClaim={app.rejectClaim}
+                                onCreate={app.createChore}
+                                onUpdate={app.updateChore}
+                                onDelete={app.deleteChore}
+                            />
+                            {app.isParent && (
+                                <Devices
+                                    devices={app.payload.devices}
+                                    isParent
+                                    busyKey={app.busyKey}
+                                    onRegister={app.registerDevice}
+                                    onUnregister={app.unregisterDevice}
+                                    onApprove={app.approveDevice}
+                                    onReject={app.rejectDevice}
+                                />
+                            )}
+                        </>
                     )}
 
                     {app.page === 'shop' && (
@@ -148,7 +161,12 @@ export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
                     )}
                 </motion.div>
             </AnimatePresence>
-            <Navbar setPage={app.setPage} activePage={app.page} isParent={app.isParent} />
+            <Navbar
+                setPage={app.setPage}
+                activePage={app.page}
+                isParent={app.isParent}
+                pendingActionCount={app.payload.stats.pendingClaims + app.payload.devices.filter((device) => device.status === 'pending_approval').length}
+            />
         </>
     );
 }

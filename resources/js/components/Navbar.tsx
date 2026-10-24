@@ -14,7 +14,11 @@ const defaultTabs: Tab[] = [
 ];
 
 const parentTabs: Tab[] = [
-  ...defaultTabs,
+  ...defaultTabs
+    .filter((tab) => tab.id !== 'devices')
+    .map((tab) => tab.id === 'tasks'
+      ? { ...tab, emoji: '✅', labelId: 'nav.approvals', defaultLabel: 'To review' }
+      : tab),
   { id: 'teens', emoji: '🧑‍🎓', labelId: 'nav.teens', defaultLabel: 'Teens' },
 ];
 
@@ -22,10 +26,12 @@ export default function Navbar({
   setPage,
   activePage,
   isParent,
+  pendingActionCount,
 }: {
   setPage: (page: Tab['id']) => void;
   activePage: AppPage;
   isParent: boolean;
+  pendingActionCount: number;
 }) {
   const intl = useIntl();
   const tabs = isParent ? parentTabs : defaultTabs;
@@ -38,11 +44,19 @@ export default function Navbar({
           onClick={() => setPage(tab.id)}
           className={activePage === tab.id ? 'active' : ''}
           title={intl.formatMessage({ id: tab.labelId, defaultMessage: tab.defaultLabel })}
-          aria-label={intl.formatMessage({ id: tab.labelId, defaultMessage: tab.defaultLabel })}
+          aria-label={isParent && tab.id === 'tasks' && pendingActionCount > 0
+            ? intl.formatMessage(
+              { id: 'nav.pendingApprovals', defaultMessage: '{label}, {count} items to review' },
+              { label: intl.formatMessage({ id: tab.labelId, defaultMessage: tab.defaultLabel }), count: pendingActionCount },
+            )
+            : intl.formatMessage({ id: tab.labelId, defaultMessage: tab.defaultLabel })}
           whileTap={{ scale: 0.9 }}
           whileHover={{ scale: 1.1 }}
         >
           {tab.emoji}
+          {isParent && tab.id === 'tasks' && pendingActionCount > 0 && (
+            <span className="navbar-badge" aria-hidden="true">{pendingActionCount > 99 ? '99+' : pendingActionCount}</span>
+          )}
         </motion.button>
       ))}
     </nav>
