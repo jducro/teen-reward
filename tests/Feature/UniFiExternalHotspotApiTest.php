@@ -48,11 +48,11 @@ class UniFiExternalHotspotApiTest extends TestCase
     {
         Http::fake([
             'https://controller.example:8443/proxy/network/integration/v1/sites/site-123/clients*' => Http::response([
-                'data' => [[
+                'data' => [
                     'id' => 'client-456',
                     'macAddress' => 'aa:bb:cc:dd:ee:ff',
                     'ssid' => 'Family Guest',
-                ]],
+                ],
             ]),
             'https://controller.example:8443/proxy/network/integration/v1/sites/site-123/clients/client-456/actions' => Http::response([], 200),
         ]);

@@ -205,7 +205,7 @@ class UniFiService
             return null;
         }
 
-        // The API may return a client object directly or wrap list results in `data`.
+        // The API may return a client directly, wrap one client in `data`, or return a list.
         if (isset($clients['macAddress']) || isset($clients['mac'])) {
             $clients = [$clients];
         } else {
@@ -213,6 +213,9 @@ class UniFiService
         }
         if (! is_array($clients)) {
             return null;
+        }
+        if (isset($clients['macAddress']) || isset($clients['mac'])) {
+            $clients = [$clients];
         }
 
         foreach ($clients as $client) {

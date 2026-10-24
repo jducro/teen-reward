@@ -60,7 +60,7 @@ class ExternalPortalTest extends TestCase
             ->assertSee('n’avons pas pu vérifier cette connexion');
     }
 
-    public function test_portal_requires_the_signed_in_teens_approved_device(): void
+    public function test_portal_does_not_claim_a_device_registered_to_another_teen(): void
     {
         $this->enterPortal();
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
@@ -70,10 +70,34 @@ class ExternalPortalTest extends TestCase
 
         $this->actingAs($teen)->get('/portal')
             ->assertOk()
-            ->assertSee('pas encore enregistré et approuvé');
+            ->assertSee('déjà associé à un autre compte');
 
         UserDevice::query()->where('mac_address', self::MAC)->update(['user_id' => $teen->id]);
         $this->get('/portal')->assertOk()->assertSee($reward->name)->assertSee('100 points');
+    }
+
+    public function test_authenticated_teen_is_automatically_registered_from_the_verified_portal_device(): void
+    {
+        $this->enterPortal();
+        $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 40]);
+        $reward = Reward::factory()->create(['type' => 'wifi', 'name' => 'One hour']);
+
+        $this->actingAs($teen)->get('/portal')
+            ->assertOk()
+            ->assertSee('One hour')
+            ->assertSee(self::MAC);
+
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $teen->id,
+            'mac_address' => self::MAC,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('device_events', [
+            'user_id' => $teen->id,
+            'actor_id' => $teen->id,
+            'mac_address' => self::MAC,
+            'action' => 'portal_registered',
+        ]);
     }
 
     public function test_portal_login_keeps_the_captive_context_and_rejects_parent_accounts(): void
@@ -113,7 +137,6 @@ class ExternalPortalTest extends TestCase
         $this->app->instance(UniFiService::class, $service);
         $this->enterPortal();
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
-        $device = UserDevice::create(['user_id' => $teen->id, 'mac_address' => self::MAC, 'status' => 'active', 'bandwidth_limit' => 512]);
         $reward = Reward::factory()->create(['type' => 'wifi', 'points_cost' => 25, 'duration_minutes' => 60]);
         $requestKey = (string) Str::uuid();
 
@@ -123,14 +146,20 @@ class ExternalPortalTest extends TestCase
         ])->assertRedirect(route('portal.show'))->assertSessionHas('status');
 
         $this->assertSame(75, $teen->fresh()->points_balance);
+        $device = UserDevice::query()->where('user_id', $teen->id)->where('mac_address', self::MAC)->sole();
         $redemption = RewardRedemption::query()->sole();
         $this->assertSame($device->id, $redemption->user_device_id);
         $this->assertSame(self::MAC, $redemption->device_mac);
         $this->assertSame('fulfilled', $redemption->status);
         $this->assertSame('synced', $redemption->unifi_sync_status);
         $this->assertTrue($redemption->access_expires_at->between(now()->addMinutes(59), now()->addMinutes(61)));
-        $this->assertSame([[self::MAC, 60, 512]], $service->authorizations);
+        $this->assertSame([[self::MAC, 60, null]], $service->authorizations);
         $this->assertDatabaseHas('unifi_sync_logs', ['redemption_id' => $redemption->id, 'status' => 'success']);
+        $this->assertDatabaseHas('device_events', [
+            'user_id' => $teen->id,
+            'mac_address' => self::MAC,
+            'action' => 'portal_registered',
+        ]);
     }
 
     public function test_one_wifi_redemption_authorizes_all_approved_devices_to_the_same_expiry(): void

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\DeviceEvent;
 use App\Models\Reward;
 use App\Models\RewardRedemption;
 use App\Models\UserDevice;
@@ -10,10 +11,12 @@ use App\Services\UniFiService;
 use App\Services\WifiAccessService;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class ExternalPortalController extends Controller
@@ -49,13 +52,9 @@ class ExternalPortalController extends Controller
             return view('portal.index', ['state' => 'teen_only', 'context' => $context]);
         }
 
-        $device = UserDevice::query()
-            ->where('user_id', $user->id)
-            ->where('mac_address', $context['mac'])
-            ->where('status', 'active')
-            ->first();
+        $device = $this->resolvePortalDevice($user->id, $context['mac']);
         if ($device === null) {
-            return view('portal.index', ['state' => 'device_not_approved', 'context' => $context]);
+            return view('portal.index', ['state' => 'device_unavailable', 'context' => $context]);
         }
 
         $activeRedemption = $this->wifiAccessService->activeRedemptionFor($user);
@@ -112,13 +111,9 @@ class ExternalPortalController extends Controller
         }
 
         $user = $request->user();
-        $device = UserDevice::query()
-            ->where('user_id', $user->id)
-            ->where('mac_address', $context['mac'])
-            ->where('status', 'active')
-            ->first();
+        $device = $this->resolvePortalDevice($user->id, $context['mac']);
         if ($device === null) {
-            return $this->portalRedirect($request, $site)->withErrors(['device' => __('portal.errors.device_not_approved')]);
+            return $this->portalRedirect($request, $site)->withErrors(['device' => __('portal.errors.device_unavailable')]);
         }
 
         $reward = Reward::query()->where('type', 'wifi')->findOrFail($data['reward_id']);
@@ -260,15 +255,33 @@ class ExternalPortalController extends Controller
     {
         try {
             $client = $this->unifiService->getConnectedClient($context['mac']);
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            Log::warning('UniFi portal client verification request failed', [
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
             return false;
         }
 
-        return $client !== null
+        $isCurrent = $client !== null
             && (! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'])
             && (($context['ap_mac'] ?? null) === null
                 || ! is_string($client['ap_mac'] ?? null)
                 || $client['ap_mac'] === $context['ap_mac']);
+
+        if (! $isCurrent) {
+            Log::notice('UniFi portal client verification did not match the supplied connection context', [
+                'client_found' => $client !== null,
+                'ssid_matches' => $client === null || ! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'],
+                'access_point_matches' => $client === null
+                    || ($context['ap_mac'] ?? null) === null
+                    || ! is_string($client['ap_mac'] ?? null)
+                    || $client['ap_mac'] === $context['ap_mac'],
+            ]);
+        }
+
+        return $isCurrent;
     }
 
     private function portalRedirect(Request $request, ?string $site = null): RedirectResponse
@@ -279,5 +292,51 @@ class ExternalPortalController extends Controller
         return $site !== null
             ? redirect()->route('portal.external.show', ['site' => $site])
             : redirect()->route('portal.show');
+    }
+
+    private function resolvePortalDevice(int $userId, string $mac): ?UserDevice
+    {
+        try {
+            return DB::transaction(function () use ($userId, $mac): ?UserDevice {
+                $device = UserDevice::query()->where('mac_address', $mac)->lockForUpdate()->first();
+                if ($device !== null) {
+                    if ($device->user_id !== $userId || $device->status === 'rejected' || $device->status === 'inactive') {
+                        return null;
+                    }
+
+                    if ($device->status === 'pending_approval') {
+                        $device->update(['status' => 'active']);
+                        DeviceEvent::query()->create([
+                            'device_id' => $device->id,
+                            'user_id' => $userId,
+                            'actor_id' => $userId,
+                            'mac_address' => $device->mac_address,
+                            'device_name' => $device->name,
+                            'action' => 'portal_activated',
+                        ]);
+                    }
+
+                    return $device->fresh();
+                }
+
+                $device = UserDevice::query()->create([
+                    'user_id' => $userId,
+                    'mac_address' => $mac,
+                    'status' => 'active',
+                ]);
+                DeviceEvent::query()->create([
+                    'device_id' => $device->id,
+                    'user_id' => $userId,
+                    'actor_id' => $userId,
+                    'mac_address' => $device->mac_address,
+                    'device_name' => $device->name,
+                    'action' => 'portal_registered',
+                ]);
+
+                return $device;
+            });
+        } catch (UniqueConstraintViolationException) {
+            return null;
+        }
     }
 }
