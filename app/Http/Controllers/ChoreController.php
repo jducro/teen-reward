@@ -54,6 +54,7 @@ class ChoreController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'points_value' => 'required|integer|min:0',
+            'category' => ['sometimes', 'required', Rule::in(['quick', 'fun', 'big'])],
             'recurrence_type' => ['required', Rule::in(['none', 'daily', 'weekly', 'monthly', 'custom'])],
             'recurrence_interval' => 'nullable|integer|min:1',
             'recurrence_unit' => ['nullable', Rule::in(['days', 'weeks', 'months'])],
@@ -63,6 +64,8 @@ class ChoreController extends Controller
             $data['recurrence_interval'] = null;
             $data['recurrence_unit'] = null;
         }
+
+        $data['category'] ??= $this->categoryForPoints((int) $data['points_value']);
 
         $data['created_by'] = Auth::id();
 
@@ -92,6 +95,7 @@ class ChoreController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'points_value' => 'required|integer|min:0',
+            'category' => ['sometimes', 'required', Rule::in(['quick', 'fun', 'big'])],
             'recurrence_type' => ['required', Rule::in(['none', 'daily', 'weekly', 'monthly', 'custom'])],
             'recurrence_interval' => 'nullable|integer|min:1',
             'recurrence_unit' => ['nullable', Rule::in(['days', 'weeks', 'months'])],
@@ -101,6 +105,8 @@ class ChoreController extends Controller
             $data['recurrence_interval'] = null;
             $data['recurrence_unit'] = null;
         }
+
+        $data['category'] ??= $this->categoryForPoints((int) $data['points_value']);
 
         $chore->update($data);
 
@@ -134,5 +140,14 @@ class ChoreController extends Controller
     public function available(): View
     {
         return $this->assigned();
+    }
+
+    private function categoryForPoints(int $points): string
+    {
+        return match (true) {
+            $points <= 15 => 'quick',
+            $points <= 30 => 'fun',
+            default => 'big',
+        };
     }
 }

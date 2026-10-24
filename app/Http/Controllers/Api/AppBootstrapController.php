@@ -126,6 +126,7 @@ class AppBootstrapController extends Controller
                 'title' => $chore->title,
                 'description' => $chore->description,
                 'pointsValue' => $chore->points_value,
+                'category' => $chore->category,
                 'emoji' => $chore->emoji,
                 'recurrenceType' => $chore->recurrence_type,
                 'recurrenceInterval' => $chore->recurrence_interval,
@@ -237,6 +238,7 @@ class AppBootstrapController extends Controller
             'title' => $chore->title,
             'description' => $chore->description,
             'pointsValue' => $chore->points_value,
+            'category' => $chore->category,
             'emoji' => $chore->emoji,
             'recurrenceType' => $chore->recurrence_type,
         ])->values()->toArray();

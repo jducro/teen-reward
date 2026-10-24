@@ -4,10 +4,17 @@ namespace Tests\Feature;
 
 use App\Models\Chore;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Tests\TestCase;
 
 class ChoreManagementTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(PreventRequestForgery::class);
+    }
+
     public function test_parent_can_create_edit_and_delete_chore(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);
@@ -17,13 +24,14 @@ class ChoreManagementTest extends TestCase
                 'title' => 'Test chore',
                 'description' => 'Do stuff',
                 'points_value' => 10,
+                'category' => 'big',
                 'emoji' => '🧺',
                 'recurrence_type' => 'weekly',
                 'active' => true,
             ])
             ->assertCreated();
 
-        $this->assertDatabaseHas('chores', ['title' => 'Test chore', 'emoji' => '🧺', 'created_by' => $parent->id]);
+        $this->assertDatabaseHas('chores', ['title' => 'Test chore', 'category' => 'big', 'emoji' => '🧺', 'created_by' => $parent->id]);
 
         $chore = Chore::first();
 
@@ -32,13 +40,14 @@ class ChoreManagementTest extends TestCase
                 'title' => 'Updated chore',
                 'description' => 'Updated',
                 'points_value' => 15,
+                'category' => 'quick',
                 'emoji' => '🚿',
                 'recurrence_type' => 'weekly',
                 'active' => true,
             ])
             ->assertOk();
 
-        $this->assertDatabaseHas('chores', ['title' => 'Updated chore', 'points_value' => 15, 'emoji' => '🚿']);
+        $this->assertDatabaseHas('chores', ['title' => 'Updated chore', 'points_value' => 15, 'category' => 'quick', 'emoji' => '🚿']);
 
         $this->actingAs($parent)
             ->deleteJson("/api/chores/{$chore->id}")

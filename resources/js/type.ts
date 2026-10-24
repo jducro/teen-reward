@@ -25,6 +25,7 @@ export type Chore = {
     title: string;
     description: string | null;
     pointsValue: number;
+    category: 'quick' | 'fun' | 'big';
     emoji: string;
     active?: boolean;
 };
@@ -119,6 +120,7 @@ export type ChoreDraft = {
     title: string;
     description: string;
     pointsValue: number;
+    category: 'quick' | 'fun' | 'big';
     emoji: string;
 };
 

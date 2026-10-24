@@ -149,6 +149,13 @@ Useful checks:
 ```bash
 ./vendor/bin/sail artisan route:list   # confirm login/register/dashboard routes
 ./vendor/bin/sail artisan test         # run the test suite
+./vendor/bin/sail exec laravel.test ./vendor/bin/phpstan analyse --no-progress  # static analysis
+```
+
+Before submitting code or opening/updating a pull request, run PHPStan after the relevant tests and fix every reported error:
+
+```bash
+./vendor/bin/sail exec laravel.test ./vendor/bin/phpstan analyse --no-progress
 ```
 
 ## Local Seed

@@ -29,6 +29,16 @@
                     </div>
 
                     <div class="mb-4">
+                        <label class="block text-sm font-medium">{{ __('Category') }}</label>
+                        <select name="category" class="mt-1 block w-full border rounded px-3 py-2">
+                            <option value="quick" @selected(old('category', $chore->category) === 'quick')>{{ __('Quick') }}</option>
+                            <option value="fun" @selected(old('category', $chore->category) === 'fun')>{{ __('Fun') }}</option>
+                            <option value="big" @selected(old('category', $chore->category) === 'big')>{{ __('Big reward') }}</option>
+                        </select>
+                        @error('category')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="mb-4">
                         <label class="block text-sm font-medium">{{ __('Recurrence') }}</label>
                         <select name="recurrence_type" class="mt-1 block w-full border rounded px-3 py-2">
                             <option value="none" @if(old('recurrence_type', $chore->recurrence_type) === 'none') selected @endif>{{ __('One-time') }}</option>

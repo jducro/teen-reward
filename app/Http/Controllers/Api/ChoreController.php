@@ -57,6 +57,7 @@ class ChoreController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'points_value' => ['required', 'integer', 'min:0'],
+            'category' => ['sometimes', 'required', Rule::in(['quick', 'fun', 'big'])],
             'emoji' => ['nullable', 'string', 'max:64'],
             'recurrence_type' => ['required', Rule::in(['none', 'daily', 'weekly', 'monthly', 'custom'])],
             'recurrence_interval' => ['nullable', 'integer', 'min:1', 'required_if:recurrence_type,custom'],
@@ -68,6 +69,12 @@ class ChoreController extends Controller
             $data['recurrence_interval'] = null;
             $data['recurrence_unit'] = null;
         }
+
+        $data['category'] ??= match (true) {
+            $data['points_value'] <= 15 => 'quick',
+            $data['points_value'] <= 30 => 'fun',
+            default => 'big',
+        };
 
         $data['active'] ??= true;
         $data['emoji'] = filled($data['emoji'] ?? null) ? $data['emoji'] : '🧹';

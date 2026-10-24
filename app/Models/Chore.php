@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $title
  * @property string|null $description
  * @property int $points_value
+ * @property string $category
  * @property int $assigned_to
  * @property int $created_by
  * @property bool $active

@@ -6,7 +6,7 @@ import IconPicker from '../components/IconPicker';
 import { choreIconOptions } from '../spa/iconOptions';
 import type { Claim, Chore, ChoreDraft, DoneTask, TasksProps } from '../type';
 
-const FILTERS = ['tous', 'rapide', 'fun', 'gros'] as const;
+const FILTERS = ['all', 'quick', 'fun', 'big'] as const;
 const coinEmojis = ['💰', '🪙', '✨', '⭐', '💎'];
 
 function CoinBurst({ x, y }: { x: number; y: number }) {
@@ -56,7 +56,7 @@ export default function Tasks({
   onDelete,
 }: TasksProps) {
   const intl = useIntl();
-  const [filter, setFilter] = useState<typeof FILTERS[number]>('tous');
+  const [filter, setFilter] = useState<typeof FILTERS[number]>('all');
   const [doneTask, setDoneTask] = useState<DoneTask | null>(null);
   const [burstPos, setBurstPos] = useState({ x: 0, y: 0 });
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -65,6 +65,7 @@ export default function Tasks({
     title: '',
     description: '',
     pointsValue: 20,
+    category: 'fun',
     emoji: 'mi:cleaning_services',
   });
 
@@ -85,7 +86,7 @@ export default function Tasks({
   }, [claims]);
 
   const filtered = useMemo(
-    () => (filter === 'tous' ? chores : chores.filter((task) => categoryForPoints(task.pointsValue) === filter)),
+    () => (filter === 'all' ? chores : chores.filter((task) => task.category === filter)),
     [chores, filter],
   );
 
@@ -129,6 +130,7 @@ export default function Tasks({
       title: task.title,
       description: task.description ?? '',
       pointsValue: task.pointsValue,
+      category: task.category,
       emoji: task.emoji,
     });
   }
@@ -139,6 +141,7 @@ export default function Tasks({
       title: '',
       description: '',
       pointsValue: 20,
+      category: 'fun',
       emoji: 'mi:cleaning_services',
     });
   }
@@ -150,6 +153,7 @@ export default function Tasks({
       title: form.title.trim(),
       description: form.description.trim(),
       pointsValue: form.pointsValue,
+      category: form.category,
       emoji: form.emoji.trim(),
     };
 
@@ -351,6 +355,19 @@ export default function Tasks({
             </div>
           </div>
           <div className="form-field">
+            <label htmlFor="task-category">{intl.formatMessage({ id: 'tasks.form.category', defaultMessage: 'Category' })}</label>
+            <select
+              id="task-category"
+              className="crud-input"
+              value={form.category}
+              onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as ChoreDraft['category'] }))}
+            >
+              <option value="quick">{intl.formatMessage({ id: 'tasks.category.quick', defaultMessage: 'Quick' })}</option>
+              <option value="fun">{intl.formatMessage({ id: 'tasks.category.fun', defaultMessage: 'Fun' })}</option>
+              <option value="big">{intl.formatMessage({ id: 'tasks.category.big', defaultMessage: 'Big reward' })}</option>
+            </select>
+          </div>
+          <div className="form-field">
             <label htmlFor="task-description">{intl.formatMessage({ id: 'tasks.form.descriptionOptional', defaultMessage: 'Description (optional)' })}</label>
             <textarea
               id="task-description"
@@ -382,9 +399,9 @@ export default function Tasks({
             onClick={() => setFilter(f)}
             type="button"
           >
-            {f === 'tous'
+            {f === 'all'
               ? `✨ ${intl.formatMessage({ id: 'tasks.filter.all', defaultMessage: 'All' })}`
-              : f === 'rapide'
+              : f === 'quick'
                 ? `⚡ ${intl.formatMessage({ id: 'tasks.filter.quick', defaultMessage: 'Quick' })}`
                 : f === 'fun'
                   ? `🎮 ${intl.formatMessage({ id: 'tasks.filter.fun', defaultMessage: 'Fun' })}`
@@ -518,18 +535,6 @@ export default function Tasks({
       </AnimatePresence>
     </div>
   );
-}
-
-function categoryForPoints(points: number) {
-  if (points <= 15) {
-    return 'rapide';
-  }
-
-  if (points <= 30) {
-    return 'fun';
-  }
-
-  return 'gros';
 }
 
 function iconForChore(title: string) {
