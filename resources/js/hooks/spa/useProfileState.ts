@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Passkeys } from '@laravel/passkeys';
+import { useIntl } from 'react-intl';
 import type { Dispatch, FormEvent, SetStateAction } from 'react';
 import { apiRequest } from '../../spa/api';
 import type { ApiSuccessPayload, User } from '../../type';
@@ -21,6 +23,7 @@ export function useProfileState({
     setPanelError,
     setNotice,
 }: ProfileStateOptions) {
+    const intl = useIntl();
     const [profileForm, setProfileForm] = useState({
         name: '',
         email: '',
@@ -31,6 +34,8 @@ export function useProfileState({
         passwordConfirmation: '',
     });
     const [deletePassword, setDeletePassword] = useState('');
+    const [passkeyName, setPasskeyName] = useState('iPhone');
+    const [passkeyPassword, setPasskeyPassword] = useState('');
 
     useEffect(() => {
         if (!user) {
@@ -129,6 +134,43 @@ export function useProfileState({
         });
     }, [setBusyKey, setNotice, setPanelError]);
 
+    const registerPasskey = useCallback(async () => {
+        await runSpaAction({
+            busyKey: 'passkey:register',
+            setBusyKey,
+            setPanelError,
+            setNotice,
+            action: async () => {
+                await request('/api/passkeys/confirm-password', {
+                    method: 'POST',
+                    body: { password: passkeyPassword },
+                });
+                try {
+                    await Passkeys.register({ name: passkeyName.trim() });
+                } catch {
+                    throw new Error(intl.formatMessage({ id: 'account.passkeys.error', defaultMessage: 'Could not add the passkey. Try again or keep using your password.' }));
+                }
+                setPasskeyPassword('');
+                setNotice(intl.formatMessage({ id: 'account.passkeys.added', defaultMessage: 'Passkey added.' }));
+                await refresh();
+            },
+        });
+    }, [intl, passkeyName, passkeyPassword, refresh, setBusyKey, setNotice, setPanelError]);
+
+    const deletePasskey = useCallback(async (passkeyId: number) => {
+        await runSpaAction({
+            busyKey: `passkey:delete:${passkeyId}`,
+            setBusyKey,
+            setPanelError,
+            setNotice,
+            action: async () => {
+                await request(`/user/passkeys/${passkeyId}`, { method: 'DELETE' });
+                setNotice(intl.formatMessage({ id: 'account.passkeys.removed', defaultMessage: 'Passkey removed.' }));
+                await refresh();
+            },
+        });
+    }, [intl, refresh, setBusyKey, setNotice, setPanelError]);
+
     const updateProfileField = useCallback((field: 'name' | 'email', value: string) => {
         setProfileForm((current) => ({ ...current, [field]: value }));
     }, []);
@@ -148,6 +190,12 @@ export function useProfileState({
         updatePassword,
         deleteAccount,
         testUniFiConnection,
+        passkeyName,
+        passkeyPassword,
+        registerPasskey,
+        deletePasskey,
+        updatePasskeyName: setPasskeyName,
+        updatePasskeyPassword: setPasskeyPassword,
         updateProfileField,
         updatePasswordField,
         setDeletePassword,

@@ -4,6 +4,17 @@ import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Login from '../pages/Login';
 
+const { mockVerify } = vi.hoisted(() => ({ mockVerify: vi.fn() }));
+
+vi.mock('@laravel/passkeys/react', () => ({
+    usePasskeyVerify: () => ({
+        verify: mockVerify,
+        isLoading: false,
+        error: null,
+        isSupported: true,
+    }),
+}));
+
 vi.mock('framer-motion', async () => {
     const React = await import('react');
     const motionProps = new Set([
@@ -68,6 +79,13 @@ afterEach(() => {
 });
 
 describe('Login', () => {
+    it('starts passkey authentication when supported', () => {
+        renderLogin();
+        fireEvent.click(screen.getByRole('button', { name: 'Continue with Face ID or passkey' }));
+
+        expect(mockVerify).toHaveBeenCalledTimes(1);
+    });
+
     it('forwards field updates to the parent handler', () => {
         const { onChange } = renderLogin();
 

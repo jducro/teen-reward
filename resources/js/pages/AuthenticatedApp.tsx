@@ -100,6 +100,9 @@ export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
                         <Settings
                             busyKey={app.busyKey}
                             isParent={app.isParent}
+                            passkeys={app.payload.passkeys}
+                            passkeyName={app.passkeyName}
+                            passkeyPassword={app.passkeyPassword}
                             profileForm={app.profileForm}
                             passwordForm={app.passwordForm}
                             deletePassword={app.deletePassword}
@@ -107,6 +110,10 @@ export default function AuthenticatedApp({ app }: AuthenticatedAppProps) {
                             onUpdatePassword={app.updatePassword}
                             onDeleteAccount={app.deleteAccount}
                             onTestUniFiConnection={app.testUniFiConnection}
+                            onRegisterPasskey={app.registerPasskey}
+                            onDeletePasskey={app.deletePasskey}
+                            onChangePasskeyName={app.updatePasskeyName}
+                            onChangePasskeyPassword={app.updatePasskeyPassword}
                             onChangeProfile={app.updateProfileField}
                             onChangePassword={app.updatePasswordField}
                             onChangeDeletePassword={app.setDeletePassword}

@@ -1,9 +1,17 @@
 import { motion } from 'framer-motion';
 import { useIntl } from 'react-intl';
+import { usePasskeyVerify } from '@laravel/passkeys/react';
 import type { LoginProps } from '../type';
 
 export default function Login({ authForm, busy, error, onChange, onSubmit }: LoginProps) {
     const intl = useIntl();
+    const passkey = usePasskeyVerify({
+        onSuccess: (response) => {
+            if (response.redirect) {
+                window.location.assign(response.redirect);
+            }
+        },
+    });
 
     return (
         <div className="page">
@@ -41,7 +49,7 @@ export default function Login({ authForm, busy, error, onChange, onSubmit }: Log
                                 value={authForm.email}
                                 onChange={(event) => onChange('email', event.target.value)}
                                 className="login-input"
-                                autoComplete="email"
+                                autoComplete="username webauthn"
                                 required
                             />
                         </div>
@@ -63,6 +71,19 @@ export default function Login({ authForm, busy, error, onChange, onSubmit }: Log
                                 : intl.formatMessage({ id: 'auth.action.login', defaultMessage: 'Sign in' })}
                         </button>
                     </form>
+                    {passkey.isSupported && (
+                        <button
+                            type="button"
+                            className="login-btn passkey-login-btn"
+                            onClick={() => void passkey.verify()}
+                            disabled={passkey.isLoading || busy}
+                        >
+                            {passkey.isLoading
+                                ? intl.formatMessage({ id: 'login.passkeyLoading', defaultMessage: 'Waiting for passkey…' })
+                                : intl.formatMessage({ id: 'auth.action.passkey', defaultMessage: 'Continue with Face ID or passkey' })}
+                        </button>
+                    )}
+                    {passkey.error && <p className="login-error">{intl.formatMessage({ id: 'login.passkeyError', defaultMessage: 'Passkey sign in failed. You can still use your password.' })}</p>}
                 </motion.div>
 
                 {error ? <p className="login-error">{error}</p> : null}

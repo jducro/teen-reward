@@ -10,6 +10,7 @@
         "test:unit:watch": "vitest"
     },
     "dependencies": {
+        "@laravel/passkeys": "^0.4.0",
         "date-fns": "^4.4.0",
         "framer-motion": "^14.3.0",
         "react": "^19.3.1",

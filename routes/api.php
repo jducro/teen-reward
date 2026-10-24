@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChoreController;
 use App\Http\Controllers\Api\ClaimController;
 use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\PasskeyController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RewardController;
 use App\Http\Controllers\Api\TeenController;
@@ -21,6 +22,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('api.logout');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('api.profile.update');
+    Route::post('/passkeys/confirm-password', [PasskeyController::class, 'confirmPassword'])->middleware('throttle:5,1')->name('api.passkeys.confirm-password');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('api.profile.password');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('api.profile.destroy');
 

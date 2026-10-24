@@ -6,6 +6,9 @@ return [
         'logged_in' => 'Logged in.',
         'logged_out' => 'Logged out.',
     ],
+    'passkeys' => [
+        'confirmed' => 'Password confirmed.',
+    ],
     'profile' => [
         'updated' => 'Profile updated.',
         'password_updated' => 'Password updated.',

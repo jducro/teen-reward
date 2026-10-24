@@ -92,6 +92,11 @@ class AppBootstrapController extends Controller
                 'role' => $user->role,
                 'pointsBalance' => $user->points_balance,
             ],
+            'passkeys' => $user->passkeys()->orderBy('id')->get(['id', 'name', 'last_used_at'])->map(fn ($passkey) => [
+                'id' => $passkey->id,
+                'name' => $passkey->name,
+                'lastUsedAt' => optional($passkey->last_used_at)->toIso8601String(),
+            ])->values(),
             'stats' => [
                 'availableChores' => $chores->count(),
                 'pendingClaims' => $claims->where('status', 'pending')->count(),
