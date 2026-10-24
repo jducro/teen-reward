@@ -61,6 +61,7 @@ services:
       dockerfile: Dockerfile.caddy
     restart: unless-stopped
     ports:
+      - "80:80"
       - "8188:8188"
       - "8143:8143"
     environment:

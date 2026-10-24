@@ -38,7 +38,7 @@
         <p>{{ __('portal.invalid_context') }}</p>
     @elseif ($state === 'login')
         <p>{{ __('portal.sign_in_intro', ['ssid' => $context['ssid']]) }}</p>
-        <form method="POST" action="{{ route('portal.login') }}">
+        <form method="POST" action="{{ isset($context['site']) && $context['site'] !== null ? route('portal.external.login', ['site' => $context['site']]) : route('portal.login') }}">
             @csrf
             <label for="email">{{ __('portal.email') }}</label>
             <input id="email" name="email" type="email" autocomplete="username" required>
@@ -63,7 +63,7 @@
             <section class="reward">
                 <h2>{{ $reward->emoji }} {{ $reward->name }}</h2>
                 <p class="muted">{{ __('portal.reward_cost_duration', ['points' => $reward->points_cost, 'duration' => $reward->duration_minutes]) }}</p>
-                <form method="POST" action="{{ route('portal.redeem') }}">
+                <form method="POST" action="{{ isset($context['site']) && $context['site'] !== null ? route('portal.external.redeem', ['site' => $context['site']]) : route('portal.redeem') }}">
                     @csrf
                     <input type="hidden" name="reward_id" value="{{ $reward->id }}">
                     <input type="hidden" name="request_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">

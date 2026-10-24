@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use UniFi_API\Client;
 
@@ -184,39 +186,6 @@ class UniFiService
     }
 
     /**
-     * Register a device for direct network access (Tier 3).
-     *
-     * @param  string  $deviceMac  Device MAC address
-     * @param  ?int  $bandwidth  Bandwidth limit in Kbps (optional)
-     *
-     * @throws \Exception
-     */
-    public function registerDevice(string $deviceMac, ?int $bandwidth = null): bool
-    {
-        try {
-            $this->ensureConnected();
-
-            // Normalize MAC address format
-            $deviceMac = strtolower(str_replace('-', ':', $deviceMac));
-
-            $this->client->authorize_guest($deviceMac, 0, $bandwidth, $bandwidth);
-
-            Log::info('UniFi device registered successfully', [
-                'mac' => $deviceMac,
-                'bandwidth' => $bandwidth,
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            Log::error('UniFi device registration failed', [
-                'mac' => $deviceMac,
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
-        }
-    }
-
-    /**
      * Confirm that a MAC address is currently connected to the configured UniFi site.
      *
      * @return array{mac: string, ssid: string|null, ap_mac: string|null}|null
@@ -225,35 +194,48 @@ class UniFiService
      */
     public function getConnectedClient(string $deviceMac): ?array
     {
-        $this->ensureConnected();
-
         $normalizedMac = strtolower(str_replace('-', ':', $deviceMac));
-        $response = $this->client->list_clients($normalizedMac);
+        $response = $this->integrationApiRequest()->get(
+            $this->integrationApiUrl('/sites/'.rawurlencode($this->integrationSiteId()).'/clients'),
+            ['filter' => "macAddress.eq('{$normalizedMac}')"]
+        )->throw();
 
-        if (is_array($response) && array_is_list($response)) {
-            $client = $response[0] ?? null;
+        $clients = $response->json();
+        if (! is_array($clients)) {
+            return null;
+        }
+
+        // The API may return a client object directly or wrap list results in `data`.
+        if (isset($clients['macAddress']) || isset($clients['mac'])) {
+            $clients = [$clients];
         } else {
-            $client = $response;
+            $clients = $clients['data'] ?? $clients;
         }
-
-        if (is_object($client)) {
-            $client = get_object_vars($client);
-        }
-
-        if (! is_array($client)) {
+        if (! is_array($clients)) {
             return null;
         }
 
-        $clientMac = $client['mac'] ?? $client['macAddress'] ?? null;
-        if (! is_string($clientMac) || strtolower(str_replace('-', ':', $clientMac)) !== $normalizedMac) {
-            return null;
+        foreach ($clients as $client) {
+            if (! is_array($client)) {
+                continue;
+            }
+
+            $clientMac = $client['macAddress'] ?? $client['mac'] ?? null;
+            if (! is_string($clientMac) || strtolower(str_replace('-', ':', $clientMac)) !== $normalizedMac) {
+                continue;
+            }
+
+            return [
+                'id' => is_string($client['id'] ?? null) ? $client['id'] : null,
+                'mac' => $normalizedMac,
+                'ssid' => $client['ssid'] ?? $client['essid'] ?? null,
+                'ap_mac' => isset($client['accessPointMac']) && is_string($client['accessPointMac'])
+                    ? strtolower(str_replace('-', ':', $client['accessPointMac']))
+                    : (isset($client['ap_mac']) && is_string($client['ap_mac']) ? strtolower(str_replace('-', ':', $client['ap_mac'])) : null),
+            ];
         }
 
-        return [
-            'mac' => $normalizedMac,
-            'ssid' => isset($client['essid']) && is_string($client['essid']) ? $client['essid'] : null,
-            'ap_mac' => isset($client['ap_mac']) && is_string($client['ap_mac']) ? strtolower($client['ap_mac']) : null,
-        ];
+        return null;
     }
 
     /**
@@ -267,14 +249,26 @@ class UniFiService
             throw new \InvalidArgumentException('Device authorization duration must be at least one minute.');
         }
 
-        $this->ensureConnected();
-
         $normalizedMac = strtolower(str_replace('-', ':', $deviceMac));
-        $authorized = $this->client->authorize_guest($normalizedMac, $minutes, $bandwidth, $bandwidth);
-
-        if (! $authorized) {
-            throw new \Exception('UniFi did not authorize the device.');
+        $client = $this->getConnectedClient($normalizedMac);
+        if ($client === null || ! is_string($client['id'] ?? null) || $client['id'] === '') {
+            throw new \RuntimeException('UniFi did not return a connected client ID for the device.');
         }
+
+        $payload = [
+            'action' => 'AUTHORIZE_GUEST_ACCESS',
+            'timeLimitMinutes' => $minutes,
+        ];
+        if ($bandwidth !== null) {
+            $payload['rxRateLimitKbps'] = $bandwidth;
+            $payload['txRateLimitKbps'] = $bandwidth;
+        }
+
+        $this->integrationApiRequest()
+            ->post($this->integrationApiUrl(
+                '/sites/'.rawurlencode($this->integrationSiteId()).'/clients/'.rawurlencode($client['id']).'/actions'
+            ), $payload)
+            ->throw();
 
         Log::info('UniFi timed device authorization succeeded', [
             'mac' => $normalizedMac,
@@ -284,35 +278,42 @@ class UniFiService
         return true;
     }
 
-    /**
-     * Unregister a device (revoke access).
-     *
-     * @param  string  $deviceMac  Device MAC address
-     *
-     * @throws \Exception
-     */
-    public function unregisterDevice(string $deviceMac): bool
+    private function integrationApiRequest(): PendingRequest
     {
-        try {
-            $this->ensureConnected();
-
-            // Normalize MAC address format
-            $deviceMac = strtolower(str_replace('-', ':', $deviceMac));
-
-            $this->client->unauthorize_guest($deviceMac);
-
-            Log::info('UniFi device unregistered successfully', [
-                'mac' => $deviceMac,
-            ]);
-
-            return true;
-        } catch (\Exception $e) {
-            Log::error('UniFi device unregistration failed', [
-                'mac' => $deviceMac,
-                'error' => $e->getMessage(),
-            ]);
-            throw $e;
+        $apiKey = config('services.unifi.api_key');
+        if (! is_string($apiKey) || $apiKey === '') {
+            throw new \RuntimeException('UNIFI_API_KEY is required for External Hotspot authorization.');
         }
+
+        return Http::acceptJson()
+            ->withHeader('X-API-Key', $apiKey)
+            ->timeout(10)
+            ->withOptions(['verify' => ! (bool) config('services.unifi.allow_self_signed', false)]);
+    }
+
+    private function integrationApiUrl(string $path): string
+    {
+        $baseUrl = config('services.unifi.api_base_url');
+        if (! is_string($baseUrl) || $baseUrl === '') {
+            $host = config('services.unifi.host');
+            if (! is_string($host) || $host === '') {
+                throw new \RuntimeException('UNIFI_HOST or UNIFI_API_BASE_URL is required for External Hotspot authorization.');
+            }
+
+            $baseUrl = rtrim($host, '/').'/proxy/network/integration/v1';
+        }
+
+        return rtrim($baseUrl, '/').$path;
+    }
+
+    private function integrationSiteId(): string
+    {
+        $siteId = config('services.unifi.api_site_id');
+        if (! is_string($siteId) || $siteId === '') {
+            throw new \RuntimeException('UNIFI_API_SITE_ID is required for External Hotspot authorization.');
+        }
+
+        return $siteId;
     }
 
     /**

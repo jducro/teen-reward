@@ -46,6 +46,20 @@ class ExternalPortalTest extends TestCase
             ->assertSee('<html lang="fr">', false);
     }
 
+    public function test_unifi_generated_site_path_is_served_and_keeps_the_portal_path_for_login(): void
+    {
+        $externalPortalUrl = '/guest/s/default/?id='.self::MAC.'&ssid=Family%20Guest&ap=11:22:33:44:55:66&t=1742398732&url=http%3A%2F%2Fexample.com';
+
+        $this->get($externalPortalUrl)->assertRedirect(route('portal.external.show', ['site' => 'default']));
+        $this->get(route('portal.external.show', ['site' => 'default']))
+            ->assertOk()
+            ->assertSee(route('portal.external.login', ['site' => 'default']), false);
+
+        $this->get('/guest/s/other-site/?id='.self::MAC.'&ssid=Family%20Guest')
+            ->assertOk()
+            ->assertSee('n’avons pas pu vérifier cette connexion');
+    }
+
     public function test_portal_requires_the_signed_in_teens_approved_device(): void
     {
         $this->enterPortal();

@@ -98,6 +98,7 @@ UNIFI_USERNAME=admin
 UNIFI_PASSWORD=secret
 UNIFI_SITE=default
 UNIFI_ALLOW_SELF_SIGNED=true  # for dev/self-signed certs
+UNIFI_API_KEY=secret          # official External Hotspot API key (planned)
 ```
 
 ### Database Schema Changes

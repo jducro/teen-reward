@@ -23,17 +23,17 @@ class ExternalPortalController extends Controller
         private readonly WifiAccessService $wifiAccessService,
     ) {}
 
-    public function show(Request $request): View|RedirectResponse
+    public function show(Request $request, ?string $site = null): View|RedirectResponse
     {
         if ($request->query('id') !== null) {
-            $context = $this->validatedContext($request);
+            $context = $this->validatedContext($request, $site);
             if ($context === null) {
                 return view('portal.index', ['state' => 'invalid_context']);
             }
 
             $request->session()->put('external_portal', $context);
 
-            return redirect()->route('portal.show');
+            return $this->portalRedirect($request, $site);
         }
 
         $context = $request->session()->get('external_portal');
@@ -82,7 +82,7 @@ class ExternalPortalController extends Controller
         ]);
     }
 
-    public function login(LoginRequest $request): RedirectResponse
+    public function login(LoginRequest $request, ?string $site = null): RedirectResponse
     {
         $request->authenticate();
         $request->session()->regenerate();
@@ -91,13 +91,13 @@ class ExternalPortalController extends Controller
             Auth::logout();
             $request->session()->regenerate();
 
-            return redirect()->route('portal.show')->withErrors(['email' => __('portal.errors.teen_account_required')]);
+            return $this->portalRedirect($request, $site)->withErrors(['email' => __('portal.errors.teen_account_required')]);
         }
 
-        return redirect()->route('portal.show');
+        return $this->portalRedirect($request, $site);
     }
 
-    public function redeem(Request $request): RedirectResponse
+    public function redeem(Request $request, ?string $site = null): RedirectResponse
     {
         abort_unless($request->user()?->role === 'teen', 403);
 
@@ -108,7 +108,7 @@ class ExternalPortalController extends Controller
 
         $context = $request->session()->get('external_portal');
         if (! is_array($context) || ! $this->contextIsCurrent($context)) {
-            return redirect()->route('portal.show')->withErrors(['portal' => __('portal.errors.reconnect')]);
+            return $this->portalRedirect($request, $site)->withErrors(['portal' => __('portal.errors.reconnect')]);
         }
 
         $user = $request->user();
@@ -118,7 +118,7 @@ class ExternalPortalController extends Controller
             ->where('status', 'active')
             ->first();
         if ($device === null) {
-            return redirect()->route('portal.show')->withErrors(['device' => __('portal.errors.device_not_approved')]);
+            return $this->portalRedirect($request, $site)->withErrors(['device' => __('portal.errors.device_not_approved')]);
         }
 
         $reward = Reward::query()->where('type', 'wifi')->findOrFail($data['reward_id']);
@@ -126,7 +126,7 @@ class ExternalPortalController extends Controller
         if ($existing !== null) {
             abort_unless($existing->user_id === $user->id && $existing->user_device_id === $device->id, 409);
 
-            return redirect()->route('portal.show')->with('status', __('portal.already_processed'));
+            return $this->portalRedirect($request, $site)->with('status', __('portal.already_processed'));
         }
 
         try {
@@ -192,28 +192,28 @@ class ExternalPortalController extends Controller
                 return [$redemption, $expiresAt, 'success'];
             });
         } catch (\DomainException $exception) {
-            return redirect()->route('portal.show')->withErrors(['reward' => $exception->getMessage()]);
+            return $this->portalRedirect($request, $site)->withErrors(['reward' => $exception->getMessage()]);
         } catch (QueryException $exception) {
             $duplicate = RewardRedemption::query()->where('portal_request_key', $data['request_key'])->first();
             if ($duplicate !== null && $duplicate->user_id === $user->id && $duplicate->user_device_id === $device->id) {
-                return redirect()->route('portal.show')->with('status', __('portal.already_processed'));
+                return $this->portalRedirect($request, $site)->with('status', __('portal.already_processed'));
             }
 
             throw $exception;
         }
 
         if ($outcome === 'duplicate') {
-            return redirect()->route('portal.show')->with('status', __('portal.already_processed'));
+            return $this->portalRedirect($request, $site)->with('status', __('portal.already_processed'));
         }
         if ($outcome === 'failed') {
-            return redirect()->route('portal.show')->withErrors(['portal' => __('portal.errors.unifi_failed')]);
+            return $this->portalRedirect($request, $site)->withErrors(['portal' => __('portal.errors.unifi_failed')]);
         }
 
-        return redirect()->route('portal.show')->with('status', __('portal.access_granted_until', ['time' => $expiresAt->format('H:i')]));
+        return $this->portalRedirect($request, $site)->with('status', __('portal.access_granted_until', ['time' => $expiresAt->format('H:i')]));
     }
 
-    /** @return array{mac: string, ssid: string, ap_mac: string|null}|null */
-    private function validatedContext(Request $request): ?array
+    /** @return array{mac: string, ssid: string, ap_mac: string|null, site: string|null, timestamp: int|null, return_url: string|null}|null */
+    private function validatedContext(Request $request, ?string $site): ?array
     {
         $mac = $request->query('id');
         $ssid = $request->query('ssid');
@@ -227,7 +227,30 @@ class ExternalPortalController extends Controller
             return null;
         }
 
-        $context = ['mac' => strtolower(str_replace('-', ':', $mac)), 'ssid' => $ssid, 'ap_mac' => is_string($apMac) ? strtolower(str_replace('-', ':', $apMac)) : null];
+        if ($site !== null) {
+            $configuredPortalSite = config('services.unifi.site', 'default');
+            if (! is_string($configuredPortalSite) || ! hash_equals($configuredPortalSite, $site)) {
+                return null;
+            }
+        }
+
+        $timestamp = $request->query('t');
+        $returnUrl = $request->query('url');
+        if ($timestamp !== null && (! is_string($timestamp) || ! ctype_digit($timestamp))) {
+            return null;
+        }
+        if ($returnUrl !== null && ! is_string($returnUrl)) {
+            return null;
+        }
+
+        $context = [
+            'mac' => strtolower(str_replace('-', ':', $mac)),
+            'ssid' => $ssid,
+            'ap_mac' => is_string($apMac) ? strtolower(str_replace('-', ':', $apMac)) : null,
+            'site' => $site,
+            'timestamp' => is_string($timestamp) ? (int) $timestamp : null,
+            'return_url' => $returnUrl,
+        ];
 
         return $this->contextIsCurrent($context) ? $context : null;
     }
@@ -242,7 +265,19 @@ class ExternalPortalController extends Controller
         }
 
         return $client !== null
-            && ($client['ssid'] ?? null) === $context['ssid']
-            && (($context['ap_mac'] ?? null) === null || ($client['ap_mac'] ?? null) === $context['ap_mac']);
+            && (! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'])
+            && (($context['ap_mac'] ?? null) === null
+                || ! is_string($client['ap_mac'] ?? null)
+                || $client['ap_mac'] === $context['ap_mac']);
+    }
+
+    private function portalRedirect(Request $request, ?string $site = null): RedirectResponse
+    {
+        $context = $request->session()->get('external_portal');
+        $site ??= is_array($context) && is_string($context['site'] ?? null) ? $context['site'] : null;
+
+        return $site !== null
+            ? redirect()->route('portal.external.show', ['site' => $site])
+            : redirect()->route('portal.show');
     }
 }

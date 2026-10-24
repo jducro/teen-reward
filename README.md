@@ -79,6 +79,10 @@ UNIFI_PASSWORD=secret
 UNIFI_SITE=default
 UNIFI_ALLOW_SELF_SIGNED=false
 UNIFI_PORTAL_SSID="Family Guest"
+UNIFI_API_KEY=replace-with-an-integration-api-key
+UNIFI_API_SITE_ID=your-unifi-site-id
+# Optional when the controller's Integration API is hosted at a non-default path:
+# UNIFI_API_BASE_URL=https://your-controller.example/proxy/network/integration/v1
 ```
 
 `UNIFI_HOST` is the controller API host, not the public URL of this app. `UNIFI_SITE` is the UniFi site name/slug used by the configured client. `UNIFI_PORTAL_SSID` must exactly match the guest SSID; the external portal refuses a redirect for another SSID. `APP_URL` must be the public HTTPS origin of this app when used by real guest devices.
@@ -99,13 +103,13 @@ For real phones, `http://localhost`, `artisan serve` on a developer laptop, or a
 
 #### 2. Configure the UniFi guest network
 
-In UniFi Network, enable the Hotspot/Captive Portal feature on the guest Wi-Fi SSID. Configure its external portal server URL as:
+In UniFi Network, enable the Hotspot/Captive Portal feature on the guest Wi-Fi SSID. The External Portal Server setting expects an IPv4 address. Point it at the public IPv4 address that serves this app on HTTP port 80. Caddy routes UniFi's `/guest/s/{site}/` path to Laravel on port 80, independently of the existing HTTPS listener.
 
 ```text
-https://your-public-host.example/portal
+http://203.0.113.10/guest/s/default/
 ```
 
-The redirect must include UniFi's client context. This implementation reads `id` (client MAC), `ssid`, and optional `ap` query parameters. The app checks that the MAC is currently connected through the configured controller, that the SSID matches `UNIFI_PORTAL_SSID`, and that the signed-in teen owns the approved device. Typing `/portal` directly without a captive redirect does not provide this context and will show a connection verification error.
+Replace the example with the server's actual IPv4 address and the configured UniFi site slug. UniFi appends connection context such as `id` (client MAC), `ssid`, `ap`, `t`, and `url`. The app confirms the MAC is currently connected, checks the SSID against `UNIFI_PORTAL_SSID`, and requires the signed-in teen to own the approved device. The legacy `/portal` route remains available for local/manual testing.
 
 UniFi's settings labels vary by Network version. Follow Ubiquiti's [Hotspots and Captive Portals setup guide](https://help.ui.com/hc/en-us/articles/115000166827-UniFi-Hotspots-and-Captive-Portals) to enable the captive portal, then use the controller's external portal server setting for the URL above.
 
@@ -121,9 +125,11 @@ UNIFI_PASSWORD=replace-with-a-secret
 UNIFI_SITE=default
 UNIFI_ALLOW_SELF_SIGNED=false
 UNIFI_PORTAL_SSID="Family Guest"
+UNIFI_API_KEY=replace-with-an-integration-api-key
+UNIFI_API_SITE_ID=your-unifi-site-id
 ```
 
-The current app uses `Art-of-WiFi/UniFi-API-client` with the configured controller username/password for client verification and timed guest authorization. Ubiquiti's current [External Hotspot API guide](https://help.ui.com/hc/en-us/articles/31228198640023-External-Hotspot-API-for-Authorization-Clients) also describes its official API and API-key setup under **Network → Control Plane → Integrations**. That API-key flow is not wired into this app yet. Confirm that the installed UniFi Network version and controller accept the API calls used by this app before using the portal outside a test network; do not treat an API key as a drop-in replacement for the current username/password configuration.
+Create an Integration API key in **Network → Control Plane → Integrations**. Timed device authorization and connected-client lookup use the official Integration API with that key; voucher creation continues to use the configured controller username and password. `UNIFI_API_SITE_ID` is the ID returned by `GET /v1/sites` and is distinct from the site slug in the portal path. By default, API requests use `UNIFI_HOST` plus `/proxy/network/integration/v1`; set `UNIFI_API_BASE_URL` if your controller uses another API root. The API key and controller credentials stay server-side.
 
 After changing environment values, clear cached configuration and apply database migrations:
 

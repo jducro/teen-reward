@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\DeviceAccessGrant;
 use App\Models\DeviceApproval;
 use App\Models\DeviceEvent;
 use App\Models\User;
 use App\Models\UserDevice;
-use App\Services\UniFiService;
 use App\Services\WifiAccessService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class DeviceController extends Controller
 {
-    public function __construct(private UniFiService $unifiService, private WifiAccessService $wifiAccessService) {}
+    public function __construct(private WifiAccessService $wifiAccessService) {}
 
     /**
      * Register a new device for a teen.
@@ -116,16 +114,6 @@ class DeviceController extends Controller
         abort_unless($user?->role === 'teen' && $device->user_id === $user->id, 403);
 
         try {
-            // Revoke device access in UniFi (if active)
-            if ($device->isActive()) {
-                $this->unifiService->unregisterDevice($device->mac_address);
-            }
-
-            DeviceAccessGrant::query()
-                ->where('device_id', $device->id)
-                ->whereIn('status', ['pending', 'synced', 'failed'])
-                ->update(['status' => 'revoked', 'revoked_at' => now()]);
-
             DeviceEvent::create([
                 'device_id' => $device->id,
                 'user_id' => $device->user_id,

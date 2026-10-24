@@ -3,6 +3,18 @@
     https_port 8143
 }
 
+:80 {
+    @unifiPortal path /guest/s/*
+
+    handle @unifiPortal {
+        reverse_proxy app:8080
+    }
+
+    handle {
+        respond "Not Found" 404
+    }
+}
+
 teen.ducro.fr {
     tls {
         dns ovh {
