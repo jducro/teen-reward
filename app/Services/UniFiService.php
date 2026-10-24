@@ -188,7 +188,7 @@ class UniFiService
     /**
      * Confirm that a MAC address is currently connected to the configured UniFi site.
      *
-     * @return array{mac: string, ssid: string|null, ap_mac: string|null}|null
+     * @return array{id: string|null, mac: string, ssid: string|null, ap_mac: string|null}|null
      *
      * @throws \Exception
      */
@@ -375,7 +375,7 @@ class UniFiService
 
         $normalizedMac = strtolower(str_replace('-', ':', $deviceMac));
         $client = $this->getConnectedClient($normalizedMac);
-        if ($client === null || ! is_string($client['id'] ?? null) || $client['id'] === '') {
+        if ($client === null || ! is_string($client['id']) || $client['id'] === '') {
             throw new \RuntimeException('UniFi did not return a connected client ID for the device.');
         }
 

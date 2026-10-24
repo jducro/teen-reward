@@ -189,7 +189,7 @@ class ExternalPortalController extends Controller
         }
 
         try {
-            [$redemption, $expiresAt, $outcome] = DB::transaction(function () use ($user, $device, $reward, $data): array {
+            [, , $outcome] = DB::transaction(function () use ($user, $device, $reward, $data): array {
                 $lockedUser = $user->newQuery()->lockForUpdate()->findOrFail($user->id);
                 $lockedDevice = UserDevice::query()->lockForUpdate()->findOrFail($device->id);
                 abort_unless($lockedDevice->user_id === $lockedUser->id && $lockedDevice->status === 'active', 403);
@@ -347,11 +347,17 @@ class ExternalPortalController extends Controller
         return $url;
     }
 
-    /** @param array{mac: string, ssid: string, ap_mac?: string|null} $context */
+    /** @param array<string, mixed> $context */
     private function contextIsCurrent(array $context): bool
     {
+        $mac = $context['mac'] ?? null;
+        $ssid = $context['ssid'] ?? null;
+        if (! is_string($mac) || ! is_string($ssid)) {
+            return false;
+        }
+
         try {
-            $client = $this->unifiService->getConnectedClient($context['mac']);
+            $client = $this->unifiService->getConnectedClient($mac);
         } catch (\Throwable $exception) {
             Log::warning('UniFi portal client verification request failed', [
                 'exception' => $exception::class,
@@ -365,39 +371,44 @@ class ExternalPortalController extends Controller
             return false;
         }
 
-        $isCurrent = (! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'])
-            && (($context['ap_mac'] ?? null) === null
-                || ! is_string($client['ap_mac'] ?? null)
-                || $client['ap_mac'] === $context['ap_mac']);
+        $contextApMac = $context['ap_mac'] ?? null;
+        $isCurrent = ($client['ssid'] === null || $client['ssid'] === $ssid)
+            && (! is_string($contextApMac)
+                || $client['ap_mac'] === null
+                || $client['ap_mac'] === $contextApMac);
 
         if (! $isCurrent) {
             Log::notice('UniFi portal client verification did not match the supplied connection context', [
                 'client_found' => true,
-                'ssid_matches' => ! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'],
-                'access_point_matches' => ($context['ap_mac'] ?? null) === null
-                    || ! is_string($client['ap_mac'] ?? null)
-                    || $client['ap_mac'] === $context['ap_mac'],
+                'ssid_matches' => $client['ssid'] === null || $client['ssid'] === $ssid,
+                'access_point_matches' => ! is_string($contextApMac)
+                    || $client['ap_mac'] === null
+                    || $client['ap_mac'] === $contextApMac,
             ]);
         }
 
         return $isCurrent;
     }
 
-    /** @param array{mac: string, ssid: string, site?: string|null} $context */
+    /** @param array<string, mixed> $context */
     private function contextMatchesConfiguration(array $context): bool
     {
-        if (! is_string($context['mac'] ?? null)
-            || ! preg_match('/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/', $context['mac'])
-            || ! is_string($context['ssid'] ?? null)
-            || ! is_string(config('services.unifi.portal_ssid'))
-            || ! hash_equals(config('services.unifi.portal_ssid'), $context['ssid'])) {
+        $mac = $context['mac'] ?? null;
+        $ssid = $context['ssid'] ?? null;
+        $portalSsid = config('services.unifi.portal_ssid');
+        if (! is_string($mac)
+            || ! preg_match('/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/', $mac)
+            || ! is_string($ssid)
+            || ! is_string($portalSsid)
+            || ! hash_equals($portalSsid, $ssid)) {
             return false;
         }
 
-        if (is_string($context['site'] ?? null)) {
+        $site = $context['site'] ?? null;
+        if (is_string($site)) {
             $configuredPortalSite = config('services.unifi.site', 'default');
 
-            return is_string($configuredPortalSite) && hash_equals($configuredPortalSite, $context['site']);
+            return is_string($configuredPortalSite) && hash_equals($configuredPortalSite, $site);
         }
 
         return true;

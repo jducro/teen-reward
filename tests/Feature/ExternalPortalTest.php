@@ -11,6 +11,7 @@ use App\Services\UniFiService;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\Support\FakePortalUniFiService;
 use Tests\TestCase;
 
 class ExternalPortalTest extends TestCase
@@ -80,7 +81,7 @@ class ExternalPortalTest extends TestCase
     {
         $this->enterPortal();
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 40]);
-        $reward = Reward::factory()->create(['type' => 'wifi', 'name' => 'One hour']);
+        Reward::factory()->create(['type' => 'wifi', 'name' => 'One hour']);
 
         $this->actingAs($teen)->get('/portal')
             ->assertOk()
@@ -444,35 +445,8 @@ class ExternalPortalTest extends TestCase
         $this->get('/portal?id='.self::MAC.'&ssid=Family%20Guest'.$urlParameter)->assertRedirect(route('portal.show'));
     }
 
-    private function fakeUniFiService(): UniFiService
+    private function fakeUniFiService(): FakePortalUniFiService
     {
-        return new class extends UniFiService
-        {
-            /** @var array<int, array{0: string, 1: int, 2: int|null}> */
-            public array $authorizations = [];
-
-            public bool $failAuthorization = false;
-
-            public bool $clientAvailable = true;
-
-            public function getConnectedClient(string $deviceMac): ?array
-            {
-                if (! $this->clientAvailable) {
-                    return null;
-                }
-
-                return ['mac' => $deviceMac, 'ssid' => 'Family Guest', 'ap_mac' => '11:22:33:44:55:66'];
-            }
-
-            public function authorizeDeviceForDuration(string $deviceMac, int $minutes, ?int $bandwidth = null): bool
-            {
-                $this->authorizations[] = [$deviceMac, $minutes, $bandwidth];
-                if ($this->failAuthorization) {
-                    throw new \RuntimeException('controller unavailable');
-                }
-
-                return true;
-            }
-        };
+        return new FakePortalUniFiService;
     }
 }

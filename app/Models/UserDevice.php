@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $name
+ * @property string $mac_address
+ * @property string $status
+ * @property User|null $user
+ */
 class UserDevice extends Model
 {
     protected $guarded = [];
@@ -35,6 +43,7 @@ class UserDevice extends Model
         return $this->hasMany(RewardRedemption::class, 'user_device_id');
     }
 
+    /** @return HasMany<DeviceAccessGrant, $this> */
     public function accessGrants(): HasMany
     {
         return $this->hasMany(DeviceAccessGrant::class, 'device_id');

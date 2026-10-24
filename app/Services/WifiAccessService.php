@@ -43,7 +43,7 @@ class WifiAccessService
             }
 
             $expiresAt = $lockedRedemption->access_expires_at;
-            if ($expiresAt === null || $expiresAt->isPast()) {
+            if ($expiresAt->isPast()) {
                 return false;
             }
 
@@ -53,7 +53,7 @@ class WifiAccessService
                 ->lockForUpdate()
                 ->first();
 
-            if ($grant?->status === 'synced' && $grant->access_expires_at?->equalTo($expiresAt)) {
+            if ($grant?->status === 'synced' && $grant->access_expires_at->equalTo($expiresAt)) {
                 return true;
             }
 

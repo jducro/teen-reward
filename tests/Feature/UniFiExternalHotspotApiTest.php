@@ -97,11 +97,7 @@ class UniFiExternalHotspotApiTest extends TestCase
                 ]],
             ]),
         ]);
-        Log::spy();
-
-        $this->assertNull(app(UniFiService::class)->getConnectedClient('aa:bb:cc:dd:ee:ff'));
-
-        Log::shouldHaveReceived('notice')
+        Log::shouldReceive('notice')
             ->once()
             ->with('UniFi connected client lookup did not match the requested MAC', \Mockery::on(function (array $context): bool {
                 $this->assertSame('aa:bb:cc:dd:ee:ff', $context['requested_mac']);
@@ -117,6 +113,10 @@ class UniFiExternalHotspotApiTest extends TestCase
 
                 return true;
             }));
+        Log::shouldReceive('debug')->zeroOrMoreTimes();
+
+        $this->assertNull(app(UniFiService::class)->getConnectedClient('aa:bb:cc:dd:ee:ff'));
+
     }
 
     public function test_connected_client_is_found_by_pagination_when_the_api_filter_returns_no_results(): void
