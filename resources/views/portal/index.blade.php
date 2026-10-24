@@ -8,6 +8,7 @@
     @endif
     <title>{{ __('portal.title') }}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0');
         :root { color-scheme: light; font-family: 'Nunito', system-ui, sans-serif; color: #333; background: #fff8f0; }
         * { box-sizing: border-box; }
         body { min-height: 100vh; margin: 0; padding: 28px 16px; background: #fff8f0; }
@@ -26,8 +27,10 @@
         button { width: 100%; margin-top: 14px; padding: 13px 16px; border: 0; border-radius: 14px; background: linear-gradient(135deg, #ff6b6b, #ff9f43); color: white; font: inherit; font-weight: 900; cursor: pointer; box-shadow: 0 4px 12px rgba(255,107,107,.2); }
         button:hover { filter: brightness(1.04); }
         .secondary-button { border: 2px solid #ffe8b3; background: white; color: #555; box-shadow: none; }
+        .continue-link { display: block; margin-top: 10px; padding: 13px 16px; border-radius: 14px; background: #ffd93d; color: #333; font-weight: 900; text-align: center; text-decoration: none; }
         .reward { padding: 16px 0; border-top: 2px solid #fff1d3; }
         .reward h2 { margin: 0 0 4px; font-size: 1.05rem; }
+        .material-symbols-rounded { display: inline-block; font-family: 'Material Symbols Rounded'; font-size: 1.2em; font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr; font-feature-settings: 'liga'; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; vertical-align: middle; }
         .reward p { margin: 4px 0; }
         .reward button { margin-top: 8px; }
         code { overflow-wrap: anywhere; }
@@ -44,6 +47,10 @@
     @endif
     @if ($errors->any())
         <div class="notice error" role="alert">{{ $errors->first() }}</div>
+    @endif
+    @if (session('portal_return_url'))
+        <p class="notice">{{ __('portal.redirecting_to_internet') }}</p>
+        <a class="continue-link" href="{{ session('portal_return_url') }}">{{ __('portal.continue_to_internet') }}</a>
     @endif
 
     @if ($state === 'invalid_context')
@@ -90,7 +97,10 @@
         <p>{{ __('portal.balance') }} <strong>{{ auth()->user()->points_balance }} {{ __('portal.points') }}</strong></p>
 
         @if ($activeRedemption)
-            <p class="notice">{{ __('portal.access_active_until', ['time' => $activeRedemption->access_expires_at->format('H:i')]) }}</p>
+            <p class="notice">
+                {{ __('portal.access_active_until') }}
+                <time class="local-time" data-local-time datetime="{{ $activeRedemption->access_expires_at->copy()->utc()->toIso8601String() }}">{{ $activeRedemption->access_expires_at->copy()->utc()->format('H:i') }} UTC</time>.
+            </p>
             <h2>{{ __('portal.redeem_title') }}</h2>
         @else
             <p class="notice">{{ __('portal.choose_reward_prompt') }}</p>
@@ -99,7 +109,14 @@
 
         @forelse ($rewards as $reward)
             <section class="reward">
-                <h2>{{ $reward->emoji }} {{ $reward->name }}</h2>
+                <h2>
+                    @if (is_string($reward->emoji) && str_starts_with($reward->emoji, 'mi:'))
+                        <span class="material-symbols-rounded" aria-hidden="true">{{ substr($reward->emoji, 3) }}</span>
+                    @else
+                        {{ $reward->emoji }}
+                    @endif
+                    {{ $reward->name }}
+                </h2>
                 <p class="muted">{{ __('portal.reward_cost_duration', ['points' => $reward->points_cost, 'duration' => $reward->duration_minutes]) }}</p>
                 <form method="POST" action="{{ isset($context['site']) && $context['site'] !== null ? route('portal.external.redeem', ['site' => $context['site']]) : route('portal.redeem') }}">
                     @csrf
@@ -126,5 +143,29 @@
         })();
     </script>
 @endif
+<script>
+    document.querySelectorAll('[data-local-time]').forEach((timeElement) => {
+        const expiry = new Date(timeElement.dateTime);
+        if (!Number.isNaN(expiry.getTime())) {
+            timeElement.textContent = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+            }).format(expiry);
+            timeElement.title = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZoneName: 'short',
+            }).format(expiry);
+        }
+    });
+
+    const portalReturnUrl = {{ \Illuminate\Support\Js::from(session('portal_return_url')) }};
+    if (portalReturnUrl) {
+        window.setTimeout(() => window.location.replace(portalReturnUrl), 4000);
+    }
+</script>
 </body>
 </html>

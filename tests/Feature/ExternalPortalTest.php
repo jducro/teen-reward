@@ -255,9 +255,10 @@ class ExternalPortalTest extends TestCase
     {
         $service = $this->fakeUniFiService();
         $this->app->instance(UniFiService::class, $service);
-        $this->enterPortal();
+        $returnUrl = 'https://example.com/teen/rewards?source=unifi';
+        $this->enterPortal($returnUrl);
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
-        $reward = Reward::factory()->create(['type' => 'wifi', 'points_cost' => 25, 'duration_minutes' => 60]);
+        $reward = Reward::factory()->create(['type' => 'wifi', 'points_cost' => 25, 'duration_minutes' => 60, 'emoji' => 'mi:wifi']);
         $requestKey = (string) Str::uuid();
 
         $this->actingAs($teen)->get('/portal')->assertOk()->assertSee(__('portal.confirm_device_action'));
@@ -266,7 +267,9 @@ class ExternalPortalTest extends TestCase
         $this->actingAs($teen)->post('/portal/redeem', [
             'reward_id' => $reward->id,
             'request_key' => $requestKey,
-        ])->assertRedirect(route('portal.show'))->assertSessionHas('status');
+        ])->assertRedirect(route('portal.show'))
+            ->assertSessionHas('status', __('portal.access_granted'))
+            ->assertSessionHas('portal_return_url', $returnUrl);
 
         $this->assertSame(75, $teen->fresh()->points_balance);
         $device = UserDevice::query()->where('user_id', $teen->id)->where('mac_address', self::MAC)->sole();
@@ -283,6 +286,15 @@ class ExternalPortalTest extends TestCase
             'mac_address' => self::MAC,
             'action' => 'portal_registered',
         ]);
+
+        $this->get('/portal')
+            ->assertOk()
+            ->assertSee('data-local-time datetime="'.$redemption->access_expires_at->copy()->utc()->toIso8601String().'"', false)
+            ->assertSee('<span class="material-symbols-rounded" aria-hidden="true">wifi</span>', false)
+            ->assertDontSee('mi:wifi')
+            ->assertSee(__('portal.redirecting_to_internet'))
+            ->assertSee(__('portal.continue_to_internet'))
+            ->assertSee('window.location.replace(portalReturnUrl)', false);
     }
 
     public function test_one_wifi_redemption_authorizes_all_approved_devices_to_the_same_expiry(): void
@@ -426,9 +438,10 @@ class ExternalPortalTest extends TestCase
         $this->assertDatabaseHas('unifi_sync_logs', ['status' => 'failure']);
     }
 
-    private function enterPortal(): void
+    private function enterPortal(?string $returnUrl = null): void
     {
-        $this->get('/portal?id='.self::MAC.'&ssid=Family%20Guest')->assertRedirect(route('portal.show'));
+        $urlParameter = $returnUrl === null ? '' : '&url='.urlencode($returnUrl);
+        $this->get('/portal?id='.self::MAC.'&ssid=Family%20Guest'.$urlParameter)->assertRedirect(route('portal.show'));
     }
 
     private function fakeUniFiService(): UniFiService

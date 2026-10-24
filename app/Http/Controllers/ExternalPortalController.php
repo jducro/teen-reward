@@ -268,7 +268,10 @@ class ExternalPortalController extends Controller
             return $this->portalRedirect($request, $site)->withErrors(['portal' => __('portal.errors.unifi_failed')]);
         }
 
-        return $this->portalRedirect($request, $site)->with('status', __('portal.access_granted_until', ['time' => $expiresAt->format('H:i')]));
+        $redirect = $this->portalRedirect($request, $site)->with('status', __('portal.access_granted'));
+        $returnUrl = $this->validatedPortalReturnUrl($context['return_url'] ?? null);
+
+        return $returnUrl === null ? $redirect : $redirect->with('portal_return_url', $returnUrl);
     }
 
     /** @return array{mac: string, ssid: string, ap_mac: string|null, site: string|null, timestamp: int|null, return_url: string|null}|null */
@@ -301,6 +304,7 @@ class ExternalPortalController extends Controller
         if ($returnUrl !== null && ! is_string($returnUrl)) {
             return null;
         }
+        $returnUrl = $this->validatedPortalReturnUrl($returnUrl);
 
         $context = [
             'mac' => strtolower(str_replace('-', ':', $mac)),
@@ -312,6 +316,35 @@ class ExternalPortalController extends Controller
         ];
 
         return $context;
+    }
+
+    private function validatedPortalReturnUrl(?string $url): ?string
+    {
+        if ($url === null || $url === '') {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if (! is_array($parts)
+            || ! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            || ! is_string($parts['host'] ?? null)
+            || $parts['host'] === ''
+            || isset($parts['user'])
+            || isset($parts['pass'])) {
+            return null;
+        }
+
+        $host = strtolower(rtrim($parts['host'], '.'));
+        if ($host === 'localhost' || str_ends_with($host, '.localhost') || str_ends_with($host, '.local')) {
+            return null;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false
+            && filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+            return null;
+        }
+
+        return $url;
     }
 
     /** @param array{mac: string, ssid: string, ap_mac?: string|null} $context */
