@@ -1207,6 +1207,14 @@ body {
   margin-top: 6px;
 }
 
+.passkey-login-btn {
+  margin-top: 10px;
+  border: 2px solid #ff9f43;
+  background: #fff;
+  color: #333;
+  box-shadow: none;
+}
+
 .login-btn:disabled {
   opacity: 0.75;
   cursor: not-allowed;

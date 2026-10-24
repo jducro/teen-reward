@@ -1,8 +1,10 @@
 import { useIntl } from 'react-intl';
+import { Passkeys } from '@laravel/passkeys';
 import type { SettingsProps } from '../type';
 
 export default function Settings({
   busyKey,
+  passkeys,
   isParent,
   profileForm,
   passwordForm,
@@ -11,11 +13,18 @@ export default function Settings({
   onUpdatePassword,
   onDeleteAccount,
   onTestUniFiConnection,
+  onRegisterPasskey,
+  onDeletePasskey,
+  passkeyName,
+  passkeyPassword,
+  onChangePasskeyName,
+  onChangePasskeyPassword,
   onChangeProfile,
   onChangePassword,
   onChangeDeletePassword,
 }: SettingsProps) {
   const intl = useIntl();
+  const passkeySupported = Passkeys.isSupported();
 
   return (
     <div className="settings-page">
@@ -90,6 +99,35 @@ export default function Settings({
           </button>
         </div>
       </form>
+
+      {
+        <div className="crud-panel">
+          <h3>{intl.formatMessage({ id: 'account.passkeys.title', defaultMessage: 'Face ID and passkeys' })}</h3>
+          <p>{intl.formatMessage({ id: 'account.passkeys.description', defaultMessage: 'Add a passkey to sign in with Face ID on this device. Keep your password as a fallback.' })}</p>
+          {!passkeySupported && <p>{intl.formatMessage({ id: 'account.passkeys.secureContextRequired', defaultMessage: 'Passkeys require a supported browser and a secure HTTPS connection.' })}</p>}
+          <div className="form-field">
+            <label htmlFor="passkey-name">{intl.formatMessage({ id: 'account.passkeys.name', defaultMessage: 'Device name' })}</label>
+            <input id="passkey-name" className="crud-input" value={passkeyName} onChange={(event) => onChangePasskeyName(event.target.value)} />
+          </div>
+          <div className="form-field">
+            <label htmlFor="passkey-current-password">{intl.formatMessage({ id: 'account.passkeys.password', defaultMessage: 'Confirm your current password' })}</label>
+            <input id="passkey-current-password" className="crud-input" type="password" autoComplete="current-password" value={passkeyPassword} onChange={(event) => onChangePasskeyPassword(event.target.value)} />
+          </div>
+          <div className="crud-actions">
+            <button className="crud-submit-btn" type="button" disabled={!passkeySupported || busyKey === 'passkey:register' || !passkeyName.trim() || !passkeyPassword} onClick={() => void onRegisterPasskey()}>
+              {intl.formatMessage({ id: 'account.passkeys.add', defaultMessage: 'Add passkey' })}
+            </button>
+          </div>
+          {passkeys.map((passkey) => (
+            <div className="crud-actions" key={passkey.id}>
+              <span>{passkey.name}</span>
+              <button className="crud-delete-btn" type="button" disabled={busyKey === `passkey:delete:${passkey.id}`} onClick={() => void onDeletePasskey(passkey.id)}>
+                {intl.formatMessage({ id: 'account.passkeys.remove', defaultMessage: 'Remove' })}
+              </button>
+            </div>
+          ))}
+        </div>
+      }
 
       <form className="crud-panel" onSubmit={onDeleteAccount}>
         <div className="form-field">

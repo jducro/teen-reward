@@ -41,6 +41,10 @@ return [
         'password' => env('UNIFI_PASSWORD'),
         'site' => env('UNIFI_SITE', 'default'),
         'allow_self_signed' => env('UNIFI_ALLOW_SELF_SIGNED', false),
+        'portal_ssid' => env('UNIFI_PORTAL_SSID'),
+        'api_key' => env('UNIFI_API_KEY'),
+        'api_base_url' => env('UNIFI_API_BASE_URL'),
+        'api_site_id' => env('UNIFI_API_SITE_ID'),
     ],
 
 ];

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\UserDevice;
 use App\Services\ClaimService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -69,6 +70,7 @@ class AppBootstrapController extends Controller
                 ->get()
             : User::query()->whereKey([])->get();
 
+        /** @var Collection<int, UserDevice> $devices */
         $devices = UserDevice::query()
             ->when($user->role === 'parent', fn ($query) => $query->where('status', 'pending_approval')->with('user'))
             ->when($user->role === 'teen', fn ($query) => $query->where('user_id', $user->id))
@@ -92,6 +94,11 @@ class AppBootstrapController extends Controller
                 'role' => $user->role,
                 'pointsBalance' => $user->points_balance,
             ],
+            'passkeys' => $user->passkeys()->orderBy('id')->get(['id', 'name', 'last_used_at'])->map(fn ($passkey) => [
+                'id' => $passkey->id,
+                'name' => $passkey->name,
+                'lastUsedAt' => optional($passkey->last_used_at)->toIso8601String(),
+            ])->values(),
             'stats' => [
                 'availableChores' => $chores->count(),
                 'pendingClaims' => $claims->where('status', 'pending')->count(),

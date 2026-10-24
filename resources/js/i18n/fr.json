@@ -105,6 +105,16 @@
     "account.action.updatePassword": "Mettre à jour le mot de passe",
     "account.label.deletePassword": "Confirmez le mot de passe pour supprimer le compte",
     "account.action.deleteAccount": "Supprimer le compte",
+    "account.passkeys.title": "Face ID et clés d’accès",
+    "account.passkeys.description": "Ajoutez une clé d’accès pour vous connecter avec Face ID ou le verrouillage de cet appareil. Gardez votre mot de passe comme solution de secours.",
+    "account.passkeys.name": "Nom de l’appareil",
+    "account.passkeys.password": "Confirmez votre mot de passe actuel",
+    "account.passkeys.add": "Ajouter une clé d’accès",
+    "account.passkeys.remove": "Supprimer",
+    "account.passkeys.added": "Clé d’accès ajoutée.",
+    "account.passkeys.removed": "Clé d’accès supprimée.",
+    "account.passkeys.secureContextRequired": "Les clés d’accès nécessitent un navigateur compatible et une connexion HTTPS sécurisée.",
+    "account.passkeys.error": "Impossible d’ajouter la clé d’accès. Réessayez ou continuez à utiliser votre mot de passe.",
 
     "parent.selectTeen": "Consulter l'ado :",
     "dashboard.greeting": "Salut petit ninja 👋",
@@ -124,6 +134,9 @@
 
     "login.appLabel": "Compte teen-reward",
     "login.signingIn": "Connexion…",
+    "login.passkeyLoading": "En attente de la clé d’accès…",
+    "auth.action.passkey": "Continuer avec Face ID ou une clé d’accès",
+    "login.passkeyError": "La connexion par clé d’accès a échoué. Vous pouvez toujours utiliser votre mot de passe.",
     "login.demoHint": "🧪 Test local : teen@example.com / password",
 
     "shop.title": "Boutique",

@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@laravel/passkeys':
+        specifier: ^0.4.0
+        version: 0.4.0(react@19.3.1)
       date-fns:
         specifier: ^4.4.0
         version: 4.4.0
@@ -332,6 +335,21 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
+  '@laravel/passkeys@0.4.0':
+    resolution: {integrity: sha512-59UHJHZPrIT8f5hFQJUR1EXhazWZTg3DcJefxSfA3aRj6xu40I/lYDveUY4oL2/h/crq9jjptSKykZDDold7aA==}
+    engines: {node: '>=20.19.0'}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      svelte: ^5.0.0
+      vue: ^3.3.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
+
   '@oxc-project/types@0.153.0':
     resolution: {integrity: sha512-jSNrRIyvPVLL5E1z/tS5zLAprosGz/FuI1PWwEOz59j3E4TTTzSpqKb/RDGqJhhW0QHYISGXxq582wGx6T11Tw==}
 
@@ -433,6 +451,9 @@ packages:
 
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
+  '@simplewebauthn/browser@13.3.0':
+    resolution: {integrity: sha512-BE/UWv6FOToAdVk0EokzkqQQDOWtNydYlY6+OrmiZ5SCNmb41VehttboTetUM3T/fr6EAFYVXjz4My2wg230rQ==}
 
   '@tailwindcss/forms@0.5.11':
     resolution: {integrity: sha512-h9wegbZDPurxG22xZSoWtdzc41/OlNEUQERNqI/0fOwa2aVlWGu7C35E/x6LDyD3lgtztFSSjKZyuVM0hxhbgA==}
@@ -1559,6 +1580,12 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  '@laravel/passkeys@0.4.0(react@19.3.1)':
+    dependencies:
+      '@simplewebauthn/browser': 13.3.0
+    optionalDependencies:
+      react: 19.3.1
+
   '@oxc-project/types@0.153.0': {}
 
   '@rolldown/binding-android-arm-eabi@1.2.13':
@@ -1607,6 +1634,8 @@ snapshots:
     optional: true
 
   '@rolldown/pluginutils@1.0.1': {}
+
+  '@simplewebauthn/browser@13.3.0': {}
 
   '@tailwindcss/forms@0.5.11(tailwindcss@4.3.3)':
     dependencies:

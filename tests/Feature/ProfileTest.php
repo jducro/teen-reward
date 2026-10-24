@@ -3,10 +3,17 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(PreventRequestForgery::class);
+    }
+
     public function test_profile_page_is_displayed(): void
     {
         $user = User::factory()->create();

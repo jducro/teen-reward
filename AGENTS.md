@@ -58,31 +58,38 @@ Connect the reward redemption flow to the UniFi controller so that a reward can 
   - Direct network access without vouchers
   - Device management endpoints
 
-- **Phase 3**: External UniFi captive portal (planned)
+- **Phase 3**: External UniFi captive portal (initial per-device flow implemented; shared teen access planned)
   - Replace the built-in voucher entry page with a public HTTPS page hosted by this app
   - UniFi redirects a device on the guest SSID to the app's external portal and supplies connection context, including the client MAC and SSID
-  - The teen signs in, the app verifies the connected MAC against UniFi and the teen's approved device, then the teen redeems a Wi-Fi reward for that device
-  - The app creates a redemption linked to the device and grants direct UniFi guest access for the reward duration; it does not issue a voucher code for this flow
-  - Show the teen the device and access expiry on the portal page; leave manual voucher redemption available as a fallback for devices that cannot open a captive portal
+  - The teen signs in; the app verifies the connected MAC against UniFi and the teen's approved device
+  - The current portal flow redeems a Wi-Fi reward for the one connected, approved device and grants that device time-limited access without issuing a voucher code
+  - Manual voucher redemption remains available as a fallback for devices that cannot open a captive portal
 
-#### Phase 3 Implementation Plan
-1. **Confirm UniFi compatibility**
-   - Verify the controller version, external portal settings, and supported authorization API before implementation. The official [External Hotspot API guide](https://help.ui.com/hc/en-us/articles/31228198640023-External-Hotspot-API-for-Authorization-Clients) describes the redirect context and timed client authorization.
-   - Keep controller credentials/API keys server-side. Configure the guest network's pre-authorization allowlist so the public app origin and required assets are reachable before authorization.
-2. **Add a dedicated portal entry point**
-   - Add a minimal public portal route and page separate from the authenticated SPA shell.
-   - Accept UniFi redirect context (client MAC, SSID, AP, and return URL), validate the site/SSID, and never trust a query-string MAC by itself. Confirm that the MAC is a currently connected UniFi client before using it.
-   - Let the teen authenticate with the existing account flow; preserve a safe return to the portal after login and validate any return URL against an allowlist.
-3. **Connect portal redemption to device entitlement**
-   - Require the client MAC to match a device owned by the signed-in teen and approved by a parent. If it is unknown or pending, show a registration/approval explanation and do not authorize it.
-   - Add a redemption path that charges points once, associates the redemption with the approved device, and records the grant expiry and UniFi sync state. Use a transaction/lock so retries or repeated captive-portal requests cannot double-charge points or create overlapping grants.
-   - Authorize the specific client with the reward's remaining duration. Do not use the current `minutes = 0` device authorization for timed rewards. Keep voucher generation as a separate fallback path.
-4. **Expire and revoke access reliably**
-   - Store the device grant and expiry for audit/status display. Use UniFi's timed authorization where supported and add a scheduled reconciliation/revocation job as a backup.
-   - On expiry or teen unregister, revoke the UniFi authorization, update grant/redemption sync state, and log success or failure without logging credentials.
-5. **Test and roll out**
-   - Add PHPUnit coverage for valid and invalid portal context, authentication, device ownership/approval, duplicate submissions, insufficient points, UniFi failures, timed grants, expiry, and revocation.
-   - Add React tests for the portal states and reward selection. Verify redirects and captive-network reachability on real iOS/Android devices and the configured UniFi controller before enabling the flow for users.
+#### Next Step: Shared Teen Wi-Fi Session
+
+**Target behavior:** A teen's Wi-Fi reward creates one shared access entitlement with a fixed expiry for that teen. Every device owned by the teen and approved by a parent can use that entitlement until the same expiry. The reward is charged once; using another approved device or approving a new device during the entitlement does not charge again. A new device receives only the entitlement's remaining time. Devices with randomized/private MAC addresses remain out of scope and must use a stable MAC on this guest network.
+
+#### Implementation Plan
+1. **Define the entitlement and authorization records**
+   - Treat each successful Wi-Fi redemption as a teen-level entitlement with a start time, expiry, and lifecycle/sync status; additional Wi-Fi rewards stack onto the teen's current expiry rather than a device-specific expiry.
+   - Track each per-device UniFi authorization separately from the teen-level entitlement. Keep immutable snapshots of teen ID, MAC address, authorization source, authorization time, expiry, and status/error so the audit remains after a device is unregistered.
+   - Preserve existing redemption history and avoid silently extending previously purchased per-device grants to every device.
+2. **Apply the entitlement to devices already approved**
+   - On first redemption, charge points once and create the teen-level entitlement transactionally and idempotently.
+   - Find all active/approved devices for the teen and authorize those currently visible to UniFi through the remaining entitlement duration. Record success or failure per device.
+   - For approved devices that are offline or not yet known to UniFi, retain the entitlement and authorize them when they next arrive through the captive portal; confirm the target controller's client lookup/authorization behavior before promising offline pre-authorization.
+3. **Support devices added while an entitlement is active**
+   - When the teen registers a device, keep it pending until parent approval; registration alone must never grant network access.
+   - After approval, check for an unexpired teen entitlement. If one exists, authorize the new device until that entitlement's original expiry, without charging points or starting a new timer. If UniFi cannot yet see the device, apply this rule when the device first appears in the captive portal.
+   - If a second already-approved device reaches the portal during an active entitlement, authorize that MAC for the remaining time and return success without showing a second reward charge. Continue to block unknown, pending, rejected, or other-teen devices.
+4. **Handle expiry, removal, retries, and audit history**
+   - On expiry, rely on UniFi's timed authorization where supported and reconcile stored per-device authorization states with the controller.
+   - On teen unregister, revoke only that device's UniFi access and preserve the shared teen entitlement for the teen's other approved devices. Record registration, approval/rejection, portal authorization, manual/automatic authorization, expiry, revoke, and failure events with MAC snapshots and actor/source.
+   - Make retries safe per entitlement and MAC. A failure for one device must not charge again, extend the shared expiry, or prevent other devices from being authorized; expose partial failures for retry/reconciliation.
+5. **Test the acceptance scenarios and validate UniFi hardware**
+   - Add PHPUnit coverage for first redemption, all previously approved devices, later registration plus approval, second-device portal reuse without a second charge, remaining-time calculation, ownership/approval denial, expiry, device removal, per-device API failures, repeated requests, and persistent audit history.
+   - Verify the exact UniFi Network version and the API authentication/authorization methods supported by the controller. The current app uses `Art-of-WiFi/UniFi-API-client` with controller credentials; Ubiquiti's official [External Hotspot API guide](https://help.ui.com/hc/en-us/articles/31228198640023-External-Hotspot-API-for-Authorization-Clients) describes a separate Network API/key workflow that is not yet integrated.
+   - With the guest SSID and pre-authorization allowlist configured, test captive redirects and timed authorization on real iOS and Android devices. Confirm the first device, an already-approved second device, and a newly approved device all stop receiving access at the same entitlement expiry. Keep voucher redemption as the tested fallback.
 
 ### Configuration
 ```env
@@ -91,6 +98,7 @@ UNIFI_USERNAME=admin
 UNIFI_PASSWORD=secret
 UNIFI_SITE=default
 UNIFI_ALLOW_SELF_SIGNED=true  # for dev/self-signed certs
+UNIFI_API_KEY=secret          # official External Hotspot API key (planned)
 ```
 
 ### Database Schema Changes
@@ -120,6 +128,14 @@ The app is intended to run locally with Laravel Sail:
 ## Recent changes / Notes
 - Auth scaffold: Laravel Breeze (Blade) installed — provides `login`/`register` routes and views.
 - Routing: `/` now returns the `welcome` view; `/dashboard` is a named route protected by `auth`.
+
+## Language and Localization
+- French (`fr`) is the application's default locale (`APP_LOCALE=fr`); English (`en`) is the fallback locale (`APP_FALLBACK_LOCALE=en`). Preserve these defaults in new environments and examples.
+- Treat French and English as supported locales. Every new user-visible string must be translated into both locales in the same change; do not hard-code visible copy in Blade templates, controllers, React components, validation messages, or flash messages.
+- For Laravel/Blade copy, use Laravel's translation helpers and add keyed strings to the appropriate `lang/fr/*.php` and `lang/en/*.php` files. Keep portal copy in the matching `portal.php` files. Existing JSON translation files may remain in use for existing JSON-keyed UI.
+- For the React SPA, use `react-intl` message IDs and the existing `resources/js/i18n` catalogs. Add each new message's French translation to `resources/js/i18n/fr.json` and its English source text as `defaultMessage`; do not add raw JSX text.
+- Preserve locale selection: Laravel-rendered pages use `app()->getLocale()`, while the React SPA uses its existing locale detection. Do not force a different per-page locale. Set the document `lang` attribute from the active locale.
+- Add or update tests to check the French default and any new locale-specific rendering or messages. Run the relevant tests whenever translation strings or locale behavior changes.
 
 ## Run / Verify
 Start services and serve the app:

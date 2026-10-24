@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\UserDevice;
 use App\Services\UniFiService;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Tests\TestCase;
 
 class DeviceApprovalWorkflowTest extends TestCase
@@ -12,6 +13,7 @@ class DeviceApprovalWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(PreventRequestForgery::class);
     }
 
     public function test_teen_can_register_device_with_pending_approval_status(): void
@@ -61,7 +63,7 @@ class DeviceApprovalWorkflowTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_parent_can_approve_device_and_registers_in_unifi(): void
+    public function test_parent_can_approve_device_without_granting_unifi_access(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);
         $teen = User::factory()->create(['role' => 'teen']);
@@ -92,13 +94,13 @@ class DeviceApprovalWorkflowTest extends TestCase
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
 
-        $this->assertEquals('Device approved and activated', $response->json('message'));
-        $this->assertSame('aa:bb:cc:dd:ee:ff', $service->receivedMac);
-        $this->assertNull($service->receivedBandwidth);
+        $this->assertEquals('Device approved. It can receive Wi-Fi access when a reward is redeemed.', $response->json('message'));
+        $this->assertNull($service->receivedMac);
         $this->assertDatabaseHas('user_devices', [
             'id' => $device->id,
             'status' => 'active',
             'parent_action_by' => $parent->id,
+            'authorized_at' => null,
         ]);
     }
 
@@ -130,7 +132,7 @@ class DeviceApprovalWorkflowTest extends TestCase
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
 
-        $this->assertSame('aa:bb:cc:dd:ee:ff', $service->receivedMac);
+        $this->assertNull($service->receivedMac);
         $this->assertDatabaseHas('device_approvals', [
             'device_id' => $device->id,
             'parent_id' => $parent->id,
@@ -277,7 +279,7 @@ class DeviceApprovalWorkflowTest extends TestCase
         ]);
     }
 
-    public function test_approval_failure_does_not_update_device_status(): void
+    public function test_device_can_be_approved_even_when_unifi_is_unavailable(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);
         $teen = User::factory()->create(['role' => 'teen']);
@@ -297,15 +299,16 @@ class DeviceApprovalWorkflowTest extends TestCase
 
         $this->actingAs($parent)
             ->putJson("/api/devices/{$device->id}/approve")
-            ->assertUnprocessable();
+            ->assertOk();
 
         $this->assertDatabaseHas('user_devices', [
             'id' => $device->id,
-            'status' => 'pending_approval',
+            'status' => 'active',
+            'authorized_at' => null,
         ]);
     }
 
-    public function test_approval_with_bandwidth_limit_passes_to_unifi(): void
+    public function test_device_approval_does_not_grant_unifi_access_even_with_bandwidth_limit(): void
     {
         $parent = User::factory()->create(['role' => 'parent']);
         $teen = User::factory()->create(['role' => 'teen']);
@@ -337,7 +340,7 @@ class DeviceApprovalWorkflowTest extends TestCase
             ->putJson("/api/devices/{$device->id}/approve")
             ->assertOk();
 
-        $this->assertSame('aa:bb:cc:dd:ee:ff', $service->receivedMac);
-        $this->assertSame(2048, $service->receivedBandwidth);
+        $this->assertNull($service->receivedMac);
+        $this->assertNull($service->receivedBandwidth);
     }
 }
