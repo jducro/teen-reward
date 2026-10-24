@@ -223,6 +223,18 @@ class ExternalPortalTest extends TestCase
         $this->get('/portal')->assertOk()->assertSee('Wi-Fi reward')->assertSee('30 points');
     }
 
+    public function test_portal_login_route_allows_more_than_six_attempts_per_minute_from_a_shared_ip(): void
+    {
+        for ($attempt = 1; $attempt <= 7; $attempt++) {
+            $response = $this->post('/portal/login', [
+                'email' => "unknown-{$attempt}@example.com",
+                'password' => 'incorrect-password',
+            ]);
+
+            $this->assertNotSame(429, $response->getStatusCode());
+        }
+    }
+
     public function test_portal_page_uses_the_selected_application_locale(): void
     {
         config(['app.locale' => 'en']);
