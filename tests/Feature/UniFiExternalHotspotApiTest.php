@@ -86,6 +86,10 @@ class UniFiExternalHotspotApiTest extends TestCase
     {
         Http::fake([
             '*' => Http::response([
+                'offset' => 0,
+                'limit' => 25,
+                'count' => 1,
+                'totalCount' => 1,
                 'data' => [[
                     'id' => 'client-123',
                     'type' => 'WIRELESS',
@@ -103,6 +107,9 @@ class UniFiExternalHotspotApiTest extends TestCase
                 $this->assertSame('aa:bb:cc:dd:ee:ff', $context['requested_mac']);
                 $this->assertSame('site-123', $context['site_id']);
                 $this->assertSame(200, $context['http_status']);
+                $this->assertSame(1, $context['api_count']);
+                $this->assertSame(1, $context['api_total_count']);
+                $this->assertSame(25, $context['api_limit']);
                 $this->assertSame(1, $context['client_count']);
                 $this->assertSame(0, $context['clients_with_mac']);
                 $this->assertSame(['id', 'type', 'name'], $context['first_client_keys']);
