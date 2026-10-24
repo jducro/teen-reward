@@ -198,26 +198,38 @@ class UniFiService
         $response = $this->integrationApiRequest()->get(
             $this->integrationApiUrl('/sites/'.rawurlencode($this->integrationSiteId()).'/clients'),
             ['filter' => "macAddress.eq('".strtoupper($normalizedMac)."')"]
-        )->throw();
+        );
+        if (! $response->successful()) {
+            Log::warning('UniFi connected client API returned an unsuccessful response', [
+                'site_id' => $this->integrationSiteId(),
+                'http_status' => $response->status(),
+            ]);
+            $response->throw();
+        }
 
-        $clients = $response->json();
-        if (! is_array($clients)) {
+        $payload = $response->json();
+        if (! is_array($payload)) {
+            $this->logConnectedClientLookupMiss($normalizedMac, $response->status(), $payload, []);
+
             return null;
         }
 
         // The API may return a client directly, wrap one client in `data`, or return a list.
-        if (isset($clients['macAddress']) || isset($clients['mac'])) {
-            $clients = [$clients];
+        if (isset($payload['macAddress']) || isset($payload['mac'])) {
+            $clients = [$payload];
         } else {
-            $clients = $clients['data'] ?? $clients;
+            $clients = $payload['data'] ?? $payload;
         }
         if (! is_array($clients)) {
+            $this->logConnectedClientLookupMiss($normalizedMac, $response->status(), $payload, []);
+
             return null;
         }
         if (isset($clients['macAddress']) || isset($clients['mac'])) {
             $clients = [$clients];
         }
 
+        $clientRecords = array_values(array_filter($clients, 'is_array'));
         foreach ($clients as $client) {
             if (! is_array($client)) {
                 continue;
@@ -238,7 +250,32 @@ class UniFiService
             ];
         }
 
+        $this->logConnectedClientLookupMiss($normalizedMac, $response->status(), $payload, $clientRecords);
+
         return null;
+    }
+
+    /**
+     * Log response metadata for diagnosing clients that the Integration API does not return.
+     * Client records and API credentials are deliberately omitted from the log context.
+     *
+     * @param  array<int, array<string|int, mixed>>  $clientRecords
+     */
+    private function logConnectedClientLookupMiss(string $normalizedMac, int $httpStatus, mixed $payload, array $clientRecords): void
+    {
+        $firstRecord = $clientRecords[0] ?? [];
+        $recordsWithMac = count(array_filter($clientRecords, fn (array $client): bool => is_string($client['macAddress'] ?? $client['mac'] ?? null)));
+
+        Log::notice('UniFi connected client lookup did not match the requested MAC', [
+            'requested_mac' => $normalizedMac,
+            'site_id' => $this->integrationSiteId(),
+            'http_status' => $httpStatus,
+            'payload_type' => get_debug_type($payload),
+            'top_level_keys' => is_array($payload) ? array_slice(array_map('strval', array_keys($payload)), 0, 20) : [],
+            'client_count' => count($clientRecords),
+            'clients_with_mac' => $recordsWithMac,
+            'first_client_keys' => array_slice(array_map('strval', array_keys($firstRecord)), 0, 30),
+        ]);
     }
 
     /**

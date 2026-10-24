@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Services\UniFiService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class UniFiExternalHotspotApiTest extends TestCase
@@ -79,5 +80,35 @@ class UniFiExternalHotspotApiTest extends TestCase
         $this->expectExceptionMessage('UniFi did not return a connected client ID');
 
         app(UniFiService::class)->authorizeDeviceForDuration('aa:bb:cc:dd:ee:ff', 30);
+    }
+
+    public function test_missing_connected_client_logs_response_shape_without_logging_client_data(): void
+    {
+        Http::fake([
+            '*' => Http::response([
+                'data' => [[
+                    'id' => 'client-123',
+                    'type' => 'WIRELESS',
+                    'name' => 'Private device name',
+                ]],
+            ]),
+        ]);
+        Log::spy();
+
+        $this->assertNull(app(UniFiService::class)->getConnectedClient('aa:bb:cc:dd:ee:ff'));
+
+        Log::shouldHaveReceived('notice')
+            ->once()
+            ->with('UniFi connected client lookup did not match the requested MAC', \Mockery::on(function (array $context): bool {
+                $this->assertSame('aa:bb:cc:dd:ee:ff', $context['requested_mac']);
+                $this->assertSame('site-123', $context['site_id']);
+                $this->assertSame(200, $context['http_status']);
+                $this->assertSame(1, $context['client_count']);
+                $this->assertSame(0, $context['clients_with_mac']);
+                $this->assertSame(['id', 'type', 'name'], $context['first_client_keys']);
+                $this->assertArrayNotHasKey('client_data', $context);
+
+                return true;
+            }));
     }
 }
