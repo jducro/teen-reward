@@ -14,7 +14,7 @@ export default function Login({ authForm, busy, error, onChange, onSubmit }: Log
     });
 
     return (
-        <div className="page">
+        <div className="page login-shell">
             <div className="dashboard login-page">
                 <motion.p
                     className="greeting"
