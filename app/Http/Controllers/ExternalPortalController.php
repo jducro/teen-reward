@@ -40,7 +40,7 @@ class ExternalPortalController extends Controller
         }
 
         $context = $request->session()->get('external_portal');
-        if (! is_array($context) || ! $this->contextIsCurrent($context)) {
+        if (! is_array($context) || ! $this->contextMatchesConfiguration($context)) {
             return view('portal.index', ['state' => 'invalid_context']);
         }
 
@@ -50,6 +50,10 @@ class ExternalPortalController extends Controller
         }
         if ($user->role !== 'teen') {
             return view('portal.index', ['state' => 'teen_only', 'context' => $context]);
+        }
+
+        if (! $this->contextIsCurrent($context)) {
+            return view('portal.index', ['state' => 'client_pending', 'context' => $context]);
         }
 
         $device = $this->resolvePortalDevice($user->id, $context['mac']);
@@ -247,7 +251,7 @@ class ExternalPortalController extends Controller
             'return_url' => $returnUrl,
         ];
 
-        return $this->contextIsCurrent($context) ? $context : null;
+        return $context;
     }
 
     /** @param array{mac: string, ssid: string, ap_mac?: string|null} $context */
@@ -264,24 +268,46 @@ class ExternalPortalController extends Controller
             return false;
         }
 
-        $isCurrent = $client !== null
-            && (! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'])
+        if ($client === null) {
+            return false;
+        }
+
+        $isCurrent = (! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'])
             && (($context['ap_mac'] ?? null) === null
                 || ! is_string($client['ap_mac'] ?? null)
                 || $client['ap_mac'] === $context['ap_mac']);
 
         if (! $isCurrent) {
             Log::notice('UniFi portal client verification did not match the supplied connection context', [
-                'client_found' => $client !== null,
-                'ssid_matches' => $client === null || ! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'],
-                'access_point_matches' => $client === null
-                    || ($context['ap_mac'] ?? null) === null
+                'client_found' => true,
+                'ssid_matches' => ! is_string($client['ssid'] ?? null) || $client['ssid'] === $context['ssid'],
+                'access_point_matches' => ($context['ap_mac'] ?? null) === null
                     || ! is_string($client['ap_mac'] ?? null)
                     || $client['ap_mac'] === $context['ap_mac'],
             ]);
         }
 
         return $isCurrent;
+    }
+
+    /** @param array{mac: string, ssid: string, site?: string|null} $context */
+    private function contextMatchesConfiguration(array $context): bool
+    {
+        if (! is_string($context['mac'] ?? null)
+            || ! preg_match('/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/', $context['mac'])
+            || ! is_string($context['ssid'] ?? null)
+            || ! is_string(config('services.unifi.portal_ssid'))
+            || ! hash_equals(config('services.unifi.portal_ssid'), $context['ssid'])) {
+            return false;
+        }
+
+        if (is_string($context['site'] ?? null)) {
+            $configuredPortalSite = config('services.unifi.site', 'default');
+
+            return is_string($configuredPortalSite) && hash_equals($configuredPortalSite, $context['site']);
+        }
+
+        return true;
     }
 
     private function portalRedirect(Request $request, ?string $site = null): RedirectResponse

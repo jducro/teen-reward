@@ -100,6 +100,35 @@ class ExternalPortalTest extends TestCase
         ]);
     }
 
+    public function test_portal_waits_for_unifi_to_index_the_guest_client_before_registering_it(): void
+    {
+        $service = $this->fakeUniFiService();
+        $service->clientAvailable = false;
+        $this->app->instance(UniFiService::class, $service);
+        $this->enterPortal();
+        $teen = User::factory()->create(['role' => 'teen']);
+        Reward::factory()->create(['type' => 'wifi', 'name' => 'One hour']);
+
+        $this->actingAs($teen)->get('/portal')
+            ->assertOk()
+            ->assertSee(__('portal.client_pending'))
+            ->assertSee('http-equiv="refresh" content="3"', false);
+
+        $this->assertDatabaseMissing('user_devices', ['mac_address' => self::MAC]);
+
+        $service->clientAvailable = true;
+        $this->get('/portal')
+            ->assertOk()
+            ->assertSee('One hour')
+            ->assertSee(self::MAC);
+
+        $this->assertDatabaseHas('user_devices', [
+            'user_id' => $teen->id,
+            'mac_address' => self::MAC,
+            'status' => 'active',
+        ]);
+    }
+
     public function test_portal_login_keeps_the_captive_context_and_rejects_parent_accounts(): void
     {
         $this->enterPortal();
@@ -317,8 +346,14 @@ class ExternalPortalTest extends TestCase
 
             public bool $failAuthorization = false;
 
+            public bool $clientAvailable = true;
+
             public function getConnectedClient(string $deviceMac): ?array
             {
+                if (! $this->clientAvailable) {
+                    return null;
+                }
+
                 return ['mac' => $deviceMac, 'ssid' => 'Family Guest', 'ap_mac' => '11:22:33:44:55:66'];
             }
 

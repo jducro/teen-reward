@@ -10,6 +10,7 @@ return [
     'teen_only' => 'Ce portail Wi-Fi est réservé aux comptes ado. Déconnectez-vous du compte parent, puis connectez-vous avec un compte ado.',
     'device_not_approved' => 'Cet appareil (:mac) n’est pas encore enregistré et approuvé pour votre compte ado. Enregistrez-le dans l’application et demandez à un parent de l’approuver.',
     'device_unavailable' => 'Cet appareil (:mac) est déjà associé à un autre compte ou a été bloqué. Contactez un parent pour vérifier son inscription.',
+    'client_pending' => 'Votre appareil est connecté, mais UniFi ne l’a pas encore rendu visible à l’application. Gardez cette page ouverte : elle vérifiera de nouveau dans quelques secondes.',
     'connected_device' => 'Appareil connecté :',
     'unknown_device' => 'Appareil',
     'balance' => 'Votre solde :',

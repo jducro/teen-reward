@@ -3,6 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if ($state === 'client_pending')
+        <meta http-equiv="refresh" content="3">
+    @endif
     <title>{{ __('portal.title') }}</title>
     <style>
         :root { color-scheme: light; font-family: system-ui, sans-serif; color: #172033; background: #f3f6fb; }
@@ -52,6 +55,8 @@
         <p>{{ __('portal.device_not_approved', ['mac' => $context['mac']]) }}</p>
     @elseif ($state === 'device_unavailable')
         <p>{{ __('portal.device_unavailable', ['mac' => $context['mac']]) }}</p>
+    @elseif ($state === 'client_pending')
+        <p>{{ __('portal.client_pending') }}</p>
     @else
         <p>{{ __('portal.connected_device') }} <strong>{{ $device->name ?: __('portal.unknown_device') }}</strong> <span class="muted">({{ $device->mac_address }})</span></p>
         <p>{{ __('portal.balance') }} <strong>{{ auth()->user()->points_balance }} {{ __('portal.points') }}</strong></p>

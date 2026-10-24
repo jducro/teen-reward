@@ -10,6 +10,7 @@ return [
     'teen_only' => 'This Wi-Fi portal is for teen accounts. Sign out of the parent account and sign in as a teen.',
     'device_not_approved' => 'This device (:mac) is not registered and approved for your teen account yet. Register it in the app and ask a parent to approve it.',
     'device_unavailable' => 'This device (:mac) is already linked to another account or has been blocked. Ask a parent to check its registration.',
+    'client_pending' => 'Your device is connected, but UniFi has not made it visible to the app yet. Keep this page open; it will check again in a few seconds.',
     'connected_device' => 'Connected device:',
     'unknown_device' => 'Device',
     'balance' => 'Your balance:',
