@@ -1214,6 +1214,10 @@ body {
   gap: 8px;
 }
 
+.login-form .form-field {
+  flex: 0 0 auto;
+}
+
 .login-input {
   border: none;
   border-radius: 12px;
