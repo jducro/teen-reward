@@ -76,7 +76,7 @@ class ExternalPortalTest extends TestCase
         $this->get('/portal')->assertOk()->assertSee($reward->name)->assertSee('100 points');
     }
 
-    public function test_authenticated_teen_is_automatically_registered_from_the_verified_portal_device(): void
+    public function test_authenticated_teen_must_confirm_before_the_verified_portal_device_is_registered(): void
     {
         $this->enterPortal();
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 40]);
@@ -84,8 +84,15 @@ class ExternalPortalTest extends TestCase
 
         $this->actingAs($teen)->get('/portal')
             ->assertOk()
-            ->assertSee('One hour')
+            ->assertSee(__('portal.current_account', ['email' => $teen->email]))
+            ->assertSee(__('portal.confirm_device_action'))
+            ->assertSee(__('portal.logout_action'))
             ->assertSee(self::MAC);
+
+        $this->assertDatabaseMissing('user_devices', ['mac_address' => self::MAC]);
+
+        $this->post('/portal/device/confirm')->assertRedirect(route('portal.show'));
+        $this->get('/portal')->assertOk()->assertSee('One hour')->assertSee(self::MAC);
 
         $this->assertDatabaseHas('user_devices', [
             'user_id' => $teen->id,
@@ -119,14 +126,49 @@ class ExternalPortalTest extends TestCase
         $service->clientAvailable = true;
         $this->get('/portal')
             ->assertOk()
-            ->assertSee('One hour')
+            ->assertSee(__('portal.confirm_device_action'))
             ->assertSee(self::MAC);
+
+        $this->assertDatabaseMissing('user_devices', ['mac_address' => self::MAC]);
+
+        $this->post('/portal/device/confirm')->assertRedirect(route('portal.show'));
 
         $this->assertDatabaseHas('user_devices', [
             'user_id' => $teen->id,
             'mac_address' => self::MAC,
             'status' => 'active',
         ]);
+    }
+
+    public function test_teen_can_sign_out_before_confirming_and_portal_context_is_preserved(): void
+    {
+        $this->enterPortal();
+        $firstTeen = User::factory()->create([
+            'role' => 'teen',
+            'email' => 'first-teen@example.com',
+            'password' => 'teen-password',
+        ]);
+        $secondTeen = User::factory()->create([
+            'role' => 'teen',
+            'email' => 'second-teen@example.com',
+            'password' => 'teen-password',
+        ]);
+
+        $this->actingAs($firstTeen)->get('/portal')
+            ->assertOk()
+            ->assertSee(__('portal.current_account', ['email' => $firstTeen->email]))
+            ->assertSee(__('portal.logout_action'));
+
+        $this->post('/portal/logout')->assertRedirect(route('portal.show'));
+        $this->get('/portal')->assertOk()->assertSee(__('portal.sign_in_intro', ['ssid' => 'Family Guest']));
+        $this->assertDatabaseMissing('user_devices', ['mac_address' => self::MAC]);
+
+        $this->post('/portal/login', ['email' => $secondTeen->email, 'password' => 'teen-password'])
+            ->assertRedirect(route('portal.show'));
+        $this->get('/portal')
+            ->assertOk()
+            ->assertSee(__('portal.current_account', ['email' => $secondTeen->email]))
+            ->assertSee(__('portal.confirm_device_action'));
     }
 
     public function test_portal_login_keeps_the_captive_context_and_rejects_parent_accounts(): void
@@ -168,6 +210,9 @@ class ExternalPortalTest extends TestCase
         $teen = User::factory()->create(['role' => 'teen', 'points_balance' => 100]);
         $reward = Reward::factory()->create(['type' => 'wifi', 'points_cost' => 25, 'duration_minutes' => 60]);
         $requestKey = (string) Str::uuid();
+
+        $this->actingAs($teen)->get('/portal')->assertOk()->assertSee(__('portal.confirm_device_action'));
+        $this->post('/portal/device/confirm')->assertRedirect(route('portal.show'));
 
         $this->actingAs($teen)->post('/portal/redeem', [
             'reward_id' => $reward->id,

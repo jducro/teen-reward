@@ -56,9 +56,12 @@ class ExternalPortalController extends Controller
             return view('portal.index', ['state' => 'client_pending', 'context' => $context]);
         }
 
-        $device = $this->resolvePortalDevice($user->id, $context['mac']);
-        if ($device === null) {
+        $device = UserDevice::query()->where('mac_address', $context['mac'])->first();
+        if ($device !== null && ($device->user_id !== $user->id || in_array($device->status, ['rejected', 'inactive'], true))) {
             return view('portal.index', ['state' => 'device_unavailable', 'context' => $context]);
+        }
+        if ($device === null || $device->status === 'pending_approval') {
+            return view('portal.index', ['state' => 'confirm_device', 'context' => $context, 'device' => $device]);
         }
 
         $activeRedemption = $this->wifiAccessService->activeRedemptionFor($user);
@@ -100,6 +103,36 @@ class ExternalPortalController extends Controller
         return $this->portalRedirect($request, $site);
     }
 
+    public function confirmDevice(Request $request, ?string $site = null): RedirectResponse
+    {
+        abort_unless($request->user()?->role === 'teen', 403);
+
+        $context = $request->session()->get('external_portal');
+        if (! is_array($context) || ! $this->contextMatchesConfiguration($context) || ! $this->contextIsCurrent($context)) {
+            return $this->portalRedirect($request, $site)->withErrors(['portal' => __('portal.errors.reconnect')]);
+        }
+
+        if ($this->resolvePortalDevice($request->user()->id, $context['mac']) === null) {
+            return $this->portalRedirect($request, $site)->withErrors(['device' => __('portal.errors.device_unavailable')]);
+        }
+
+        return $this->portalRedirect($request, $site)->with('status', __('portal.device_confirmed'));
+    }
+
+    public function logout(Request $request, ?string $site = null): RedirectResponse
+    {
+        $context = $request->session()->get('external_portal');
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        if (is_array($context) && $this->contextMatchesConfiguration($context)) {
+            $request->session()->put('external_portal', $context);
+        }
+
+        return $this->portalRedirect($request, $site);
+    }
+
     public function redeem(Request $request, ?string $site = null): RedirectResponse
     {
         abort_unless($request->user()?->role === 'teen', 403);
@@ -115,9 +148,16 @@ class ExternalPortalController extends Controller
         }
 
         $user = $request->user();
-        $device = $this->resolvePortalDevice($user->id, $context['mac']);
+        $device = UserDevice::query()
+            ->where('mac_address', $context['mac'])
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
         if ($device === null) {
-            return $this->portalRedirect($request, $site)->withErrors(['device' => __('portal.errors.device_unavailable')]);
+            $otherOwner = UserDevice::query()->where('mac_address', $context['mac'])->where('user_id', '!=', $user->id)->exists();
+            $error = $otherOwner ? __('portal.errors.device_unavailable') : __('portal.errors.device_confirmation_required');
+
+            return $this->portalRedirect($request, $site)->withErrors(['device' => $error]);
         }
 
         $reward = Reward::query()->where('type', 'wifi')->findOrFail($data['reward_id']);
