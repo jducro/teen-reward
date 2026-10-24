@@ -41,6 +41,7 @@ class UniFiExternalHotspotApiTest extends TestCase
         Http::assertSent(fn ($request): bool => $request->method() === 'GET'
             && str_contains($request->url(), '/sites/site-123/clients')
             && str_contains($request->url(), 'filter=')
+            && str_contains(urldecode($request->url()), "filter=macAddress.eq('AA:BB:CC:DD:EE:FF')")
             && $request->hasHeader('X-API-Key', 'integration-key'));
     }
 

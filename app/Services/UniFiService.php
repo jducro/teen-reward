@@ -197,7 +197,7 @@ class UniFiService
         $normalizedMac = strtolower(str_replace('-', ':', $deviceMac));
         $response = $this->integrationApiRequest()->get(
             $this->integrationApiUrl('/sites/'.rawurlencode($this->integrationSiteId()).'/clients'),
-            ['filter' => "macAddress.eq('{$normalizedMac}')"]
+            ['filter' => "macAddress.eq('".strtoupper($normalizedMac)."')"]
         )->throw();
 
         $clients = $response->json();
