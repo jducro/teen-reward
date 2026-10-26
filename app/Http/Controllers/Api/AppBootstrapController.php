@@ -31,7 +31,6 @@ class AppBootstrapController extends Controller
 
         $chores = $user->role === 'parent'
             ? Chore::query()
-                ->where('created_by', $user->id)
                 ->latest()
                 ->get()
             : Chore::query()

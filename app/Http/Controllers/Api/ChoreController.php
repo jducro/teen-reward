@@ -27,7 +27,6 @@ class ChoreController extends Controller
     public function update(Request $request, Chore $chore): JsonResponse
     {
         abort_unless($request->user()?->role === 'parent', 403);
-        abort_unless($chore->created_by === $request->user()->id, 403);
 
         $chore->update($this->validateChore($request));
 
@@ -39,7 +38,6 @@ class ChoreController extends Controller
     public function destroy(Request $request, Chore $chore): JsonResponse
     {
         abort_unless($request->user()?->role === 'parent', 403);
-        abort_unless($chore->created_by === $request->user()->id, 403);
 
         $chore->delete();
 

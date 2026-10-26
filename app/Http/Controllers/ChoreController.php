@@ -28,11 +28,11 @@ class ChoreController extends Controller
     }
 
     /**
-     * Display a listing of the chores created by this parent.
+     * Display the shared chores available to parents.
      */
     public function index(): View
     {
-        $chores = Chore::where('created_by', Auth::id())->orderBy('id', 'desc')->get();
+        $chores = Chore::orderBy('id', 'desc')->get();
 
         return view('chores.index', compact('chores'));
     }
@@ -79,8 +79,6 @@ class ChoreController extends Controller
      */
     public function edit(Chore $chore): View
     {
-        abort_unless($chore->created_by === auth()->id(), 403);
-
         return view('chores.edit', compact('chore'));
     }
 
@@ -89,8 +87,6 @@ class ChoreController extends Controller
      */
     public function update(Request $request, Chore $chore): RedirectResponse
     {
-        abort_unless($chore->created_by === auth()->id(), 403);
-
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -118,8 +114,6 @@ class ChoreController extends Controller
      */
     public function destroy(Chore $chore): RedirectResponse
     {
-        abort_unless($chore->created_by === auth()->id(), 403);
-
         $chore->delete();
 
         return redirect()->route('chores.index')->with('status', __('messages.chore.deleted'));

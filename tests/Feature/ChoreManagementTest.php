@@ -69,4 +69,50 @@ class ChoreManagementTest extends TestCase
             ])
             ->assertStatus(403);
     }
+
+    public function test_parent_can_view_edit_and_assign_a_chore_created_by_another_parent(): void
+    {
+        $creator = User::factory()->create(['role' => 'parent']);
+        $parent = User::factory()->create(['role' => 'parent']);
+        $teen = User::factory()->create(['role' => 'teen']);
+        $chore = Chore::factory()->create([
+            'title' => 'Wash the dishes',
+            'created_by' => $creator->id,
+        ]);
+
+        $this->actingAs($parent)
+            ->getJson('/api/bootstrap')
+            ->assertOk()
+            ->assertJsonPath('chores.0.id', $chore->id)
+            ->assertJsonFragment(['id' => $teen->id, 'name' => $teen->name]);
+
+        $this->actingAs($parent)
+            ->putJson("/api/chores/{$chore->id}", [
+                'title' => 'Wash dishes and pans',
+                'description' => 'Kitchen cleanup',
+                'points_value' => 15,
+                'category' => 'quick',
+                'emoji' => '🧽',
+                'recurrence_type' => 'weekly',
+                'active' => true,
+            ])
+            ->assertOk();
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", [
+                'teen_id' => $teen->id,
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('chores', [
+            'id' => $chore->id,
+            'title' => 'Wash dishes and pans',
+            'created_by' => $creator->id,
+        ]);
+        $this->assertDatabaseHas('chore_claims', [
+            'chore_id' => $chore->id,
+            'user_id' => $teen->id,
+            'status' => 'approved',
+        ]);
+    }
 }
