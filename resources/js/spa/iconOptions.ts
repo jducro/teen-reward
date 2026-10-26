@@ -1,153 +1,5 @@
 import type { IconOption } from '../components/IconPicker';
-
-const fullMaterialIconCatalog: IconOption[] = [
-  { value: 'mi:cleaning_services', label: 'Nettoyage' },
-  { value: 'mi:local_laundry_service', label: 'Lessive' },
-  { value: 'mi:kitchen', label: 'Cuisine' },
-  { value: 'mi:delete', label: 'Poubelle' },
-  { value: 'mi:bed', label: 'Chambre' },
-  { value: 'mi:yard', label: 'Jardin' },
-  { value: 'mi:pets', label: 'Animaux' },
-  { value: 'mi:directions_car', label: 'Voiture' },
-  { value: 'mi:menu_book', label: 'Devoirs' },
-  { value: 'mi:home_repair_service', label: 'Réparation' },
-  { value: 'mi:checklist', label: 'Checklist' },
-  { value: 'mi:inventory_2', label: 'Rangement' },
-  { value: 'mi:card_giftcard', label: 'Cadeau' },
-  { value: 'mi:sports_esports', label: 'Jeux vidéo' },
-  { value: 'mi:movie', label: 'Film' },
-  { value: 'mi:wifi', label: 'Internet' },
-  { value: 'mi:smartphone', label: 'Téléphone' },
-  { value: 'mi:headphones', label: 'Musique' },
-  { value: 'mi:local_pizza', label: 'Pizza' },
-  { value: 'mi:cake', label: 'Dessert' },
-  { value: 'mi:park', label: 'Sortie parc' },
-  { value: 'mi:shopping_bag', label: 'Shopping' },
-  { value: 'mi:redeem', label: 'Bon cadeau' },
-  { value: 'mi:star', label: 'Bonus' },
-  { value: 'mi:favorite', label: 'Favori' },
-  { value: 'mi:celebration', label: 'Fête' },
-  { value: 'mi:sports_soccer', label: 'Football' },
-  { value: 'mi:sports_basketball', label: 'Basket' },
-  { value: 'mi:sports_tennis', label: 'Tennis' },
-  { value: 'mi:sports_volleyball', label: 'Volley' },
-  { value: 'mi:fitness_center', label: 'Sport' },
-  { value: 'mi:directions_bike', label: 'Vélo' },
-  { value: 'mi:hiking', label: 'Randonnée' },
-  { value: 'mi:pool', label: 'Piscine' },
-  { value: 'mi:beach_access', label: 'Plage' },
-  { value: 'mi:restaurant', label: 'Restaurant' },
-  { value: 'mi:local_cafe', label: 'Café' },
-  { value: 'mi:icecream', label: 'Glace' },
-  { value: 'mi:bakery_dining', label: 'Boulangerie' },
-  { value: 'mi:music_note', label: 'Note de musique' },
-  { value: 'mi:piano', label: 'Piano' },
-  { value: 'mi:theaters', label: 'Théâtre' },
-  { value: 'mi:palette', label: 'Dessin' },
-  { value: 'mi:photo_camera', label: 'Photo' },
-  { value: 'mi:photo', label: 'Galerie photo' },
-  { value: 'mi:videogame_asset', label: 'Gaming' },
-  { value: 'mi:toys', label: 'Jouets' },
-  { value: 'mi:rocket_launch', label: 'Fusée' },
-  { value: 'mi:auto_awesome', label: 'Magique' },
-  { value: 'mi:workspace_premium', label: 'Premium' },
-  { value: 'mi:military_tech', label: 'Trophée' },
-  { value: 'mi:emoji_events', label: 'Récompense' },
-  { value: 'mi:workspace_premium', label: 'Badge premium' },
-  { value: 'mi:bolt', label: 'Rapide' },
-  { value: 'mi:timer', label: 'Chrono' },
-  { value: 'mi:alarm', label: 'Réveil' },
-  { value: 'mi:schedule', label: 'Planning' },
-  { value: 'mi:task_alt', label: 'Mission validée' },
-  { value: 'mi:check_circle', label: 'Validation' },
-  { value: 'mi:assignment_turned_in', label: 'Devoir rendu' },
-  { value: 'mi:construction', label: 'Travaux' },
-  { value: 'mi:build', label: 'Bricolage' },
-  { value: 'mi:plumbing', label: 'Plomberie' },
-  { value: 'mi:electrical_services', label: 'Électricité' },
-  { value: 'mi:handyman', label: 'Outils' },
-  { value: 'mi:carpenter', label: 'Menuiserie' },
-  { value: 'mi:window', label: 'Fenêtres' },
-  { value: 'mi:chair', label: 'Salon' },
-  { value: 'mi:weekend', label: 'Canapé' },
-  { value: 'mi:desk', label: 'Bureau' },
-  { value: 'mi:school', label: 'École' },
-  { value: 'mi:history_edu', label: 'Lecture' },
-  { value: 'mi:calculate', label: 'Maths' },
-  { value: 'mi:science', label: 'Science' },
-  { value: 'mi:language', label: 'Langues' },
-  { value: 'mi:public', label: 'Monde' },
-  { value: 'mi:eco', label: 'Écologie' },
-  { value: 'mi:recycling', label: 'Recyclage' },
-  { value: 'mi:forest', label: 'Nature' },
-  { value: 'mi:water_drop', label: 'Eau' },
-  { value: 'mi:wb_sunny', label: 'Soleil' },
-  { value: 'mi:nightlight', label: 'Nuit' },
-  { value: 'mi:hotel', label: 'Dormir' },
-  { value: 'mi:airplanemode_active', label: 'Voyage' },
-  { value: 'mi:flight', label: 'Avion' },
-  { value: 'mi:train', label: 'Train' },
-  { value: 'mi:directions_bus', label: 'Bus' },
-  { value: 'mi:map', label: 'Carte' },
-  { value: 'mi:explore', label: 'Explorer' },
-  { value: 'mi:camera_roll', label: 'Souvenirs' },
-  { value: 'mi:savings', label: 'Épargne' },
-  { value: 'mi:payments', label: 'Paiement' },
-  { value: 'mi:paid', label: 'Payé' },
-  { value: 'mi:account_balance_wallet', label: 'Portefeuille' },
-  { value: 'mi:diamond', label: 'Diamant' },
-  { value: 'mi:spa', label: 'Détente' },
-  { value: 'mi:self_improvement', label: 'Zen' },
-  { value: 'mi:sentiment_satisfied', label: 'Content' },
-  { value: 'mi:mood', label: 'Bonne humeur' },
-  { value: 'mi:thumb_up', label: 'Bravo' },
-  { value: 'mi:volunteer_activism', label: 'Gentillesse' },
-  { value: 'mi:groups', label: 'Équipe' },
-  { value: 'mi:family_restroom', label: 'Famille' },
-  { value: 'mi:home', label: 'Maison' },
-  { value: 'mi:local_shipping', label: 'Livraison' },
-  { value: 'mi:shopping_cart', label: 'Panier' },
-  { value: 'mi:menu', label: 'Menu' },
-  { value: 'mi:apps', label: 'Applications' },
-  { value: 'mi:extension', label: 'Puzzle' },
-  { value: 'mi:psychology', label: 'Réflexion' },
-  { value: 'mi:memory', label: 'Mémoire' },
-  { value: 'mi:terminal', label: 'Terminal' },
-  { value: 'mi:code', label: 'Code' },
-  { value: 'mi:lock', label: 'Sécurité' },
-  { value: 'mi:shield', label: 'Protection' },
-  { value: 'mi:verified', label: 'Vérifié' },
-  { value: 'mi:flag', label: 'Objectif' },
-  { value: 'mi:target', label: 'Cible' },
-  { value: 'mi:north_star', label: 'Étoile du nord' },
-  { value: 'mi:military_tech', label: 'Médaille' },
-  { value: 'mi:workspace_premium', label: 'Succès' },
-  { value: 'mi:emoji_objects', label: 'Idée' },
-  { value: 'mi:lightbulb', label: 'Inspiration' },
-  { value: 'mi:home_work', label: 'Travail maison' },
-  { value: 'mi:laundry', label: 'Corbeille linge' },
-  { value: 'mi:clean_hands', label: 'Hygiène' },
-  { value: 'mi:health_and_safety', label: 'Santé' },
-  { value: 'mi:medication', label: 'Médicaments' },
-  { value: 'mi:local_hospital', label: 'Hôpital' },
-  { value: 'mi:child_care', label: 'Enfant' },
-  { value: 'mi:stroller', label: 'Sortie enfant' },
-  { value: 'mi:school', label: 'Études' },
-  { value: 'mi:bookmark', label: 'Marque-page' },
-  { value: 'mi:bookmark_added', label: 'Ajout favori' },
-];
-
-function uniqueByValue(options: IconOption[]) {
-  const map = new Map<string, IconOption>();
-
-  for (const option of options) {
-    if (!map.has(option.value)) {
-      map.set(option.value, option);
-    }
-  }
-
-  return Array.from(map.values());
-}
+import { materialSymbolNames } from './materialSymbolNames';
 
 const chorePriorityIcons: IconOption[] = [
   { value: 'mi:cleaning_services', label: 'Nettoyage' },
@@ -176,6 +28,54 @@ const rewardPriorityIcons: IconOption[] = [
   { value: 'mi:redeem', label: 'Bon cadeau' },
   { value: 'mi:star', label: 'Bonus' },
 ];
+
+const iconAliases: Record<string, string[]> = {
+  'mi:cleaning_services': ['ménage', 'nettoyer', 'balai', 'aspirateur', 'cleaning', 'vacuum'],
+  'mi:local_laundry_service': ['linge', 'laver', 'machine à laver', 'lessive', 'laundry', 'washing'],
+  'mi:kitchen': ['cuisine', 'cuisiner', 'repas', 'cooking'],
+  'mi:delete': ['poubelle', 'ordures', 'déchets', 'trash', 'garbage'],
+  'mi:bed': ['lit', 'chambre', 'faire le lit', 'bedroom'],
+  'mi:yard': ['jardin', 'jardinage', 'tondre', 'gazon', 'garden', 'lawn'],
+  'mi:pets': ['animal', 'animaux', 'chien', 'chat', 'pet', 'dog', 'cat'],
+  'mi:menu_book': ['livre', 'lecture', 'lire', 'devoirs', 'homework', 'reading'],
+  'mi:home_repair_service': ['réparer', 'réparation', 'bricolage', 'repair', 'tool'],
+  'mi:inventory_2': ['rangement', 'ranger', 'organiser', 'tidy', 'storage'],
+  'mi:card_giftcard': ['cadeau', 'présent', 'gift', 'present'],
+  'mi:sports_esports': ['jeu', 'jeux vidéo', 'gaming', 'video game'],
+  'mi:movie': ['film', 'cinéma', 'movie', 'cinema'],
+  'mi:wifi': ['internet', 'wi-fi', 'connexion', 'network'],
+  'mi:smartphone': ['téléphone', 'mobile', 'phone'],
+  'mi:headphones': ['musique', 'casque', 'écouteurs', 'music', 'headset'],
+  'mi:local_pizza': ['pizza', 'nourriture', 'food'],
+  'mi:shopping_bag': ['shopping', 'courses', 'magasin', 'boutique', 'store'],
+  'mi:directions_car': ['voiture', 'auto', 'car', 'automobile'],
+  'mi:clean_hands': ['mains', 'se laver', 'lavage', 'hygiène', 'wash hands'],
+  'mi:checklist': ['liste', 'tâche', 'mission', 'todo', 'task'],
+};
+
+const fullMaterialIconCatalog: IconOption[] = materialSymbolNames.map((name) => ({
+  value: `mi:${name}`,
+  label: name.replaceAll('_', ' '),
+  aliases: iconAliases[`mi:${name}`],
+}));
+
+function uniqueByValue(options: IconOption[]): IconOption[] {
+  const map = new Map<string, IconOption>();
+
+  for (const option of options) {
+    if (!map.has(option.value)) {
+      map.set(option.value, option);
+    } else if (option.aliases?.length) {
+      const existing = map.get(option.value);
+
+      if (existing) {
+        existing.aliases = [...new Set([...(existing.aliases ?? []), ...option.aliases])];
+      }
+    }
+  }
+
+  return Array.from(map.values());
+}
 
 export const choreIconOptions = uniqueByValue([...chorePriorityIcons, ...fullMaterialIconCatalog]);
 export const rewardIconOptions = uniqueByValue([...rewardPriorityIcons, ...fullMaterialIconCatalog]);

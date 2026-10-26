@@ -5,6 +5,7 @@ import AppIcon from './AppIcon';
 export type IconOption = {
   value: string;
   label: string;
+  aliases?: string[];
 };
 
 type IconPickerProps = {
@@ -19,13 +20,16 @@ export default function IconPicker({ value, options, onChange }: IconPickerProps
   const [query, setQuery] = useState('');
 
   const localizedOptions = useMemo(
-    () => options.map((option) => ({
-      ...option,
-      label: intl.formatMessage({
-        id: `icon.${option.value.replace('mi:', '').replaceAll('_', '.')}`,
-        defaultMessage: option.label,
-      }),
-    })),
+    () => options.map((option) => {
+      const messageId = `icon.${option.value.replace('mi:', '').replaceAll('_', '.')}`;
+
+      return {
+        ...option,
+        label: intl.messages[messageId]
+          ? intl.formatMessage({ id: messageId, defaultMessage: option.label })
+          : option.label,
+      };
+    }),
     [intl, options],
   );
 
@@ -45,20 +49,27 @@ export default function IconPicker({ value, options, onChange }: IconPickerProps
     [displayedOptions, value],
   );
 
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizeSearchText = (text: string) => text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  const queryTerms = normalizeSearchText(query.trim()).split(/\s+/).filter(Boolean);
 
   const filteredOptions = useMemo(() => {
-    if (!normalizedQuery) {
+    if (queryTerms.length === 0) {
       return displayedOptions;
     }
 
     return displayedOptions.filter((option) => {
-      const normalizedLabel = option.label.toLowerCase();
-      const normalizedValue = option.value.replace('mi:', '').replaceAll('_', ' ').toLowerCase();
+      const searchableText = normalizeSearchText([
+        option.label,
+        option.value.replace('mi:', '').replaceAll('_', ' '),
+        ...(option.aliases ?? []),
+      ].join(' '));
 
-      return normalizedLabel.includes(normalizedQuery) || normalizedValue.includes(normalizedQuery);
+      return queryTerms.every((term) => searchableText.includes(term));
     });
-  }, [displayedOptions, normalizedQuery]);
+  }, [displayedOptions, queryTerms.join(' ')]);
 
   useEffect(() => {
     if (!isOpen) {
