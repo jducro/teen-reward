@@ -34,14 +34,24 @@ fi
 echo "Checking production Compose configuration..."
 "${COMPOSE[@]}" config --quiet
 
+PREVIOUS_REVISION=$(git rev-parse HEAD)
+
 echo "Pulling the current branch..."
 git pull --ff-only
 
 echo "Validating the updated production Compose configuration..."
 "${COMPOSE[@]}" config --quiet
 
-echo "Building the application and Caddy images..."
-"${COMPOSE[@]}" build app caddy
+echo "Building the application image..."
+"${COMPOSE[@]}" build app
+
+CADDY_IMAGE_ID=$("${COMPOSE[@]}" images -q caddy)
+if [[ -z "$CADDY_IMAGE_ID" ]] || ! git diff --quiet "$PREVIOUS_REVISION" HEAD -- Dockerfile.caddy compose.prod.yaml; then
+    echo "Building the Caddy image..."
+    "${COMPOSE[@]}" build caddy
+else
+    echo "Reusing the existing Caddy image."
+fi
 
 echo "Starting the database and Redis..."
 "${COMPOSE[@]}" up -d mariadb redis
