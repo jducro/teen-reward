@@ -28,6 +28,9 @@ export type Chore = {
     category: 'quick' | 'fun' | 'big';
     emoji: string;
     active?: boolean;
+    recurrenceType?: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
+    recurrenceInterval?: number | null;
+    recurrenceUnit?: 'days' | 'weeks' | 'months' | null;
 };
 
 export type ClaimStatus = 'pending' | 'approved' | 'rejected';
@@ -122,6 +125,9 @@ export type ChoreDraft = {
     pointsValue: number;
     category: 'quick' | 'fun' | 'big';
     emoji: string;
+    recurrenceType: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
+    recurrenceInterval: number;
+    recurrenceUnit: 'days' | 'weeks' | 'months';
 };
 
 export type RewardDraft = {

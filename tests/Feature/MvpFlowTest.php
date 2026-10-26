@@ -7,6 +7,7 @@ use App\Models\ChoreClaim;
 use App\Models\Reward;
 use App\Models\User;
 use App\Services\UniFiService;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Tests\TestCase;
 
 class MvpFlowTest extends TestCase
@@ -14,6 +15,7 @@ class MvpFlowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutMiddleware(PreventRequestForgery::class);
 
         // Mock UniFiService for this test
         $unifiService = $this->mock(UniFiService::class);
@@ -144,6 +146,34 @@ class MvpFlowTest extends TestCase
                 'teen_id' => $teen->id,
             ])
             ->assertUnprocessable();
+    }
+
+    public function test_unlimited_chore_can_be_claimed_repeatedly_by_the_same_teen(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+        $teen = User::factory()->create(['role' => 'teen']);
+        $chore = Chore::factory()->create([
+            'points_value' => 10,
+            'recurrence_type' => 'none',
+            'created_by' => $parent->id,
+        ]);
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", ['teen_id' => $teen->id])
+            ->assertCreated();
+
+        $this->actingAs($parent)
+            ->postJson("/api/chores/{$chore->id}/claim-for-teen", ['teen_id' => $teen->id])
+            ->assertCreated();
+
+        $this->actingAs($parent)
+            ->getJson('/api/bootstrap')
+            ->assertOk()
+            ->assertJsonPath("availableChoresByTeen.{$teen->id}.0.id", $chore->id);
+
+        $teen->refresh();
+        $this->assertSame(20, $teen->points_balance);
+        $this->assertDatabaseCount('chore_claims', 2);
     }
 
     public function test_only_parent_can_create_claim_for_teen(): void

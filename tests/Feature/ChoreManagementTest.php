@@ -115,4 +115,27 @@ class ChoreManagementTest extends TestCase
             'status' => 'approved',
         ]);
     }
+
+    public function test_parent_can_create_a_chore_with_a_custom_recurrence(): void
+    {
+        $parent = User::factory()->create(['role' => 'parent']);
+
+        $this->actingAs($parent)
+            ->postJson('/api/chores', [
+                'title' => 'Water the plants',
+                'points_value' => 10,
+                'recurrence_type' => 'custom',
+                'recurrence_interval' => 2,
+                'recurrence_unit' => 'weeks',
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('chores', [
+            'title' => 'Water the plants',
+            'recurrence_type' => 'custom',
+            'recurrence_interval' => 2,
+            'recurrence_unit' => 'weeks',
+            'created_by' => $parent->id,
+        ]);
+    }
 }

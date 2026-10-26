@@ -223,6 +223,10 @@ class AppBootstrapController extends Controller
         $now = Carbon::now();
 
         return $chores->filter(function (Chore $chore) use ($teen, $claimService, $now) {
+            if ($chore->recurrence_type === 'none') {
+                return true;
+            }
+
             $periodStart = $claimService->calculatePeriodStart($chore, $now);
 
             $existing = ChoreClaim::query()

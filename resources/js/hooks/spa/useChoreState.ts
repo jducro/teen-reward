@@ -77,7 +77,9 @@ export function useChoreState({
                         points_value: input.pointsValue,
                         category: input.category,
                         emoji: input.emoji,
-                        recurrence_type: 'none',
+                        recurrence_type: input.recurrenceType,
+                        recurrence_interval: input.recurrenceType === 'custom' ? input.recurrenceInterval : null,
+                        recurrence_unit: input.recurrenceType === 'custom' ? input.recurrenceUnit : null,
                         active: true,
                     },
                 })) as ApiSuccessPayload;
@@ -107,7 +109,9 @@ export function useChoreState({
                         points_value: input.pointsValue,
                         category: input.category,
                         emoji: input.emoji,
-                        recurrence_type: 'none',
+                        recurrence_type: input.recurrenceType,
+                        recurrence_interval: input.recurrenceType === 'custom' ? input.recurrenceInterval : null,
+                        recurrence_unit: input.recurrenceType === 'custom' ? input.recurrenceUnit : null,
                         active: true,
                     },
                 })) as ApiSuccessPayload;

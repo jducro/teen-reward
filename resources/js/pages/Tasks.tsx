@@ -67,6 +67,9 @@ export default function Tasks({
     pointsValue: 20,
     category: 'fun',
     emoji: 'mi:cleaning_services',
+    recurrenceType: 'daily',
+    recurrenceInterval: 1,
+    recurrenceUnit: 'days',
   });
 
   const latestClaimByChore = useMemo(() => {
@@ -132,6 +135,9 @@ export default function Tasks({
       pointsValue: task.pointsValue,
       category: task.category,
       emoji: task.emoji,
+      recurrenceType: task.recurrenceType ?? 'daily',
+      recurrenceInterval: task.recurrenceInterval ?? 1,
+      recurrenceUnit: task.recurrenceUnit ?? 'days',
     });
   }
 
@@ -143,6 +149,9 @@ export default function Tasks({
       pointsValue: 20,
       category: 'fun',
       emoji: 'mi:cleaning_services',
+      recurrenceType: 'daily',
+      recurrenceInterval: 1,
+      recurrenceUnit: 'days',
     });
   }
 
@@ -155,6 +164,9 @@ export default function Tasks({
       pointsValue: form.pointsValue,
       category: form.category,
       emoji: form.emoji.trim(),
+      recurrenceType: form.recurrenceType,
+      recurrenceInterval: form.recurrenceInterval,
+      recurrenceUnit: form.recurrenceUnit,
     };
 
     const success = editingId
@@ -368,6 +380,55 @@ export default function Tasks({
             </select>
           </div>
           <div className="form-field">
+            <label htmlFor="task-recurrence">{intl.formatMessage({ id: 'field.recurrence', defaultMessage: 'Frequency' })}</label>
+            <select
+              id="task-recurrence"
+              className="crud-input"
+              value={form.recurrenceType}
+              onChange={(event) => setForm((current) => ({ ...current, recurrenceType: event.target.value as ChoreDraft['recurrenceType'] }))}
+            >
+              <option value="none">{intl.formatMessage({ id: 'recurrence.none', defaultMessage: 'No limit' })}</option>
+              <option value="daily">{intl.formatMessage({ id: 'recurrence.daily', defaultMessage: 'Daily' })}</option>
+              <option value="weekly">{intl.formatMessage({ id: 'recurrence.weekly', defaultMessage: 'Weekly' })}</option>
+              <option value="monthly">{intl.formatMessage({ id: 'recurrence.monthly', defaultMessage: 'Monthly' })}</option>
+              <option value="custom">{intl.formatMessage({ id: 'recurrence.custom', defaultMessage: 'Custom' })}</option>
+            </select>
+            <p className="crud-hint">
+              {intl.formatMessage({
+                id: 'tasks.form.recurrenceHelp',
+                defaultMessage: 'The task becomes available again at the start of the next period. No limit allows repeated attribution at any time.',
+              })}
+            </p>
+          </div>
+          {form.recurrenceType === 'custom' ? (
+            <div className="crud-row">
+              <div className="form-field">
+                <label htmlFor="task-recurrence-interval">{intl.formatMessage({ id: 'field.interval', defaultMessage: 'Repeat every' })}</label>
+                <input
+                  id="task-recurrence-interval"
+                  className="crud-input"
+                  type="number"
+                  min={1}
+                  value={form.recurrenceInterval}
+                  onChange={(event) => setForm((current) => ({ ...current, recurrenceInterval: Math.max(1, Number(event.target.value) || 1) }))}
+                />
+              </div>
+              <div className="form-field">
+                <label htmlFor="task-recurrence-unit">{intl.formatMessage({ id: 'field.unit', defaultMessage: 'Unit' })}</label>
+                <select
+                  id="task-recurrence-unit"
+                  className="crud-input"
+                  value={form.recurrenceUnit}
+                  onChange={(event) => setForm((current) => ({ ...current, recurrenceUnit: event.target.value as ChoreDraft['recurrenceUnit'] }))}
+                >
+                  <option value="days">{intl.formatMessage({ id: 'unit.days', defaultMessage: 'Days' })}</option>
+                  <option value="weeks">{intl.formatMessage({ id: 'unit.weeks', defaultMessage: 'Weeks' })}</option>
+                  <option value="months">{intl.formatMessage({ id: 'unit.months', defaultMessage: 'Months' })}</option>
+                </select>
+              </div>
+            </div>
+          ) : null}
+          <div className="form-field">
             <label htmlFor="task-description">{intl.formatMessage({ id: 'tasks.form.descriptionOptional', defaultMessage: 'Description (optional)' })}</label>
             <textarea
               id="task-description"
@@ -415,7 +476,8 @@ export default function Tasks({
           {filtered.map((task, i) => {
             const status = latestClaimByChore.get(task.id);
             const isClaimBusy = busyKey === `claim:${task.id}`;
-            const isDone = status === 'pending' || status === 'approved';
+            const isUnlimited = task.recurrenceType === 'none';
+            const isDone = !isUnlimited && (status === 'pending' || status === 'approved');
             const claimDisabled = !canClaim || isDone || isClaimBusy;
             const isUpdateBusy = busyKey === `chore:update:${task.id}`;
             const isDeleteBusy = busyKey === `chore:delete:${task.id}`;
@@ -445,7 +507,9 @@ export default function Tasks({
                     {canManage ? (
                       <span className="task-status available">{intl.formatMessage({ id: 'tasks.status.parentManage', defaultMessage: 'Parent manage' })}</span>
                     ) : (
-                      <span className={`task-status ${status ?? 'available'}`}>{statusLabel(status, intl)}</span>
+                      <span className={`task-status ${isUnlimited ? 'available' : status ?? 'available'}`}>
+                        {statusLabel(isUnlimited ? undefined : status, intl)}
+                      </span>
                     )}
                   </div>
                   {task.description ? <p className="task-description">{task.description}</p> : null}

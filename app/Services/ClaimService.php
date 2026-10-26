@@ -55,18 +55,20 @@ class ClaimService
     {
         $periodStart = $this->calculatePeriodStart($chore, Carbon::now());
 
-        $existing = ChoreClaim::query()
-            ->where('chore_id', $chore->id)
-            ->where('user_id', $teen->id)
-            ->whereDate('period_start', $periodStart->toDateString())
-            ->first();
+        if ($chore->recurrence_type !== 'none') {
+            $existing = ChoreClaim::query()
+                ->where('chore_id', $chore->id)
+                ->where('user_id', $teen->id)
+                ->whereDate('period_start', $periodStart->toDateString())
+                ->first();
 
-        if ($existing) {
-            return [
-                'success' => false,
-                'message' => __('messages.claim.already_claimed_current_period'),
-                'status_code' => 422,
-            ];
+            if ($existing) {
+                return [
+                    'success' => false,
+                    'message' => __('messages.claim.already_claimed_current_period'),
+                    'status_code' => 422,
+                ];
+            }
         }
 
         $claim = ChoreClaim::query()->create([
@@ -93,18 +95,20 @@ class ClaimService
     {
         $periodStart = $this->calculatePeriodStart($chore, Carbon::now());
 
-        $existing = ChoreClaim::query()
-            ->where('chore_id', $chore->id)
-            ->where('user_id', $teen->id)
-            ->whereDate('period_start', $periodStart->toDateString())
-            ->first();
+        if ($chore->recurrence_type !== 'none') {
+            $existing = ChoreClaim::query()
+                ->where('chore_id', $chore->id)
+                ->where('user_id', $teen->id)
+                ->whereDate('period_start', $periodStart->toDateString())
+                ->first();
 
-        if ($existing) {
-            return [
-                'success' => false,
-                'message' => __('messages.claim.already_claimed_current_period'),
-                'status_code' => 422,
-            ];
+            if ($existing) {
+                return [
+                    'success' => false,
+                    'message' => __('messages.claim.already_claimed_current_period'),
+                    'status_code' => 422,
+                ];
+            }
         }
 
         $points = $chore->points_value;
