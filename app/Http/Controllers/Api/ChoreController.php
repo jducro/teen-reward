@@ -56,7 +56,7 @@ class ChoreController extends Controller
             'description' => ['nullable', 'string'],
             'points_value' => ['required', 'integer', 'min:0'],
             'category' => ['sometimes', 'required', Rule::in(['quick', 'fun', 'big'])],
-            'emoji' => ['nullable', 'string', 'max:64'],
+            'emoji' => ['nullable', 'string', 'max:255'],
             'recurrence_type' => ['required', Rule::in(['none', 'daily', 'weekly', 'monthly', 'custom'])],
             'recurrence_interval' => ['nullable', 'integer', 'min:1', 'required_if:recurrence_type,custom'],
             'recurrence_unit' => ['nullable', Rule::in(['days', 'weeks', 'months']), 'required_if:recurrence_type,custom'],

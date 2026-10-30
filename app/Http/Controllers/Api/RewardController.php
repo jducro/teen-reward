@@ -162,7 +162,7 @@ class RewardController extends Controller
             'type' => ['required', 'in:physical,wifi'],
             'points_cost' => ['required', 'integer', 'min:0'],
             'duration_minutes' => ['required_if:type,wifi', 'nullable', 'integer', 'min:1'],
-            'emoji' => ['nullable', 'string', 'max:64'],
+            'emoji' => ['nullable', 'string', 'max:255'],
         ]);
 
         $data['emoji'] = filled($data['emoji'] ?? null) ? $data['emoji'] : '🎁';
