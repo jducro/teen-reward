@@ -24,8 +24,8 @@ importers:
         specifier: ^19.3.1
         version: 19.3.1(react@19.3.1)
       react-intl:
-        specifier: ^12.1.5
-        version: 12.1.5(@types/react@19.3.0)(react@19.3.1)
+        specifier: ^12.1.6
+        version: 12.1.6(@types/react@19.3.0)(react@19.3.1)
     devDependencies:
       '@tailwindcss/forms':
         specifier: ^0.5.2
@@ -1171,8 +1171,8 @@ packages:
     peerDependencies:
       react: ^19.3.1
 
-  react-intl@12.1.5:
-    resolution: {integrity: sha512-nlyc4qcORgNTUmSHM9ZBoYhuK57yzPlV1oqlo7mwhHDrUDNC+wUzGZufwMjayXo7xqmQyQywAlYllaEBbbfqew==}
+  react-intl@12.1.6:
+    resolution: {integrity: sha512-cxiqHlRK/JdDW/hMzusEv+LAqhfjUCL1YZAlazE39gT6jT3UrrNi3H50cgsveyUaASW14kNM2izIYMPYsYDCgA==}
     peerDependencies:
       '@types/react': '>=18.0.0'
       react: '>=18.0.0'
@@ -2200,7 +2200,7 @@ snapshots:
       react: 19.3.1
       scheduler: 0.28.0
 
-  react-intl@12.1.5(@types/react@19.3.0)(react@19.3.1):
+  react-intl@12.1.6(@types/react@19.3.0)(react@19.3.1):
     dependencies:
       '@formatjs/icu-messageformat-parser': 3.5.22
       '@formatjs/intl': 6.1.4
