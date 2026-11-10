@@ -191,6 +191,7 @@ class AppBootstrapController extends Controller
                     'type' => $reward->type,
                     'durationMinutes' => $reward->duration_minutes,
                     'emoji' => $reward->emoji,
+                    'portalOnly' => $reward->type === 'wifi' && filled(config('services.unifi.portal_ssid')),
                 ])
                 ->values(),
             'redemptions' => $redemptions->map(fn (RewardRedemption $redemption) => [

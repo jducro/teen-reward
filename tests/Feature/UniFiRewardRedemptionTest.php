@@ -7,6 +7,7 @@ use App\Models\RewardRedemption;
 use App\Models\UniFiSyncLog;
 use App\Models\User;
 use App\Services\UniFiService;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Tests\TestCase;
 
 class UniFiRewardRedemptionTest extends TestCase
@@ -14,6 +15,9 @@ class UniFiRewardRedemptionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->withoutMiddleware(PreventRequestForgery::class);
+        config(['services.unifi.portal_ssid' => null]);
         $this->app->instance(UniFiService::class, new class extends UniFiService
         {
             public function generateVoucher(int $duration = 60, ?int $bandwidth = null, ?string $note = null): array

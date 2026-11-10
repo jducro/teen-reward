@@ -34,6 +34,7 @@ return [
         'not_enough_points' => 'You do not have enough points.',
         'redeemed' => 'Reward redeemed.',
         'redeemed_with_voucher' => 'Reward redeemed. Voucher: :voucher',
+        'use_portal' => 'Connect to the guest Wi-Fi and choose your reward from the portal.',
     ],
     'teen' => [
         'created' => 'Teen account created.',

@@ -53,6 +53,12 @@ class RewardController extends Controller
 
         abort_unless($user?->role === 'teen', 403);
 
+        if ($reward->type === 'wifi' && config('services.unifi.portal_ssid')) {
+            return response()->json([
+                'message' => __('messages.reward.use_portal'),
+            ], 422);
+        }
+
         if ($user->points_balance < $reward->points_cost) {
             return response()->json([
                 'message' => __('messages.reward.not_enough_points'),

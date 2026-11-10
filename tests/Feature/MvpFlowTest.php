@@ -16,6 +16,7 @@ class MvpFlowTest extends TestCase
     {
         parent::setUp();
         $this->withoutMiddleware(PreventRequestForgery::class);
+        config(['services.unifi.portal_ssid' => null]);
 
         // Mock UniFiService for this test
         $unifiService = $this->mock(UniFiService::class);

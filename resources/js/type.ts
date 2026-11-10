@@ -60,6 +60,7 @@ export type Reward = {
     durationMinutes: number;
     emoji: string;
     type: RewardType;
+    portalOnly?: boolean;
 };
 
 export type Teen = {

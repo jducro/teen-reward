@@ -150,6 +150,7 @@
     "shop.action.redeem": "Échanger",
     "shop.action.notEnough": "Pas assez",
     "shop.action.teenOnly": "Réservé ado",
+    "shop.action.portalOnly": "Via le portail Wi-Fi",
     "shop.modal.success": "Échange réussi !",
     "shop.modal.obtained": "Tu as obtenu :",
     "shop.modal.voucherCode": "Code : {code}",

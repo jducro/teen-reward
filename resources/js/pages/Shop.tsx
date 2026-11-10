@@ -30,7 +30,7 @@ export default function Shop({
   });
 
   async function buy(reward: Reward) {
-    if (coins < reward.pointsCost || !canRedeem) {
+    if (coins < reward.pointsCost || !canRedeem || reward.portalOnly) {
       return;
     }
 
@@ -205,7 +205,7 @@ export default function Shop({
       <div className="shop-grid">
         {rewards.map((reward, i) => {
           const isRedeemBusy = busyKey === `redeem:${reward.id}`;
-          const canTeenRedeem = canRedeem && coins >= reward.pointsCost && !isRedeemBusy;
+          const canTeenRedeem = canRedeem && coins >= reward.pointsCost && !isRedeemBusy && !reward.portalOnly;
           const isDeleteBusy = busyKey === `reward:delete:${reward.id}`;
 
           return (
@@ -273,11 +273,13 @@ export default function Shop({
                 >
                   {isRedeemBusy
                     ? '…'
-                    : canRedeem
-                      ? (coins >= reward.pointsCost
-                        ? intl.formatMessage({ id: 'shop.action.redeem', defaultMessage: 'Redeem' })
-                        : intl.formatMessage({ id: 'shop.action.notEnough', defaultMessage: 'Not enough' }))
-                      : intl.formatMessage({ id: 'shop.action.teenOnly', defaultMessage: 'Teen only' })}
+                    : reward.portalOnly
+                      ? intl.formatMessage({ id: 'shop.action.portalOnly', defaultMessage: 'Via the Wi-Fi portal' })
+                      : canRedeem
+                        ? (coins >= reward.pointsCost
+                          ? intl.formatMessage({ id: 'shop.action.redeem', defaultMessage: 'Redeem' })
+                          : intl.formatMessage({ id: 'shop.action.notEnough', defaultMessage: 'Not enough' }))
+                        : intl.formatMessage({ id: 'shop.action.teenOnly', defaultMessage: 'Teen only' })}
                 </motion.button>
               )}
             </motion.div>

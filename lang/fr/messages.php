@@ -34,6 +34,7 @@ return [
         'not_enough_points' => 'Vous n\'avez pas assez de points.',
         'redeemed' => 'Récompense échangée.',
         'redeemed_with_voucher' => 'Récompense échangée. Bon : :voucher',
+        'use_portal' => 'Connecte-toi au Wi-Fi invité et choisis ta récompense depuis le portail.',
     ],
     'teen' => [
         'created' => 'Compte ado créé.',
