@@ -1,2 +1,5 @@
 allowBuilds:
   esbuild: true
+
+overrides:
+  "parse5-parser-stream>parse5": 8.1.0
