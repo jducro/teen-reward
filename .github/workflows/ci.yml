@@ -12,14 +12,14 @@ permissions:
 jobs:
   frontend:
     name: Run JavaScript Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 10
 
@@ -37,7 +37,7 @@ jobs:
 
   test:
     name: Run PHPUnit + Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Checkout repository
